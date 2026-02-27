@@ -31,8 +31,9 @@
     import { getInstallations, getId, getToken as getInstallationsToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-installations.js";
 
     window.addEventListener("DOMContentLoaded", () => {
+
       const firebaseConfig = {
-        apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
+        apiKey: "COLE_AQUI_A_API_KEY_DO_FIREBASE_WEB",
         authDomain: "agenda-4efa7.firebaseapp.com",
         projectId: "agenda-4efa7",
         storageBucket: "agenda-4efa7.appspot.com",
@@ -41,18 +42,13 @@
       };
 
       const VAPID_KEY = "BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAl2h_iZ8zkvl89-nOO1NqriRqlxPKvevxktY5SI8";
-const SW_PATH  = "/firebase-messaging-sw.js";
-const SW_SCOPE = "/";
+      const SW_PATH  = "/firebase-messaging-sw.js";
+      const SW_SCOPE = "/";
 
       const btn = document.getElementById("btnConectar");
       const btnReset = document.getElementById("btnReset");
       const statusTxt = document.getElementById("status");
       const logEl = document.getElementById("log");
-
-      if (!btn || !btnReset || !statusTxt || !logEl) {
-        alert("Erro: IDs do HTML não encontrados (btnConectar/btnReset/status/log).");
-        return;
-      }
 
       function log(...args) {
         const msg = args.map(a => (typeof a === "string" ? a : JSON.stringify(a, null, 2))).join(" ");
@@ -63,30 +59,18 @@ const SW_SCOPE = "/";
       const app = initializeApp(firebaseConfig);
 
       btnReset.onclick = async () => {
-        try {
-          log("=== RESET INICIADO ===");
-          const regs = await navigator.serviceWorker.getRegistrations();
-          log("ServiceWorkers encontrados:", regs.length);
-          for (const r of regs) {
-            log("Unregister SW:", r.scope);
-            await r.unregister();
-          }
-          if ("caches" in window) {
-            const keys = await caches.keys();
-            log("Caches encontrados:", keys.length);
-            for (const k of keys) {
-              log("Deletando cache:", k);
-              await caches.delete(k);
-            }
-          }
-          try { localStorage.clear(); } catch {}
-          try { sessionStorage.clear(); } catch {}
-          log("RESET finalizado. Recarregando em 1s...");
-          setTimeout(() => location.reload(), 1000);
-        } catch (e) {
-          log("ERRO no reset:", e?.message || e);
-          alert("Falha no reset: " + (e?.message || e));
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          for (const k of keys) await caches.delete(k);
         }
+
+        localStorage.clear();
+        sessionStorage.clear();
+
+        setTimeout(() => location.reload(), 1000);
       };
 
       btn.onclick = async () => {
@@ -95,69 +79,46 @@ const SW_SCOPE = "/";
         statusTxt.innerText = "EM ANDAMENTO...";
 
         try {
-          log("=== DIAGNÓSTICO ===");
-          log("URL:", location.href);
-          log("API KEY EM USO:", firebaseConfig.apiKey);
-
           const supported = await isSupported();
-          log("FCM supported:", supported);
-          if (!supported) throw new Error("FCM não suportado neste navegador/ambiente.");
+          if (!supported) throw new Error("FCM não suportado");
 
           const permission = await Notification.requestPermission();
-          log("Notification permission:", permission);
-          if (permission !== "granted") throw new Error("Permissão negada.");
+          if (permission !== "granted") throw new Error("Permissão negada");
 
-          log("Registrando SW:", SW_PATH, "Scope:", SW_SCOPE);
           const reg = await navigator.serviceWorker.register(SW_PATH, { scope: SW_SCOPE });
           await navigator.serviceWorker.ready;
-		  
-		  if (!navigator.serviceWorker.controller) {
-  log("SW instalado. Recarregando 1x...");
-  setTimeout(() => location.reload(), 300);
-  return;
-}
 
-          // 1) Força Installations (gera credencial necessária)
-          log("Inicializando Firebase Installations...");
-          const installations = getInstallations(app);
-
-          const installationId = await getId(installations);
-          log("Installation ID:", installationId);
-
-          await getInstallationsToken(installations, true);
-          log("Installation Auth Token gerado");
-
-          // 2) Messaging token (limpa antes, para evitar lixo antigo)
-          const messaging = getMessaging(app);
-
-          try {
-            await deleteToken(messaging);
-            log("Token antigo removido (ou não existia)");
-          } catch (e) {
-            log("deleteToken falhou (ok):", e?.message || e);
+          if (!navigator.serviceWorker.controller) {
+            setTimeout(() => location.reload(), 300);
+            return;
           }
 
-          log("Gerando token FCM...");
+          const installations = getInstallations(app);
+          await getId(installations);
+          await getInstallationsToken(installations, true);
+
+          const messaging = getMessaging(app);
+
+          try { await deleteToken(messaging); } catch {}
+
           const token = await getToken(messaging, {
             vapidKey: VAPID_KEY,
             serviceWorkerRegistration: reg
           });
 
-          if (!token) throw new Error("Token FCM vazio.");
+          if (!token) throw new Error("Token vazio");
 
           statusTxt.innerText = "CONECTADO COM SUCESSO!";
           btn.style.background = "#4CAF50";
           btn.innerText = "CONEXÃO ATIVA";
-          log("TOKEN FCM:", token);
-          alert("SUCESSO! Token gerado.");
+          log("TOKEN:", token);
 
         } catch (err) {
-          console.error(err);
           statusTxt.innerText = "FALHA TÉCNICA";
           btn.disabled = false;
           btn.innerText = "TENTAR NOVAMENTE";
-          log("ERRO:", err?.message || err);
-          alert("Erro: " + (err?.message || err));
+          log("ERRO:", err.message);
+          alert(err.message);
         }
       };
     });
