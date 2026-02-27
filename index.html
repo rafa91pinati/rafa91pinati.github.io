@@ -1,127 +1,288 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Base de Validação - Agenda</title>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minha Agenda Inteligente - Oficial</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        /* CABEÇALHO */
+        .timeline-header { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; justify-content: space-between; }
+        .btn-date { flex: 1; padding: 10px 0; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.7rem; font-weight: bold; height: 42px; display: flex; align-items: center; justify-content: center; }
+        .btn-date.ativo { background: #2196F3; color: white; border-color: #2196F3; }
+        #dataSeletor { flex: 2; padding: 0 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.85rem; height: 42px; box-sizing: border-box; }
+        .btn-config { background: none; border: none; font-size: 1.3em; cursor: pointer; height: 42px; display: flex; align-items: center; }
+
+        /* TÍTULOS DE SEÇÃO */
+        .header-secao { border-left: 5px solid #2196F3; padding-left: 10px; margin: 20px 0 10px; color: #2196F3; font-size: 1rem; font-weight: bold; text-transform: uppercase; }
+
+        .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; }
+        .btn-cat { white-space: nowrap; padding: 8px 15px; border-radius: 20px; border: 2px solid #ddd; background: #f9f9f9; cursor: pointer; font-size: 0.85em; }
+        .btn-cat.ativo { background: #333; color: white; }
+        
+        .secao-card { background: #fafafa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; }
+        input[type="text"], input[type="time"], input[type="number"] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        #btnSalvar { background: #4CAF50; color: white; border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        /* CARD DE TAREFA */
+        .tarefa-item { background: #fff; margin-bottom: 12px; padding: 15px; border-radius: 12px; border-left: 6px solid #2196F3; box-shadow: 0 3px 6px rgba(0,0,0,0.08); position: relative; }
+        .tarefa-info-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .label-cat { font-size: 0.75rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; background: #f0f0f0; }
+        .btn-excluir { background: #fff0f0; border: none; color: #ff4d4d; cursor: pointer; font-size: 1rem; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .escondido { display: none !important; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; position: relative; }
+        .tab-btn { background: none; border: none; padding: 10px; cursor: pointer; opacity: 0.5; font-size: 1.5em; }
+        .tab-btn.ativo { opacity: 1; border-bottom: 3px solid #2196F3; }
+    </style>
 </head>
+<body>
 
-<body style="font-family: sans-serif; text-align: center; padding: 40px;">
-  <h1 id="status">SISTEMA VALIDADO</h1>
-  <p id="detalhes">Clique para ativar as notificações.</p>
+<div class="container">
+    <div class="timeline-header">
+        <button class="btn-date" id="btnSemanal" onclick="setarData('semanal', this)">Semanal</button>
+        <button class="btn-date" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+        <button class="btn-config" onclick="abrirConfig()">⚙️</button>
+    </div>
 
-  <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-    <button id="btnConectar"
-      style="padding: 20px; font-size: 1.2em; background: #2196F3; color: white; border: none; border-radius: 12px; cursor: pointer;">
-      ATIVAR AGORA
-    </button>
+    <div class="category-scroll" id="listaBotoesCat"></div>
+    <input type="hidden" id="categoriaSelecionada" value="Geral">
+    <input type="hidden" id="corSelecionada" value="#4CAF50">
 
-    <button id="btnReset"
-      style="padding: 20px; font-size: 1.0em; background: #555; color: white; border: none; border-radius: 12px; cursor: pointer;">
-      RESET SW/CACHE
-    </button>
-  </div>
+    <div class="header-secao">📝 Nova Tarefa</div>
+    <div class="secao-card">
+        <input type="text" id="descTask" placeholder="O que vamos fazer?">
+        <div style="display: flex; gap: 8px;">
+            <input type="time" id="horaTask" style="flex: 1;">
+            <input type="file" id="fotoTask" accept="image/*" style="flex: 1.5; font-size: 0.7em; align-self: center;">
+        </div>
+        <button id="btnSalvar">Salvar na Agenda</button>
+    </div>
 
-  <pre id="log" style="text-align:left; max-width:900px; margin:30px auto; background:#f5f5f5; padding:12px; border-radius:10px; overflow:auto;"></pre>
+    <div class="header-secao">📅 Minhas Atividades</div>
+    <div id="secaoLista">
+        <div id="listaTarefas">Sincronizando...</div>
+    </div>
+</div>
 
-  <script type="module">
+<div id="modalConfig" class="modal escondido">
+    <div class="modal-content">
+        <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2em; cursor:pointer;">✕</button>
+        <div class="modal-tabs">
+            <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
+            <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
+        </div>
+        
+        <div id="conteudoAlarme">
+            <h4 id="statusNotif">Configurações de Alerta</h4>
+            <p style="font-size: 0.8em; color: #666;">Minutos de antecedência:</p>
+            <input type="number" id="minutosAlerta" value="15">
+            
+            <button id="btnAtivarNotificacao" onclick="solicitarNotificacao()" 
+                style="width:100%; padding:12px; background:#2196F3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom: 10px;">
+                ATIVAR NOTIFICAÇÕES
+            </button>
+
+            <button id="btnResetGeral" style="width:100%; padding:10px; background:#555; color:white; border:none; border-radius:8px; cursor:pointer; font-size: 0.8em;">
+                RESET SW / LIMPAR CACHE
+            </button>
+        </div>
+
+        <div id="conteudoCategorias" class="escondido">
+            <div id="listaExcluirCat"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // USANDO VERSÃO 12.4.0 QUE FOI VALIDADA COM SUCESSO
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, deleteDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getMessaging, getToken, isSupported, deleteToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { getInstallations, getId, getToken as getInstallationsToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-installations.js";
 
-    window.addEventListener("DOMContentLoaded", () => {
-
-      const firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
         projectId: "agenda-4efa7",
         storageBucket: "agenda-4efa7.appspot.com",
         messagingSenderId: "299659202964",
         appId: "1:299659202964:web:e358210feb4d7784f63f81"
-      };
+    };
 
-      const VAPID_KEY = "BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8";
-      const SW_PATH  = "/firebase-messaging-sw.js";
-      const SW_SCOPE = "/";
+    const VAPID_KEY = "BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8";
 
-      const btn = document.getElementById("btnConectar");
-      const btnReset = document.getElementById("btnReset");
-      const statusTxt = document.getElementById("status");
-      const logEl = document.getElementById("log");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    let filtroDataAtual = 'hoje';
 
-      function log(...args) {
-        const msg = args.map(a => (typeof a === "string" ? a : JSON.stringify(a, null, 2))).join(" ");
-        logEl.textContent += msg + "\n";
-        console.log(...args);
-      }
+    // FUNÇÃO DE SOLICITAÇÃO COM LÓGICA DE IDENTIDADE FORÇADA (FIX 401)
+    window.solicitarNotificacao = async () => {
+        const btn = document.getElementById("btnAtivarNotificacao");
+        const statusTxt = document.getElementById("statusNotif");
+        
+        btn.disabled = true;
+        btn.innerText = "SINCRONIZANDO...";
 
-      const app = initializeApp(firebaseConfig);
+        try {
+            const supported = await isSupported();
+            if (!supported) throw new Error("FCM não suportado neste navegador.");
 
-      btnReset.onclick = async () => {
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") throw new Error("Permissão de notificação negada.");
+
+            // Registrar Service Worker
+            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
+            await navigator.serviceWorker.ready;
+
+            // Lógica de Identidade Forçada (Installations API)
+            const installations = getInstallations(app);
+            await getId(installations);
+            await getInstallationsToken(installations, true);
+
+            const messaging = getMessaging(app);
+            try { await deleteToken(messaging); } catch {} // Limpa token antigo se existir
+
+            const token = await getToken(messaging, {
+                vapidKey: VAPID_KEY,
+                serviceWorkerRegistration: reg
+            });
+
+            if (!token) throw new Error("Falha ao gerar Token.");
+
+            console.log("TOKEN ATIVO:", token);
+            statusTxt.innerText = "NOTIFICAÇÕES ATIVAS!";
+            statusTxt.style.color = "#4CAF50";
+            btn.innerText = "CONEXÃO OK";
+            btn.style.background = "#4CAF50";
+            alert("Sucesso! Sua agenda agora pode te enviar alertas.");
+
+        } catch (err) {
+            console.error(err);
+            btn.disabled = false;
+            btn.innerText = "TENTAR NOVAMENTE";
+            alert("Erro: " + err.message);
+        }
+    };
+
+    // BOTÃO DE RESET (SW E CACHE)
+    document.getElementById("btnResetGeral").onclick = async () => {
+        if(!confirm("Isso irá resetar as conexões de notificação e limpar o cache. Continuar?")) return;
+        
         const regs = await navigator.serviceWorker.getRegistrations();
         for (const r of regs) await r.unregister();
 
         if ("caches" in window) {
-          const keys = await caches.keys();
-          for (const k of keys) await caches.delete(k);
+            const keys = await caches.keys();
+            for (const k of keys) await caches.delete(k);
         }
 
         localStorage.clear();
         sessionStorage.clear();
+        alert("Reset concluído. A página será reiniciada.");
+        location.reload();
+    };
 
-        setTimeout(() => location.reload(), 1000);
-      };
+    // --- RESTANTE DA LÓGICA DA AGENDA (Firestore e UI) ---
 
-      btn.onclick = async () => {
-        btn.disabled = true;
-        btn.innerText = "SINCRONIZANDO...";
-        statusTxt.innerText = "EM ANDAMENTO...";
+    window.abrirConfig = () => {
+        document.getElementById('modalConfig').classList.remove('escondido');
+        carregarCategorias(); 
+    };
+
+    window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
+    
+    window.mudarAba = (aba) => {
+        const cA = document.getElementById('conteudoAlarme'), cC = document.getElementById('conteudoCategorias');
+        const tA = document.getElementById('tabAlarme'), tC = document.getElementById('tabCat');
+        if(aba==='alarme'){cA.classList.remove('escondido');cC.classList.add('escondido');tA.classList.add('ativo');tC.classList.remove('ativo');}
+        else{cC.classList.remove('escondido');cA.classList.add('escondido');tC.classList.add('ativo');tA.classList.remove('ativo');}
+    };
+
+    window.setarData = (tipo, el) => {
+        const input = document.getElementById('dataSeletor');
+        document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
+        if (tipo === 'hoje') { input.value = new Date().toISOString().split('T')[0]; el.classList.add('ativo'); filtroDataAtual = 'hoje'; }
+        else if (tipo === 'amanha') { const am = new Date(); am.setDate(am.getDate()+1); input.value = am.toISOString().split('T')[0]; el.classList.add('ativo'); filtroDataAtual = 'amanha'; }
+        else if (tipo === 'semanal') { el.classList.add('ativo'); filtroDataAtual = 'semanal'; }
+        carregarTarefas();
+    };
+
+    window.selecionarCat = (n, c, el) => {
+        document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('ativo'));
+        el.classList.add('ativo');
+        document.getElementById('categoriaSelecionada').value = n;
+        document.getElementById('corSelecionada').value = c;
+        carregarTarefas();
+    };
+
+    window.excluirTask = async (id) => { if(confirm("Remover esta atividade?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+
+    async function carregarTarefas() {
+        const lista = document.getElementById('listaTarefas'), dataFiltro = document.getElementById('dataSeletor').value, catFiltro = document.getElementById('categoriaSelecionada').value;
+        try {
+            const q = query(collection(db, "tarefas"), orderBy("hora", "asc"));
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+            snap.forEach(d => {
+                const t = d.data();
+                if (catFiltro !== "Geral" && t.categoria !== catFiltro) return;
+                if (filtroDataAtual !== 'semanal' && t.dataString !== dataFiltro) return;
+                
+                lista.innerHTML += `
+                    <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}">
+                        <div class="tarefa-info-top">
+                            <span class="label-cat" style="color:${t.corCategoria}">${t.categoria || 'Geral'}</span>
+                            <button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button>
+                        </div>
+                        <div class="tarefa-desc">${t.descricao}</div>
+                        <div class="tarefa-hora">⏰ ${t.hora || '--:--'}</div>
+                        ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}
+                    </div>`;
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    async function carregarCategorias() {
+        const container = document.getElementById('listaBotoesCat');
+        const snap = await getDocs(collection(db, "categorias"));
+        container.innerHTML = `<button class="btn-cat ativo" onclick="selecionarCat('Geral', '#4CAF50', this)">Geral</button>`;
+        snap.forEach(d => {
+            const c = d.data();
+            container.innerHTML += `<button class="btn-cat" style="border-bottom:3px solid ${c.cor}" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</button>`;
+        });
+    }
+
+    document.getElementById('btnSalvar').onclick = async () => {
+        const desc = document.getElementById('descTask').value, hora = document.getElementById('horaTask').value, data = document.getElementById('dataSeletor').value;
+        if(!desc || !data) return alert("Preencha descrição e data!");
+        
+        let btn = document.getElementById('btnSalvar');
+        btn.innerText = "Salvando..."; btn.disabled = true;
 
         try {
-          const supported = await isSupported();
-          if (!supported) throw new Error("FCM não suportado");
+            await addDoc(collection(db, "tarefas"), {
+                descricao: desc, hora: hora, dataString: data,
+                categoria: document.getElementById('categoriaSelecionada').value,
+                corCategoria: document.getElementById('corSelecionada').value,
+                dataCriacao: new Date()
+            });
+            document.getElementById('descTask').value = ""; carregarTarefas();
+        } catch(e) { alert("Erro ao salvar no banco!"); }
+        btn.innerText = "Salvar na Agenda"; btn.disabled = false;
+    };
 
-          const permission = await Notification.requestPermission();
-          if (permission !== "granted") throw new Error("Permissão negada");
-
-          const reg = await navigator.serviceWorker.register(SW_PATH, { scope: SW_SCOPE });
-          await navigator.serviceWorker.ready;
-
-          if (!navigator.serviceWorker.controller) {
-            setTimeout(() => location.reload(), 300);
-            return;
-          }
-
-          const installations = getInstallations(app);
-          await getId(installations);
-          await getInstallationsToken(installations, true);
-
-          const messaging = getMessaging(app);
-
-          try { await deleteToken(messaging); } catch {}
-
-          const token = await getToken(messaging, {
-            vapidKey: VAPID_KEY,
-            serviceWorkerRegistration: reg
-          });
-
-          if (!token) throw new Error("Token vazio");
-
-          statusTxt.innerText = "CONECTADO COM SUCESSO!";
-          btn.style.background = "#4CAF50";
-          btn.innerText = "CONEXÃO ATIVA";
-          log("TOKEN:", token);
-
-        } catch (err) {
-          statusTxt.innerText = "FALHA TÉCNICA";
-          btn.disabled = false;
-          btn.innerText = "TENTAR NOVAMENTE";
-          log("ERRO:", err.message);
-          alert(err.message);
-        }
-      };
-    });
-  </script>
+    // Inicialização
+    setarData('hoje', document.getElementById('btnHoje'));
+    carregarCategorias();
+</script>
 </body>
 </html>
