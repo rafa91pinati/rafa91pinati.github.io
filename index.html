@@ -86,7 +86,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, deleteDoc, doc, orderBy, where } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, deleteDoc, doc, orderBy, where, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getMessaging, getToken, isSupported, deleteToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { getInstallations, getId, getToken as getInstallationsToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-installations.js";
@@ -113,7 +113,65 @@
         carregarCategorias();
         setarData('hoje', document.getElementById('btnHoje'));
     });
+async function verificarAlarmes() {
+    const agora = new Date();
+    const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+    const dataHoje = agora.toISOString().split('T')[0];
+    
+    // Pega o valor de antecedência do seu input (ex: 1 minuto)
+    const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
 
+    try {
+        const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje));
+        const snap = await getDocs(q);
+        
+        snap.forEach(async (d) => {
+            const t = d.data();
+            // Só processa se tiver hora e se o alerta ainda NÃO disparou
+            if (!t.hora || t.alertaDisparado === true) return;
+
+            const [h, m] = t.hora.split(':');
+            const dataTarefa = new Date();
+            dataTarefa.setHours(h, m, 0);
+            
+            // Calcula o momento do alerta (Horário da tarefa - X minutos)
+            const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
+            const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
+
+            // Se o relógio bater com o minuto do alerta
+            if (horaAtual === horaAlerta) {
+                console.log("⏰ Disparando alarme para:", t.descricao);
+                
+                // 1. Dispara a notificação visual e sonora
+                dispararNotificacao(t.descricao, t.hora);
+                
+                // 2. ATUALIZA NO FIREBASE para não disparar novamente
+                await updateDoc(doc(db, "tarefas", d.id), { 
+                    alertaDisparado: true 
+                });
+            }
+        });
+    } catch (e) { 
+        console.error("Erro no monitor de alarmes:", e); 
+    }
+}
+
+function dispararNotificacao(titulo, hora) {
+    if (Notification.permission === "granted") {
+        // Notificação Visual
+        const notif = new Notification("⏰ Lembrete de Tarefa", {
+            body: `Faltam ${document.getElementById('minutosAlerta').value} min para: ${titulo} (${hora})`,
+            icon: "/favicon.ico",
+            vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40, 500]
+        });
+
+        // Som de Alarme (Usando uma URL estável)
+        const somAlarme = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+        somAlarme.play().catch(e => console.log("Áudio bloqueado pelo navegador. Clique na página para liberar."));
+        
+        notif.onclick = () => { window.focus(); somAlarme.pause(); };
+    }
+}
     // 2. GESTÃO DE CATEGORIAS
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaBotoesCat');
