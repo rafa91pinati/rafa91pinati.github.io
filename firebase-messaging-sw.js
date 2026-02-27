@@ -10,13 +10,17 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Captura mensagens quando o navegador está fechado
 messaging.onBackgroundMessage((payload) => {
-  console.log('Mensagem recebida em segundo plano: ', payload);
-  const notificationTitle = payload.notification.title;
+  console.log('[SW] Mensagem recebida:', payload);
+  const notificationTitle = payload.notification?.title || "Lembrete da Agenda";
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/firebase-logo.png'
+    body: payload.notification?.body || "Você tem uma atividade marcada agora!",
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    vibrate: [200, 100, 200],
+    tag: 'alarme-tarefa'
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
