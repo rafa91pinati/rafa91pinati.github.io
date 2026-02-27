@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - rev1.2.1</title>
+    <title>Minha Agenda Inteligente - rev1.2.2</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
@@ -43,7 +43,7 @@
         <button class="btn-config" onclick="abrirConfig()">⚙️</button>
     </div>
 
-    <div class="category-scroll" id="listaBotoesCat">Carregando categorias...</div>
+    <div class="category-scroll" id="listaBotoesCat">Carregando...</div>
     <input type="hidden" id="categoriaSelecionada" value="Geral">
     <input type="hidden" id="corSelecionada" value="#4CAF50">
 
@@ -59,7 +59,7 @@
 
     <div class="header-secao">📅 Minhas Atividades</div>
     <div id="secaoLista">
-        <div id="listaTarefas">Sincronizando tarefas...</div>
+        <div id="listaTarefas">Sincronizando...</div>
     </div>
 </div>
 
@@ -72,15 +72,14 @@
         </div>
         <div id="conteudoAlarme">
             <h4 id="statusNotif">Configurações de Alerta</h4>
-            <p style="font-size:0.8em; color:#666;">Minutos antes do horário:</p>
             <input type="number" id="minutosAlerta" value="1">
             <button id="btnAtivarNotificacao" onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#2196F3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:10px;">ATIVAR NOTIFICAÇÕES</button>
-            <button id="btnTestarSom" onclick="testarSom()" style="width:100%; padding:10px; background:#FF9800; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-bottom:10px;">TESTAR SOM DO ALARME</button>
-            <button id="btnResetGeral" style="width:100%; padding:10px; background:#555; color:white; border:none; border-radius:8px; cursor:pointer; font-size: 0.8em;">RESET SW / LIMPAR CACHE</button>
+            <button id="btnTestarSom" onclick="testarSom()" style="width:100%; padding:10px; background:#FF9800; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-bottom:10px;">TESTAR SOM</button>
+            <button id="btnResetGeral" style="width:100%; padding:10px; background:#555; color:white; border:none; border-radius:8px; cursor:pointer; font-size: 0.8em;">RESET SW / CACHE</button>
         </div>
         <div id="conteudoCategorias" class="escondido">
-            <h4>Gerenciar Categorias</h4>
-            <div id="listaExcluirCat" style="margin-top:10px;"></div>
+            <h4>Categorias</h4>
+            <div id="listaExcluirCat"></div>
         </div>
     </div>
 </div>
@@ -108,13 +107,12 @@
     const messaging = getMessaging(app);
     let filtroDataAtual = 'hoje';
 
-    // 1. INICIALIZAÇÃO
+    // Inicialização
     signInAnonymously(auth).then(() => {
-        console.log("🔓 Autenticado Anonimamente");
         carregarCategorias();
         setarData('hoje', document.getElementById('btnHoje'));
         setInterval(verificarAlarmes, 60000);
-    }).catch(e => console.error("Erro Auth:", e));
+    }).catch(e => console.error("Erro no Login:", e));
 
     async function salvarTokenNoBanco(token) {
         try {
@@ -122,57 +120,48 @@
             await setDoc(tokenRef, {
                 token: token,
                 ultimoAcesso: new Date(),
-                usuario: "admin",
                 dispositivo: navigator.userAgent
             }, { merge: true });
-            console.log("✅ Token sincronizado");
-        } catch (e) { console.error("Erro Token:", e); }
+            console.log("Token salvo.");
+        } catch (e) { console.error(e); }
     }
 
     async function verificarAlarmes() {
         const agora = new Date();
-        const dataHoje = agora.toLocaleDateString('en-CA'); 
+        const dataHoje = agora.toLocaleDateString('en-CA');
         const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
         const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
-
-        console.log(`[Vigia] Verificando: ${horaAtual} - ${dataHoje}`);
 
         try {
             const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje), where("alertaDisparado", "==", false));
             const snap = await getDocs(q);
-            
             snap.forEach(async (d) => {
                 const t = d.data();
                 const [h, m] = t.hora.split(':');
                 const dataTarefa = new Date();
                 dataTarefa.setHours(h, m, 0);
-                
                 const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
                 const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
 
                 if (horaAtual === horaAlerta) {
-                    console.log("🔔 ALARME!");
                     dispararNotificacao(t.descricao, t.hora);
                     await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
                 }
             });
-        } catch (e) { console.error("Erro Monitor:", e); }
+        } catch (e) { console.error(e); }
     }
 
     function dispararNotificacao(titulo, hora) {
         if (Notification.permission === "granted") {
-            new Notification("⏰ Alerta de Agenda", {
-                body: `Tarefa: ${titulo} às ${hora}`,
-                icon: "/favicon.ico"
-            });
-            new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play().catch(() => {});
+            new Notification("⏰ Alerta!", { body: `${titulo} às ${hora}` });
+            new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play().catch(()=>{});
         }
     }
 
     window.testarSom = () => {
         new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play()
             .then(() => alert("Som OK!"))
-            .catch(() => alert("Clique na tela primeiro!"));
+            .catch(() => alert("Interaja com a tela primeiro."));
     };
 
     document.getElementById('btnSalvar').onclick = async () => {
@@ -180,8 +169,7 @@
         const hora = document.getElementById('horaTask').value;
         const data = document.getElementById('dataSeletor').value;
         const fileInput = document.getElementById('fotoTask');
-        
-        if(!desc || !data || !hora) return alert("Preencha todos os campos!");
+        if(!desc || !data || !hora) return alert("Preencha tudo!");
         
         const btn = document.getElementById('btnSalvar');
         btn.innerText = "Salvando..."; btn.disabled = true;
@@ -204,7 +192,6 @@
                     };
                 });
             }
-
             await addDoc(collection(db, "tarefas"), {
                 descricao: desc, hora: hora, dataString: data,
                 categoria: document.getElementById('categoriaSelecionada').value,
@@ -212,7 +199,7 @@
                 fotoUrl: base64, dataCriacao: new Date(), alertaDisparado: false
             });
             document.getElementById('descTask').value = ""; carregarTarefas();
-        } catch(e) { alert("Erro ao salvar!"); }
+        } catch(e) { console.error(e); }
         btn.innerText = "Salvar na Agenda"; btn.disabled = false;
     };
 
@@ -226,15 +213,14 @@
             snap.forEach(d => {
                 const c = d.data();
                 container.innerHTML += `<button class="btn-cat" style="border-bottom:3px solid ${c.cor}" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</button>`;
-                listaExcluir.innerHTML += `<div class="cat-excluir-item"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')" style="border:none; color:red; background:none; cursor:pointer;">Excluir</button></div>`;
+                listaExcluir.innerHTML += `<div class="cat-excluir-item"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer;">✕</button></div>`;
             });
             container.innerHTML += `<button onclick="promptNovaCat()" style="border:none;background:none;font-size:1.5em;color:#2196F3; cursor:pointer;">+</button>`;
-        } catch (e) { container.innerHTML = "Erro categorias."; }
+        } catch (e) { container.innerHTML = "Erro."; }
     };
 
     window.promptNovaCat = async () => {
-        const nome = prompt("Nome da categoria:");
-        if (!nome) return;
+        const nome = prompt("Nome:"); if (!nome) return;
         const cor = prompt("Cor (Hex):", "#2196F3");
         await addDoc(collection(db, "categorias"), { nome, cor });
         carregarCategorias();
@@ -273,17 +259,22 @@
                 const t = d.data();
                 if (catFiltro !== "Geral" && t.categoria !== catFiltro) return;
                 if (filtroDataAtual !== 'semanal' && t.dataString !== dataFiltro) return;
-                lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}"><div class="tarefa-info-top"><span class="label-cat">${t.categoria || 'Geral'}</span><button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button></div><div class="tarefa-desc">${t.descricao}</div><div class="tarefa-hora">⏰ ${t.hora || '--:--'}</div>${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}</div>`;
+                lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}">
+                    <div class="tarefa-info-top"><span class="label-cat">${t.categoria || 'Geral'}</span><button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button></div>
+                    <div class="tarefa-desc">${t.descricao}</div>
+                    <div class="tarefa-hora">⏰ ${t.hora || '--:--'}</div>
+                    ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}
+                </div>`;
             });
-            if(lista.innerHTML === "") lista.innerHTML = "Nenhuma tarefa para este filtro.";
-        } catch(e) { lista.innerHTML = "Erro ao carregar tarefas."; console.error(e); }
+            if(lista.innerHTML === "") lista.innerHTML = "Sem tarefas.";
+        } catch(e) { console.error(e); }
     };
 
     window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
 
     window.solicitarNotificacao = async () => {
         const btn = document.getElementById("btnAtivarNotificacao");
-        btn.disabled = true; btn.innerText = "SINCRONIZANDO...";
+        btn.disabled = true; btn.innerText = "SINCRO...";
         try {
             const permission = await Notification.requestPermission();
             if (permission !== "granted") throw new Error("Negada");
