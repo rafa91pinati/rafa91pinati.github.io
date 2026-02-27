@@ -165,7 +165,19 @@
             audio.play().catch(e => console.log("Áudio bloqueado. Interaja com a página."));
         }
     }
+messaging.onBackgroundMessage((payload) => {
+  console.log('Alarme recebido em segundo plano:', payload);
+  
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: '/favicon.ico', // certifique-se que o caminho está certo
+    requireInteraction: true, // A notificação não some até você clicar
+    tag: 'alarme-agenda'
+  };
 
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
     window.testarSom = () => {
         const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
         audio.play().then(() => alert("Som funcionando!")).catch(() => alert("Clique na tela primeiro para liberar o som."));
