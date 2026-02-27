@@ -275,6 +275,20 @@
 
     window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
     window.solicitarNotificacao = async () => {
+	
+	const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+
+if (token) {
+    // SALVA O TOKEN NO BANCO PARA A REV 2.0
+    await addDoc(collection(db, "assinaturas"), {
+        token: token,
+        usuario: "admin", // ou o ID do usuário
+        dataRegistro: new Date()
+    });
+    console.log("Token salvo no servidor!");
+    // ... restante do código
+}
+
         const btn = document.getElementById("btnAtivarNotificacao");
         btn.disabled = true; btn.innerText = "SINCRONIZANDO...";
         try {
