@@ -3,7 +3,7 @@ importScripts('https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging-comp
 
 // Inicializando Firebase com a chave do Firebase Web
 firebase.initializeApp({
-  apiKey: "I_waKJL3y7utz-8A8U3rxj863fQqUKf6MsiROfKbesw", // Use a chave do Firebase Web
+  apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s", // Use a chave do Firebase Web
   authDomain: "agenda-4efa7.firebaseapp.com",
   projectId: "agenda-4efa7",
   storageBucket: "agenda-4efa7.appspot.com",
