@@ -1,27 +1,29 @@
-// Captura mensagens quando o navegador está fechado
-messaging.onBackgroundMessage((payload) => {
-  console.log('[SW] Alarme recebido em segundo plano:', payload);
-  
-  const notificationTitle = payload.notification?.title || "⏰ HORA DA TAREFA!";
-  const notificationOptions = {
-    body: payload.notification?.body || "Clique para ver os detalhes da atividade.",
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
-    vibrate: [500, 110, 500, 110, 500], // Vibração mais longa para alarme
-    tag: 'alarme-tarefa',
-    requireInteraction: true, // A notificação NÃO SOME até você clicar nela
-    data: {
-      url: 'https://rafa91pinati.github.io/' // Link do seu app
-    }
-  };
+// Usando a versão Compat para garantir máxima compatibilidade no Service Worker
+importScripts('https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging-compat.js');
 
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+firebase.initializeApp({
+  apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
+  messagingSenderId: "299659202964",
+  projectId: "agenda-4efa7",
+  appId: "1:299659202964:web:e358210feb4d7784f63f81"
 });
 
-// Lógica para abrir o app ao clicar na notificação
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  event.waitUntil(
-    clients.openWindow(event.notification.data.url)
-  );
+const messaging = firebase.messaging();
+
+// Lógica para quando o app está fechado
+messaging.onBackgroundMessage((payload) => {
+  console.log('[SW] Alarme recebido:', payload);
+  
+  const title = payload.notification?.title || "⏰ HORA DA TAREFA!";
+  const options = {
+    body: payload.notification?.body || "Confira sua agenda agora.",
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    vibrate: [500, 110, 500, 110, 500],
+    tag: 'alarme-agenda',
+    requireInteraction: true // Mantém o alerta na tela
+  };
+
+  return self.registration.showNotification(title, options);
 });
