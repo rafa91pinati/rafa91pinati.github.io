@@ -93,7 +93,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, deleteDoc, doc, orderBy, where, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, query, where, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
@@ -120,7 +120,24 @@
         // Inicia o monitor de alarmes APÓS o login
         setInterval(verificarAlarmes, 60000);
     });
+async function salvarTokenNoBanco(token) {
+    try {
+        // Criamos uma referência única baseada no token (usando hash ou o próprio token limpo)
+        // Isso evita duplicatas se o usuário abrir o app várias vezes
+        const tokenRef = doc(db, "assinaturas", token.substring(0, 20)); // Usamos parte do token como ID
 
+        await setDoc(tokenRef, {
+            token: token,
+            ultimoAcesso: new Date(),
+            usuario: "admin", // Você pode mudar isso quando tiver sistema de login
+            dispositivo: navigator.userAgent // Ajuda a identificar qual celular é
+        }, { merge: true });
+
+        console.log("✅ Token sincronizado com o servidor da Rev 2.0");
+    } catch (e) {
+        console.error("Erro ao salvar token no banco:", e);
+    }
+}
     // 2. LÓGICA DO MONITOR DE ALARMES (CORRIGIDA)
     async function verificarAlarmes() {
         const agora = new Date();
