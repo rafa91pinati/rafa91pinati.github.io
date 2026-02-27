@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente</title>
+    <title>Minha Agenda Inteligente - rev1.1</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
@@ -65,29 +65,25 @@
 
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
-	<button onclick="testarAudio()" style="width:100%; padding:10px; margin-top:10px; background:#FF9800; color:white; border:none; border-radius:8px;">
-    TESTAR SOM DO ALARME
-</button>
-
-<script>
-    window.testarAudio = () => {
-        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-        audio.play();
-        alert("Se você ouviu o bipe, o alarme está pronto!");
-    };
-</script>
         <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2em; cursor:pointer;">✕</button>
+        
         <div class="modal-tabs">
             <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
             <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
         </div>
+
         <div id="conteudoAlarme">
-            <h4 id="statusNotif">Alerta Antecipado</h4>
+            <h4 id="statusNotif">Configurações de Alerta</h4>
             <p style="font-size:0.8em; color:#666;">Minutos antes do horário:</p>
-            <input type="number" id="minutosAlerta" value="15">
+            <input type="number" id="minutosAlerta" value="1">
+            
             <button id="btnAtivarNotificacao" onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#2196F3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:10px;">ATIVAR NOTIFICAÇÕES</button>
+            
+            <button id="btnTestarSom" onclick="testarSom()" style="width:100%; padding:10px; background:#FF9800; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-bottom:10px;">TESTAR SOM DO ALARME</button>
+            
             <button id="btnResetGeral" style="width:100%; padding:10px; background:#555; color:white; border:none; border-radius:8px; cursor:pointer; font-size: 0.8em;">RESET SW / LIMPAR CACHE</button>
         </div>
+
         <div id="conteudoCategorias" class="escondido">
             <h4>Gerenciar Categorias</h4>
             <div id="listaExcluirCat" style="margin-top:10px;"></div>
@@ -98,9 +94,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, deleteDoc, doc, orderBy, where, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getMessaging, getToken, isSupported, deleteToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { getInstallations, getId, getToken as getInstallationsToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-installations.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
@@ -118,163 +113,72 @@
     const auth = getAuth(app);
     let filtroDataAtual = 'hoje';
 
-    // 1. INICIALIZAÇÃO: LOGAR ANONIMAMENTE PARA ACESSAR DADOS
+    // 1. INICIALIZAÇÃO
     signInAnonymously(auth).then(() => {
-        console.log("Conectado ao Firebase");
         carregarCategorias();
         setarData('hoje', document.getElementById('btnHoje'));
+        // Inicia o monitor de alarmes APÓS o login
+        setInterval(verificarAlarmes, 60000);
     });
-// Certifique-se de que 'updateDoc' está no seu import lá no topo
-import { getFirestore, collection, getDocs, query, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-async function verificarAlarmes() {
-    const agora = new Date();
-    // Formata a hora atual como "HH:mm"
-    const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
-    const dataHoje = agora.toISOString().split('T')[0];
-    
-    // Pega o valor definido no modal (ex: 1 minuto)
-    const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
+    // 2. LÓGICA DO MONITOR DE ALARMES (CORRIGIDA)
+    async function verificarAlarmes() {
+        const agora = new Date();
+        const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+        const dataHoje = agora.toISOString().split('T')[0];
+        const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
 
-    try {
-        const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje));
-        const snap = await getDocs(q);
-        
-        snap.forEach(async (d) => {
-            const t = d.data();
-            
-            // Pula tarefas sem hora ou que já dispararam o alarme
-            if (!t.hora || t.alertaDisparado === true) return;
-
-            // LÓGICA DO MINUTO ANTECIPADO
-            const [h, m] = t.hora.split(':');
-            const dataTarefa = new Date();
-            dataTarefa.setHours(h, m, 0);
-            
-            // Subtrai os minutos de antecedência
-            const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
-            const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
-
-            // Verifica se chegou o momento do alarme
-            if (horaAtual === horaAlerta) {
-                console.log("⏰ Alarme disparado para:", t.descricao);
-                
-                // Dispara o alerta visual e sonoro
-                dispararNotificacao(t.descricao, t.hora);
-                
-                // ATUALIZA NO FIREBASE: Isso impede que o alarme toque de novo no próximo minuto
-                await updateDoc(doc(db, "tarefas", d.id), { 
-                    alertaDisparado: true 
-                });
-            }
-        });
-    } catch (e) { 
-        console.error("Erro ao monitorar alarmes:", e); 
-    }
-}
-
-// O monitor roda a cada 60 segundos
-setInterval(verificarAlarmes, 60000);
-
-function dispararNotificacao(titulo, hora) {
-    if (Notification.permission === "granted") {
-        const notif = new Notification("⏰ Alerta da Agenda", {
-            body: `Sua tarefa "${titulo}" começa às ${hora}.`,
-            icon: "/favicon.ico",
-            vibrate: [500, 110, 500, 110, 500] // Padrão de vibração de alarme
-        });
-
-        // Som de alarme (URL estável do Google)
-        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
-        audio.play().catch(() => console.log("Áudio bloqueado. Interaja com a página primeiro."));
-        
-        notif.onclick = () => { window.focus(); audio.pause(); };
-    }
-}
-    // 2. GESTÃO DE CATEGORIAS
-    window.carregarCategorias = async () => {
-        const container = document.getElementById('listaBotoesCat');
-        const listaExcluir = document.getElementById('listaExcluirCat');
-        
         try {
-            const snap = await getDocs(collection(db, "categorias"));
+            const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje));
+            const snap = await getDocs(q);
             
-            // Barra superior
-            container.innerHTML = `<button class="btn-cat ativo" onclick="selecionarCat('Geral', '#4CAF50', this)">Geral</button>`;
-            
-            // Lista no Modal de Config
-            listaExcluir.innerHTML = "";
+            snap.forEach(async (d) => {
+                const t = d.data();
+                if (!t.hora || t.alertaDisparado === true) return;
 
-            snap.forEach(d => {
-                const c = d.data();
-                // Adiciona na barra principal
-                container.innerHTML += `<button class="btn-cat" style="border-bottom:3px solid ${c.cor}" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</button>`;
+                const [h, m] = t.hora.split(':');
+                const dataTarefa = new Date();
+                dataTarefa.setHours(h, m, 0);
                 
-                // Adiciona na lista de exclusão
-                listaExcluir.innerHTML += `
-                    <div class="cat-excluir-item">
-                        <span>${c.nome}</span>
-                        <button onclick="excluirCategoria('${d.id}')" style="border:none; color:red; background:none; cursor:pointer;">Excluir</button>
-                    </div>`;
+                const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
+                const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
+
+                if (horaAtual === horaAlerta) {
+                    console.log("⏰ Alarme!", t.descricao);
+                    dispararNotificacao(t.descricao, t.hora);
+                    
+                    // IMPORTANTE: Marcar como disparado no Banco
+                    await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
+                }
             });
+        } catch (e) { console.error("Monitor erro:", e); }
+    }
 
-            container.innerHTML += `<button onclick="promptNovaCat()" style="border:none;background:none;font-size:1.5em;color:#2196F3; cursor:pointer; padding-left:10px;">+</button>`;
-        } catch (e) {
-            container.innerHTML = "Erro ao carregar categorias.";
+    function dispararNotificacao(titulo, hora) {
+        if (Notification.permission === "granted") {
+            new Notification("⏰ Alerta de Agenda", {
+                body: `Sua tarefa "${titulo}" começa às ${hora}.`,
+                icon: "/favicon.ico",
+                vibrate: [500, 110, 500, 110, 500]
+            });
+            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+            audio.play().catch(e => console.log("Áudio bloqueado. Interaja com a página."));
         }
+    }
+
+    window.testarSom = () => {
+        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+        audio.play().then(() => alert("Som funcionando!")).catch(() => alert("Clique na tela primeiro para liberar o som."));
     };
 
-    window.promptNovaCat = async () => {
-        const nome = prompt("Nome da nova categoria:");
-        if (!nome) return;
-        const cor = prompt("Cor (Ex: #FF0000 ou red):", "#2196F3");
-        
-        try {
-            await addDoc(collection(db, "categorias"), { nome: nome, cor: cor || "#2196F3" });
-            carregarCategorias();
-        } catch (e) { alert("Erro ao criar categoria"); }
-    };
-
-    window.excluirCategoria = async (id) => {
-        if (confirm("Deseja remover esta categoria?")) {
-            await deleteDoc(doc(db, "categorias", id));
-            carregarCategorias();
-        }
-    };
-
-    window.selecionarCat = (nome, cor, el) => {
-        document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('ativo'));
-        el.classList.add('ativo');
-        document.getElementById('categoriaSelecionada').value = nome;
-        document.getElementById('corSelecionada').value = cor;
-        carregarTarefas();
-    };
-
-    // 3. RESTANTE DAS FUNÇÕES (NOTIFICAÇÃO, ALARME, SALVAR)
-    window.solicitarNotificacao = async () => {
-        const btn = document.getElementById("btnAtivarNotificacao");
-        btn.disabled = true; btn.innerText = "SINCRONIZANDO...";
-        try {
-            const permission = await Notification.requestPermission();
-            if (permission !== "granted") throw new Error("Permissão negada");
-            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
-            await navigator.serviceWorker.ready;
-            const messaging = getMessaging(app);
-            const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-            document.getElementById("statusNotif").innerText = "NOTIFICAÇÕES ATIVAS!";
-            btn.innerText = "CONEXÃO OK"; btn.style.background = "#4CAF50";
-            alert("Notificações ativas!");
-        } catch (err) {
-            btn.disabled = false; btn.innerText = "TENTAR NOVAMENTE";
-            alert("Erro: " + err.message);
-        }
-    };
-
+    // 3. SALVAR TAREFA (CORRIGIDO COM CAMPO ALERTA)
     document.getElementById('btnSalvar').onclick = async () => {
         const desc = document.getElementById('descTask').value, hora = document.getElementById('horaTask').value, data = document.getElementById('dataSeletor').value, fileInput = document.getElementById('fotoTask');
         if(!desc || !data) return alert("Preencha descrição e data!");
+        
         let btn = document.getElementById('btnSalvar');
         btn.innerText = "Salvando..."; btn.disabled = true;
+
         try {
             let base64 = "";
             if (fileInput.files[0]) {
@@ -293,58 +197,95 @@ function dispararNotificacao(titulo, hora) {
                     };
                 });
             }
+
             await addDoc(collection(db, "tarefas"), {
-                descricao: desc, hora: hora, dataString: data,
+                descricao: desc, 
+                hora: hora, 
+                dataString: data,
                 categoria: document.getElementById('categoriaSelecionada').value,
                 corCategoria: document.getElementById('corSelecionada').value,
-                fotoUrl: base64, dataCriacao: new Date()
+                fotoUrl: base64, 
+                dataCriacao: new Date(),
+                alertaDisparado: false // GARANTE QUE O ALARME VAI MONITORAR
             });
+
             document.getElementById('descTask').value = ""; fileInput.value = ""; carregarTarefas();
         } catch(e) { alert("Erro ao salvar!"); }
         btn.innerText = "Salvar na Agenda"; btn.disabled = false;
     };
 
+    // 4. RESTANTE DAS FUNÇÕES (CATEGORIAS E NAVEGAÇÃO)
+    window.carregarCategorias = async () => {
+        const container = document.getElementById('listaBotoesCat');
+        const listaExcluir = document.getElementById('listaExcluirCat');
+        try {
+            const snap = await getDocs(collection(db, "categorias"));
+            container.innerHTML = `<button class="btn-cat ativo" onclick="selecionarCat('Geral', '#4CAF50', this)">Geral</button>`;
+            listaExcluir.innerHTML = "";
+            snap.forEach(d => {
+                const c = d.data();
+                container.innerHTML += `<button class="btn-cat" style="border-bottom:3px solid ${c.cor}" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</button>`;
+                listaExcluir.innerHTML += `<div class="cat-excluir-item"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')" style="border:none; color:red; background:none; cursor:pointer;">Excluir</button></div>`;
+            });
+            container.innerHTML += `<button onclick="promptNovaCat()" style="border:none;background:none;font-size:1.5em;color:#2196F3; cursor:pointer;">+</button>`;
+        } catch (e) { container.innerHTML = "Erro ao carregar categorias."; }
+    };
+
+    window.promptNovaCat = async () => {
+        const nome = prompt("Nome da categoria:");
+        if (!nome) return;
+        const cor = prompt("Cor (Hex):", "#2196F3");
+        await addDoc(collection(db, "categorias"), { nome, cor });
+        carregarCategorias();
+    };
+
+    window.excluirCategoria = async (id) => {
+        if (confirm("Remover categoria?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategorias(); }
+    };
+
+    window.selecionarCat = (nome, cor, el) => {
+        document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('ativo'));
+        el.classList.add('ativo');
+        document.getElementById('categoriaSelecionada').value = nome;
+        document.getElementById('corSelecionada').value = cor;
+        carregarTarefas();
+    };
+
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor');
-        if (el) {
-            document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
-            el.classList.add('ativo');
-        }
+        if (el) { document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); el.classList.add('ativo'); }
         if (tipo === 'hoje') { input.value = new Date().toISOString().split('T')[0]; filtroDataAtual = 'hoje'; }
         else if (tipo === 'amanha') { const am = new Date(); am.setDate(am.getDate()+1); input.value = am.toISOString().split('T')[0]; filtroDataAtual = 'amanha'; }
         else if (tipo === 'semanal') { filtroDataAtual = 'semanal'; }
-        else { filtroDataAtual = 'custom'; }
         carregarTarefas();
     };
 
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas'), dataFiltro = document.getElementById('dataSeletor').value, catFiltro = document.getElementById('categoriaSelecionada').value;
-        try {
-            const q = query(collection(db, "tarefas"), orderBy("hora", "asc"));
-            const snap = await getDocs(q);
-            lista.innerHTML = "";
-            let temTarefa = false;
-            snap.forEach(d => {
-                const t = d.data();
-                if (catFiltro !== "Geral" && t.categoria !== catFiltro) return;
-                if (filtroDataAtual !== 'semanal' && t.dataString !== dataFiltro) return;
-                temTarefa = true;
-                lista.innerHTML += `
-                    <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}">
-                        <div class="tarefa-info-top">
-                            <span class="label-cat" style="color:${t.corCategoria}">${t.categoria || 'Geral'}</span>
-                            <button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button>
-                        </div>
-                        <div class="tarefa-desc">${t.descricao}</div>
-                        <div class="tarefa-hora">⏰ ${t.hora || '--:--'}</div>
-                        ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}
-                    </div>`;
-            });
-            if(!temTarefa) lista.innerHTML = "Nenhuma atividade para este período.";
-        } catch(e) { lista.innerHTML = "Erro ao carregar tarefas."; }
+        const q = query(collection(db, "tarefas"), orderBy("hora", "asc"));
+        const snap = await getDocs(q);
+        lista.innerHTML = "";
+        snap.forEach(d => {
+            const t = d.data();
+            if (catFiltro !== "Geral" && t.categoria !== catFiltro) return;
+            if (filtroDataAtual !== 'semanal' && t.dataString !== dataFiltro) return;
+            lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}"><div class="tarefa-info-top"><span class="label-cat">${t.categoria || 'Geral'}</span><button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button></div><div class="tarefa-desc">${t.descricao}</div><div class="tarefa-hora">⏰ ${t.hora || '--:--'}</div>${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}</div>`;
+        });
     };
 
-    window.excluirTask = async (id) => { if(confirm("Remover esta atividade?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    window.solicitarNotificacao = async () => {
+        const btn = document.getElementById("btnAtivarNotificacao");
+        btn.disabled = true; btn.innerText = "SINCRONIZANDO...";
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") throw new Error("Negada");
+            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
+            await navigator.serviceWorker.ready;
+            btn.innerText = "CONEXÃO OK"; btn.style.background = "#4CAF50";
+        } catch (err) { btn.disabled = false; btn.innerText = "FALHOU"; }
+    };
+
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
     window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
     window.mudarAba = (aba) => {
