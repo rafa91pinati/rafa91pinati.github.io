@@ -65,6 +65,17 @@
 
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
+	<button onclick="testarAudio()" style="width:100%; padding:10px; margin-top:10px; background:#FF9800; color:white; border:none; border-radius:8px;">
+    TESTAR SOM DO ALARME
+</button>
+
+<script>
+    window.testarAudio = () => {
+        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+        audio.play();
+        alert("Se você ouviu o bipe, o alarme está pronto!");
+    };
+</script>
         <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2em; cursor:pointer;">✕</button>
         <div class="modal-tabs">
             <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
@@ -113,12 +124,16 @@
         carregarCategorias();
         setarData('hoje', document.getElementById('btnHoje'));
     });
+// Certifique-se de que 'updateDoc' está no seu import lá no topo
+import { getFirestore, collection, getDocs, query, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
 async function verificarAlarmes() {
     const agora = new Date();
+    // Formata a hora atual como "HH:mm"
     const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
     const dataHoje = agora.toISOString().split('T')[0];
     
-    // Pega o valor de antecedência do seu input (ex: 1 minuto)
+    // Pega o valor definido no modal (ex: 1 minuto)
     const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
 
     try {
@@ -127,49 +142,53 @@ async function verificarAlarmes() {
         
         snap.forEach(async (d) => {
             const t = d.data();
-            // Só processa se tiver hora e se o alerta ainda NÃO disparou
+            
+            // Pula tarefas sem hora ou que já dispararam o alarme
             if (!t.hora || t.alertaDisparado === true) return;
 
+            // LÓGICA DO MINUTO ANTECIPADO
             const [h, m] = t.hora.split(':');
             const dataTarefa = new Date();
             dataTarefa.setHours(h, m, 0);
             
-            // Calcula o momento do alerta (Horário da tarefa - X minutos)
+            // Subtrai os minutos de antecedência
             const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
             const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
 
-            // Se o relógio bater com o minuto do alerta
+            // Verifica se chegou o momento do alarme
             if (horaAtual === horaAlerta) {
-                console.log("⏰ Disparando alarme para:", t.descricao);
+                console.log("⏰ Alarme disparado para:", t.descricao);
                 
-                // 1. Dispara a notificação visual e sonora
+                // Dispara o alerta visual e sonoro
                 dispararNotificacao(t.descricao, t.hora);
                 
-                // 2. ATUALIZA NO FIREBASE para não disparar novamente
+                // ATUALIZA NO FIREBASE: Isso impede que o alarme toque de novo no próximo minuto
                 await updateDoc(doc(db, "tarefas", d.id), { 
                     alertaDisparado: true 
                 });
             }
         });
     } catch (e) { 
-        console.error("Erro no monitor de alarmes:", e); 
+        console.error("Erro ao monitorar alarmes:", e); 
     }
 }
 
+// O monitor roda a cada 60 segundos
+setInterval(verificarAlarmes, 60000);
+
 function dispararNotificacao(titulo, hora) {
     if (Notification.permission === "granted") {
-        // Notificação Visual
-        const notif = new Notification("⏰ Lembrete de Tarefa", {
-            body: `Faltam ${document.getElementById('minutosAlerta').value} min para: ${titulo} (${hora})`,
+        const notif = new Notification("⏰ Alerta da Agenda", {
+            body: `Sua tarefa "${titulo}" começa às ${hora}.`,
             icon: "/favicon.ico",
-            vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40, 500]
+            vibrate: [500, 110, 500, 110, 500] // Padrão de vibração de alarme
         });
 
-        // Som de Alarme (Usando uma URL estável)
-        const somAlarme = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
-        somAlarme.play().catch(e => console.log("Áudio bloqueado pelo navegador. Clique na página para liberar."));
+        // Som de alarme (URL estável do Google)
+        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
+        audio.play().catch(() => console.log("Áudio bloqueado. Interaja com a página primeiro."));
         
-        notif.onclick = () => { window.focus(); somAlarme.pause(); };
+        notif.onclick = () => { window.focus(); audio.pause(); };
     }
 }
     // 2. GESTÃO DE CATEGORIAS
