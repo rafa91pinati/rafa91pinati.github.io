@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - rev1.1</title>
+    <title>Minha Agenda Inteligente - rev1.2</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
@@ -66,24 +66,18 @@
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
         <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2em; cursor:pointer;">✕</button>
-        
         <div class="modal-tabs">
             <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
             <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
         </div>
-
         <div id="conteudoAlarme">
             <h4 id="statusNotif">Configurações de Alerta</h4>
             <p style="font-size:0.8em; color:#666;">Minutos antes do horário:</p>
             <input type="number" id="minutosAlerta" value="1">
-            
             <button id="btnAtivarNotificacao" onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#2196F3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:10px;">ATIVAR NOTIFICAÇÕES</button>
-            
             <button id="btnTestarSom" onclick="testarSom()" style="width:100%; padding:10px; background:#FF9800; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-bottom:10px;">TESTAR SOM DO ALARME</button>
-            
             <button id="btnResetGeral" style="width:100%; padding:10px; background:#555; color:white; border:none; border-radius:8px; cursor:pointer; font-size: 0.8em;">RESET SW / LIMPAR CACHE</button>
         </div>
-
         <div id="conteudoCategorias" class="escondido">
             <h4>Gerenciar Categorias</h4>
             <div id="listaExcluirCat" style="margin-top:10px;"></div>
@@ -93,7 +87,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, query, where, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    // CORREÇÃO 1: Adicionados updateDoc e orderBy nos imports
+    import { getFirestore, collection, addDoc, getDocs, query, where, setDoc, doc, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
@@ -111,34 +106,29 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const messaging = getMessaging(app); // CORREÇÃO 2: messaging inicializado corretamente
     let filtroDataAtual = 'hoje';
 
     // 1. INICIALIZAÇÃO
     signInAnonymously(auth).then(() => {
         carregarCategorias();
         setarData('hoje', document.getElementById('btnHoje'));
-        // Inicia o monitor de alarmes APÓS o login
         setInterval(verificarAlarmes, 60000);
     });
-async function salvarTokenNoBanco(token) {
-    try {
-        // Criamos uma referência única baseada no token (usando hash ou o próprio token limpo)
-        // Isso evita duplicatas se o usuário abrir o app várias vezes
-        const tokenRef = doc(db, "assinaturas", token.substring(0, 20)); // Usamos parte do token como ID
 
-        await setDoc(tokenRef, {
-            token: token,
-            ultimoAcesso: new Date(),
-            usuario: "admin", // Você pode mudar isso quando tiver sistema de login
-            dispositivo: navigator.userAgent // Ajuda a identificar qual celular é
-        }, { merge: true });
-
-        console.log("✅ Token sincronizado com o servidor da Rev 2.0");
-    } catch (e) {
-        console.error("Erro ao salvar token no banco:", e);
+    async function salvarTokenNoBanco(token) {
+        try {
+            const tokenRef = doc(db, "assinaturas", token.substring(0, 20));
+            await setDoc(tokenRef, {
+                token: token,
+                ultimoAcesso: new Date(),
+                usuario: "admin",
+                dispositivo: navigator.userAgent
+            }, { merge: true });
+            console.log("✅ Token sincronizado com o servidor da Rev 2.0");
+        } catch (e) { console.error("Erro ao salvar token no banco:", e); }
     }
-}
-    // 2. LÓGICA DO MONITOR DE ALARMES (CORRIGIDA)
+
     async function verificarAlarmes() {
         const agora = new Date();
         const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
@@ -161,10 +151,7 @@ async function salvarTokenNoBanco(token) {
                 const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
 
                 if (horaAtual === horaAlerta) {
-                    console.log("⏰ Alarme!", t.descricao);
                     dispararNotificacao(t.descricao, t.hora);
-                    
-                    // IMPORTANTE: Marcar como disparado no Banco
                     await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
                 }
             });
@@ -175,32 +162,18 @@ async function salvarTokenNoBanco(token) {
         if (Notification.permission === "granted") {
             new Notification("⏰ Alerta de Agenda", {
                 body: `Sua tarefa "${titulo}" começa às ${hora}.`,
-                icon: "/favicon.ico",
-                vibrate: [500, 110, 500, 110, 500]
+                icon: "/favicon.ico"
             });
             const audio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
-            audio.play().catch(e => console.log("Áudio bloqueado. Interaja com a página."));
+            audio.play().catch(() => {});
         }
     }
-messaging.onBackgroundMessage((payload) => {
-  console.log('Alarme recebido em segundo plano:', payload);
-  
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/favicon.ico', // certifique-se que o caminho está certo
-    requireInteraction: true, // A notificação não some até você clicar
-    tag: 'alarme-agenda'
-  };
 
-  return self.registration.showNotification(notificationTitle, notificationOptions);
-});
     window.testarSom = () => {
         const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
         audio.play().then(() => alert("Som funcionando!")).catch(() => alert("Clique na tela primeiro para liberar o som."));
     };
 
-    // 3. SALVAR TAREFA (CORRIGIDO COM CAMPO ALERTA)
     document.getElementById('btnSalvar').onclick = async () => {
         const desc = document.getElementById('descTask').value, hora = document.getElementById('horaTask').value, data = document.getElementById('dataSeletor').value, fileInput = document.getElementById('fotoTask');
         if(!desc || !data) return alert("Preencha descrição e data!");
@@ -228,22 +201,17 @@ messaging.onBackgroundMessage((payload) => {
             }
 
             await addDoc(collection(db, "tarefas"), {
-                descricao: desc, 
-                hora: hora, 
-                dataString: data,
+                descricao: desc, hora: hora, dataString: data,
                 categoria: document.getElementById('categoriaSelecionada').value,
                 corCategoria: document.getElementById('corSelecionada').value,
-                fotoUrl: base64, 
-                dataCriacao: new Date(),
-                alertaDisparado: false // GARANTE QUE O ALARME VAI MONITORAR
+                fotoUrl: base64, dataCriacao: new Date(),
+                alertaDisparado: false
             });
-
-            document.getElementById('descTask').value = ""; fileInput.value = ""; carregarTarefas();
+            document.getElementById('descTask').value = ""; carregarTarefas();
         } catch(e) { alert("Erro ao salvar!"); }
         btn.innerText = "Salvar na Agenda"; btn.disabled = false;
     };
 
-    // 4. RESTANTE DAS FUNÇÕES (CATEGORIAS E NAVEGAÇÃO)
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaBotoesCat');
         const listaExcluir = document.getElementById('listaExcluirCat');
@@ -269,7 +237,7 @@ messaging.onBackgroundMessage((payload) => {
     };
 
     window.excluirCategoria = async (id) => {
-        if (confirm("Remover categoria?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategorias(); }
+        if (confirm("Remover?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategorias(); }
     };
 
     window.selecionarCat = (nome, cor, el) => {
@@ -291,43 +259,49 @@ messaging.onBackgroundMessage((payload) => {
 
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas'), dataFiltro = document.getElementById('dataSeletor').value, catFiltro = document.getElementById('categoriaSelecionada').value;
-        const q = query(collection(db, "tarefas"), orderBy("hora", "asc"));
-        const snap = await getDocs(q);
-        lista.innerHTML = "";
-        snap.forEach(d => {
-            const t = d.data();
-            if (catFiltro !== "Geral" && t.categoria !== catFiltro) return;
-            if (filtroDataAtual !== 'semanal' && t.dataString !== dataFiltro) return;
-            lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}"><div class="tarefa-info-top"><span class="label-cat">${t.categoria || 'Geral'}</span><button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button></div><div class="tarefa-desc">${t.descricao}</div><div class="tarefa-hora">⏰ ${t.hora || '--:--'}</div>${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}</div>`;
-        });
+        try {
+            const q = query(collection(db, "tarefas"), orderBy("hora", "asc"));
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+            snap.forEach(d => {
+                const t = d.data();
+                if (catFiltro !== "Geral" && t.categoria !== catFiltro) return;
+                if (filtroDataAtual !== 'semanal' && t.dataString !== dataFiltro) return;
+                lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}"><div class="tarefa-info-top"><span class="label-cat">${t.categoria || 'Geral'}</span><button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button></div><div class="tarefa-desc">${t.descricao}</div><div class="tarefa-hora">⏰ ${t.hora || '--:--'}</div>${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}</div>`;
+            });
+        } catch(e) { lista.innerHTML = "Erro ao carregar tarefas."; }
     };
 
     window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+
+    // CORREÇÃO 3: Função de notificação totalmente reorganizada
     window.solicitarNotificacao = async () => {
-	
-	// Dentro da sua função solicitarNotificacao:
-const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-
-if (token) {
-    // ESTA É A LINHA QUE CONECTA COM A CLOUD FUNCTION
-    await salvarTokenNoBanco(token); 
-    
-    document.getElementById("statusNotif").innerText = "CONEXÃO ATIVA (REV 2.0)";
-    // ... restante do seu código de sucesso
-}
-    console.log("Token salvo no servidor!");
-    // ... restante do código
-}
-
         const btn = document.getElementById("btnAtivarNotificacao");
-        btn.disabled = true; btn.innerText = "SINCRONIZANDO...";
+        btn.disabled = true;
+        btn.innerText = "SINCRONIZANDO...";
         try {
             const permission = await Notification.requestPermission();
-            if (permission !== "granted") throw new Error("Negada");
+            if (permission !== "granted") throw new Error("Permissão negada");
+
+            // Registro do Service Worker antes do token
             const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
             await navigator.serviceWorker.ready;
-            btn.innerText = "CONEXÃO OK"; btn.style.background = "#4CAF50";
-        } catch (err) { btn.disabled = false; btn.innerText = "FALHOU"; }
+
+            // Geração do Token
+            const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+
+            if (token) {
+                await salvarTokenNoBanco(token);
+                document.getElementById("statusNotif").innerText = "CONEXÃO ATIVA (REV 2.0)";
+                btn.innerText = "CONEXÃO OK";
+                btn.style.background = "#4CAF50";
+                console.log("Token sincronizado!");
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerText = "FALHOU";
+            alert("Erro: " + err.message);
+        }
     };
 
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
