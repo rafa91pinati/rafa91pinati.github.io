@@ -1,8 +1,9 @@
 importScripts('https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging-compat.js');
 
+// Inicializando Firebase com a chave do Firebase Web
 firebase.initializeApp({
-  apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
+  apiKey: "BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8", // Use a chave do Firebase Web
   authDomain: "agenda-4efa7.firebaseapp.com",
   projectId: "agenda-4efa7",
   storageBucket: "agenda-4efa7.appspot.com",
@@ -10,14 +11,28 @@ firebase.initializeApp({
   appId: "1:299659202964:web:e358210feb4d7784f63f81"
 });
 
+// Configurando o Firebase Messaging
 const messaging = firebase.messaging();
 
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', () => self.clients.claim());
+// Instalando o Service Worker
+self.addEventListener('install', () => {
+  console.log("Service Worker instalado");
+  self.skipWaiting();  // Garante que o novo SW seja instalado imediatamente
+});
 
+// Ativando o Service Worker
+self.addEventListener('activate', () => {
+  console.log("Service Worker ativado");
+  self.clients.claim();  // O SW vai controlar a página imediatamente
+});
+
+// Recebendo notificações em segundo plano
 messaging.onBackgroundMessage((payload) => {
+  console.log("Mensagem recebida em segundo plano:", payload);
+  
+  // Mostra a notificação quando uma mensagem for recebida
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,
-    icon: '/ProjetosRev0/311022.png'
+    icon: '/311022.png'  // Use o ícone correto na raiz
   });
 });
