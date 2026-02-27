@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - rev1.2</title>
+    <title>Minha Agenda Inteligente - rev1.2.1</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
@@ -87,8 +87,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    // CORREÇÃO 1: Adicionados updateDoc e orderBy nos imports
-    import { getFirestore, collection, addDoc, getDocs, query, where, setDoc, doc, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, setDoc, doc, updateDoc, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
@@ -100,21 +99,22 @@
         messagingSenderId: "299659202964",
         appId: "1:299659202964:web:e358210feb4d7784f63f81"
     };
-	const dataHoje = agora.toLocaleDateString('en-CA'); // Gera AAAA-MM-DD local
+
     const VAPID_KEY = "BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const messaging = getMessaging(app); // CORREÇÃO 2: messaging inicializado corretamente
+    const messaging = getMessaging(app);
     let filtroDataAtual = 'hoje';
 
     // 1. INICIALIZAÇÃO
     signInAnonymously(auth).then(() => {
+        console.log("🔓 Autenticado Anonimamente");
         carregarCategorias();
         setarData('hoje', document.getElementById('btnHoje'));
         setInterval(verificarAlarmes, 60000);
-    });
+    }).catch(e => console.error("Erro Auth:", e));
 
     async function salvarTokenNoBanco(token) {
         try {
@@ -125,62 +125,65 @@
                 usuario: "admin",
                 dispositivo: navigator.userAgent
             }, { merge: true });
-            console.log("✅ Token sincronizado com o servidor da Rev 2.0");
-        } catch (e) { console.error("Erro ao salvar token no banco:", e); }
+            console.log("✅ Token sincronizado");
+        } catch (e) { console.error("Erro Token:", e); }
     }
 
     async function verificarAlarmes() {
-    const agora = new Date();
-    // CORREÇÃO DE DATA (Local em vez de UTC)
-    const dataHoje = agora.toLocaleDateString('en-CA'); 
-    const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
-    const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
+        const agora = new Date();
+        const dataHoje = agora.toLocaleDateString('en-CA'); 
+        const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+        const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
 
-    console.log(`[Vigia] Verificando... Agora são ${horaAtual} do dia ${dataHoje}`);
+        console.log(`[Vigia] Verificando: ${horaAtual} - ${dataHoje}`);
 
-    try {
-        const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje));
-        const snap = await getDocs(q);
-        
-        if (snap.empty) console.log("Nenhuma tarefa encontrada para hoje no banco.");
-
-        snap.forEach(async (d) => {
-            const t = d.data();
-            if (!t.hora || t.alertaDisparado === true) return;
-
-            // Calcula a hora que o alarme DEVE tocar
-            const [h, m] = t.hora.split(':');
-            const dataTarefa = new Date();
-            dataTarefa.setHours(h, m, 0);
+        try {
+            const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje), where("alertaDisparado", "==", false));
+            const snap = await getDocs(q);
             
-            const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
-            const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
-
-            console.log(`Tarefa: ${t.descricao} | Alarme previsto para: ${horaAlerta}`);
-
-            if (horaAtual === horaAlerta) {
-                console.log("🔔 DISPARANDO ALARME AGORA!");
-                dispararNotificacao(t.descricao, t.hora);
+            snap.forEach(async (d) => {
+                const t = d.data();
+                const [h, m] = t.hora.split(':');
+                const dataTarefa = new Date();
+                dataTarefa.setHours(h, m, 0);
                 
-                // Marcar no banco para não repetir
-                await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
-            }
-        });
-    } catch (e) { 
-        console.error("❌ Erro no Monitor:", e); 
+                const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
+                const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
+
+                if (horaAtual === horaAlerta) {
+                    console.log("🔔 ALARME!");
+                    dispararNotificacao(t.descricao, t.hora);
+                    await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
+                }
+            });
+        } catch (e) { console.error("Erro Monitor:", e); }
     }
-}
+
+    function dispararNotificacao(titulo, hora) {
+        if (Notification.permission === "granted") {
+            new Notification("⏰ Alerta de Agenda", {
+                body: `Tarefa: ${titulo} às ${hora}`,
+                icon: "/favicon.ico"
+            });
+            new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play().catch(() => {});
+        }
+    }
 
     window.testarSom = () => {
-        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-        audio.play().then(() => alert("Som funcionando!")).catch(() => alert("Clique na tela primeiro para liberar o som."));
+        new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play()
+            .then(() => alert("Som OK!"))
+            .catch(() => alert("Clique na tela primeiro!"));
     };
 
     document.getElementById('btnSalvar').onclick = async () => {
-        const desc = document.getElementById('descTask').value, hora = document.getElementById('horaTask').value, data = document.getElementById('dataSeletor').value, fileInput = document.getElementById('fotoTask');
-        if(!desc || !data) return alert("Preencha descrição e data!");
+        const desc = document.getElementById('descTask').value;
+        const hora = document.getElementById('horaTask').value;
+        const data = document.getElementById('dataSeletor').value;
+        const fileInput = document.getElementById('fotoTask');
         
-        let btn = document.getElementById('btnSalvar');
+        if(!desc || !data || !hora) return alert("Preencha todos os campos!");
+        
+        const btn = document.getElementById('btnSalvar');
         btn.innerText = "Salvando..."; btn.disabled = true;
 
         try {
@@ -206,8 +209,7 @@
                 descricao: desc, hora: hora, dataString: data,
                 categoria: document.getElementById('categoriaSelecionada').value,
                 corCategoria: document.getElementById('corSelecionada').value,
-                fotoUrl: base64, dataCriacao: new Date(),
-                alertaDisparado: false
+                fotoUrl: base64, dataCriacao: new Date(), alertaDisparado: false
             });
             document.getElementById('descTask').value = ""; carregarTarefas();
         } catch(e) { alert("Erro ao salvar!"); }
@@ -227,7 +229,7 @@
                 listaExcluir.innerHTML += `<div class="cat-excluir-item"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')" style="border:none; color:red; background:none; cursor:pointer;">Excluir</button></div>`;
             });
             container.innerHTML += `<button onclick="promptNovaCat()" style="border:none;background:none;font-size:1.5em;color:#2196F3; cursor:pointer;">+</button>`;
-        } catch (e) { container.innerHTML = "Erro ao carregar categorias."; }
+        } catch (e) { container.innerHTML = "Erro categorias."; }
     };
 
     window.promptNovaCat = async () => {
@@ -253,14 +255,16 @@
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor');
         if (el) { document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); el.classList.add('ativo'); }
-        if (tipo === 'hoje') { input.value = new Date().toISOString().split('T')[0]; filtroDataAtual = 'hoje'; }
-        else if (tipo === 'amanha') { const am = new Date(); am.setDate(am.getDate()+1); input.value = am.toISOString().split('T')[0]; filtroDataAtual = 'amanha'; }
+        if (tipo === 'hoje') { input.value = new Date().toLocaleDateString('en-CA'); filtroDataAtual = 'hoje'; }
+        else if (tipo === 'amanha') { const am = new Date(); am.setDate(am.getDate()+1); input.value = am.toLocaleDateString('en-CA'); filtroDataAtual = 'amanha'; }
         else if (tipo === 'semanal') { filtroDataAtual = 'semanal'; }
         carregarTarefas();
     };
 
     window.carregarTarefas = async () => {
-        const lista = document.getElementById('listaTarefas'), dataFiltro = document.getElementById('dataSeletor').value, catFiltro = document.getElementById('categoriaSelecionada').value;
+        const lista = document.getElementById('listaTarefas');
+        const dataFiltro = document.getElementById('dataSeletor').value;
+        const catFiltro = document.getElementById('categoriaSelecionada').value;
         try {
             const q = query(collection(db, "tarefas"), orderBy("hora", "asc"));
             const snap = await getDocs(q);
@@ -271,39 +275,26 @@
                 if (filtroDataAtual !== 'semanal' && t.dataString !== dataFiltro) return;
                 lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}"><div class="tarefa-info-top"><span class="label-cat">${t.categoria || 'Geral'}</span><button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button></div><div class="tarefa-desc">${t.descricao}</div><div class="tarefa-hora">⏰ ${t.hora || '--:--'}</div>${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}</div>`;
             });
-        } catch(e) { lista.innerHTML = "Erro ao carregar tarefas."; }
+            if(lista.innerHTML === "") lista.innerHTML = "Nenhuma tarefa para este filtro.";
+        } catch(e) { lista.innerHTML = "Erro ao carregar tarefas."; console.error(e); }
     };
 
     window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
 
-    // CORREÇÃO 3: Função de notificação totalmente reorganizada
     window.solicitarNotificacao = async () => {
         const btn = document.getElementById("btnAtivarNotificacao");
-        btn.disabled = true;
-        btn.innerText = "SINCRONIZANDO...";
+        btn.disabled = true; btn.innerText = "SINCRONIZANDO...";
         try {
             const permission = await Notification.requestPermission();
-            if (permission !== "granted") throw new Error("Permissão negada");
-
-            // Registro do Service Worker antes do token
-            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js", { scope: "/" });
-            await navigator.serviceWorker.ready;
-
-            // Geração do Token
+            if (permission !== "granted") throw new Error("Negada");
+            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
             const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-
             if (token) {
                 await salvarTokenNoBanco(token);
-                document.getElementById("statusNotif").innerText = "CONEXÃO ATIVA (REV 2.0)";
-                btn.innerText = "CONEXÃO OK";
-                btn.style.background = "#4CAF50";
-                console.log("Token sincronizado!");
+                document.getElementById("statusNotif").innerText = "CONEXÃO ATIVA";
+                btn.innerText = "CONEXÃO OK"; btn.style.background = "#4CAF50";
             }
-        } catch (err) {
-            btn.disabled = false;
-            btn.innerText = "FALHOU";
-            alert("Erro: " + err.message);
-        }
+        } catch (err) { btn.disabled = false; btn.innerText = "FALHOU"; console.error(err); }
     };
 
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
