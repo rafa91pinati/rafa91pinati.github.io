@@ -130,44 +130,46 @@
     }
 
     async function verificarAlarmes() {
-        const agora = new Date();
-        const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
-        const dataHoje = agora.toISOString().split('T')[0];
-        const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
+    const agora = new Date();
+    // CORREÇÃO DE DATA (Local em vez de UTC)
+    const dataHoje = agora.toLocaleDateString('en-CA'); 
+    const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+    const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
 
-        try {
-            const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje));
-            const snap = await getDocs(q);
+    console.log(`[Vigia] Verificando... Agora são ${horaAtual} do dia ${dataHoje}`);
+
+    try {
+        const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) console.log("Nenhuma tarefa encontrada para hoje no banco.");
+
+        snap.forEach(async (d) => {
+            const t = d.data();
+            if (!t.hora || t.alertaDisparado === true) return;
+
+            // Calcula a hora que o alarme DEVE tocar
+            const [h, m] = t.hora.split(':');
+            const dataTarefa = new Date();
+            dataTarefa.setHours(h, m, 0);
             
-            snap.forEach(async (d) => {
-                const t = d.data();
-                if (!t.hora || t.alertaDisparado === true) return;
+            const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
+            const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
 
-                const [h, m] = t.hora.split(':');
-                const dataTarefa = new Date();
-                dataTarefa.setHours(h, m, 0);
+            console.log(`Tarefa: ${t.descricao} | Alarme previsto para: ${horaAlerta}`);
+
+            if (horaAtual === horaAlerta) {
+                console.log("🔔 DISPARANDO ALARME AGORA!");
+                dispararNotificacao(t.descricao, t.hora);
                 
-                const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
-                const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
-
-                if (horaAtual === horaAlerta) {
-                    dispararNotificacao(t.descricao, t.hora);
-                    await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
-                }
-            });
-        } catch (e) { console.error("Monitor erro:", e); }
+                // Marcar no banco para não repetir
+                await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
+            }
+        });
+    } catch (e) { 
+        console.error("❌ Erro no Monitor:", e); 
     }
-
-    function dispararNotificacao(titulo, hora) {
-        if (Notification.permission === "granted") {
-            new Notification("⏰ Alerta de Agenda", {
-                body: `Sua tarefa "${titulo}" começa às ${hora}.`,
-                icon: "/favicon.ico"
-            });
-            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg');
-            audio.play().catch(() => {});
-        }
-    }
+}
 
     window.testarSom = () => {
         const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
