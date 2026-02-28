@@ -82,13 +82,13 @@
   <script>
     // 1. INICIALIZAÇÃO DO FIREBASE (Coloque suas credenciais aqui!)
     const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_PROJETO.firebaseapp.com",
-      projectId: "SEU_PROJETO",
-      storageBucket: "SEU_PROJETO.appspot.com",
-      messagingSenderId: "SEU_SENDER_ID",
-      appId: "SEU_APP_ID"
-    };
+      apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
+        authDomain: "agenda-4efa7.firebaseapp.com",
+        projectId: "agenda-4efa7",
+        storageBucket: "agenda-4efa7.appspot.com",
+        messagingSenderId: "299659202964",
+        appId: "1:299659202964:web:e358210feb4d7784f63f81"
+   };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const messaging = firebase.messaging();
@@ -166,7 +166,7 @@
         if (permission === 'granted') {
           console.log('Permissão concedida.');
           // Obter o token para enviar as notificações
-          messaging.getToken({ vapidKey: 'SUA_CHAVE_VAPID_AQUI_SE_TIVER' }).then((currentToken) => {
+          messaging.getToken({ vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8' }).then((currentToken) => {
             if (currentToken) {
               console.log('Token gerado:', currentToken);
               // Salvar este token no Firestore atrelado ao usuário
