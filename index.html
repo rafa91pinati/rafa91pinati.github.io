@@ -4,59 +4,51 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda - v1.3.9</title>
+    <title>Minha Agenda Inteligente - v1.5.4</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
         .timeline-header { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
         .btn-date { flex: 1; padding: 12px 0; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; transition: 0.3s; }
-        .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; box-shadow: 0 4px 8px rgba(0,123,255,0.3); }
+        .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
         #dataSeletor { flex: 1.5; padding: 10px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.9rem; text-align: center; font-weight: 600; }
 
         .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; align-items: center; }
-        .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; transition: 0.2s; }
+        .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
 
-        .btn-add-cat-circle { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #007bff; color: #007bff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: pointer; background: none; flex-shrink: 0; margin-left: 5px; }
-
-        .header-secao { border-left: 6px solid #007bff; padding-left: 12px; margin: 25px 0 12px; color: #007bff; font-size: 0.9rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
-        
+        .header-secao { border-left: 6px solid #007bff; padding-left: 12px; margin: 25px 0 12px; color: #007bff; font-size: 0.9rem; font-weight: 900; text-transform: uppercase; }
         .secao-card { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 20px; }
+        
         input[type="text"], input[type="time"], select { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
         #btnSalvar { background: #28a745; color: white; border: none; padding: 16px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
-        /* NOVO LAYOUT DA TAREFA */
-        .tarefa-item { background: #fff; margin-bottom: 12px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; display: flex; align-items: center; gap: 15px; }
+        /* 📅 LISTA DE ATIVIDADES */
+        .tarefa-item { background: #fff; margin-bottom: 12px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; }
         .dia-badge { font-size: 1.8rem; font-weight: 900; color: #333; min-width: 45px; text-align: center; line-height: 1; }
         .dia-badge span { display: block; font-size: 0.65rem; text-transform: uppercase; color: #888; }
         .tarefa-info { flex: 1; }
-        .btn-excluir-task { background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 1.2rem; padding: 5px; }
+        .img-task { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+        .btn-excluir-task { background: none; border: none; color: #ccd0d5; cursor: pointer; font-size: 1.2rem; }
         
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
-        .modal-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
-        .tab-btn { background: none; border: none; padding: 12px; cursor: pointer; opacity: 0.3; font-size: 1.8rem; }
-        .tab-btn.ativo { opacity: 1; border-bottom: 4px solid #007bff; }
         .escondido { display: none !important; }
-
-        .config-input-group { margin: 15px 0; text-align: left; }
-        .config-input-group label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 8px; font-weight: bold; }
-        .config-input-group input, .config-input-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="timeline-header">
-        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">HOJE</button>
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">AMANHÃ</button>
         <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.5rem; color:#ccd0d5; cursor:pointer;">⚙️</button>
     </div>
 
-    <div class="category-tabs" id="listaCategorias">Carregando...</div>
+    <div class="category-tabs" id="listaCategorias">Carregando categorias...</div>
 
-    <div class="header-secao">📝 ADD Tarefa</div>
+    <div class="header-secao">📝 ADD TAREFA</div>
     <div class="secao-card">
         <input type="text" id="descTask" placeholder="O que agendar hoje?">
         <div style="display: flex; gap: 10px;">
@@ -68,44 +60,30 @@
         <button id="btnSalvar">Salvar na Nuvem</button>
     </div>
 
-    <div class="header-secao" id="headerMes">📅 Atividades</div>
-    <div id="listaTarefas">Sincronizando...</div>
+    <div class="header-secao" id="headerMes">📅 ATIVIDADES</div>
+    <div id="listaTarefas">Sincronizando tarefas...</div>
 </div>
 
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
-        <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.5rem; cursor:pointer;">✕</button>
-        <div class="modal-tabs">
-            <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
-            <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
+        <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.5rem;">✕</button>
+        <div style="display:flex; justify-content:space-around; margin-bottom:20px; border-bottom:1px solid #eee;">
+            <button onclick="mudarAba('alarme')" id="tabAlarme" style="font-size:1.5rem; padding:10px; background:none; border:none; cursor:pointer;">🔔</button>
+            <button onclick="mudarAba('categorias')" id="tabCat" style="font-size:1.5rem; padding:10px; background:none; border:none; cursor:pointer; opacity:0.3;">📂</button>
         </div>
         <div id="conteudoAlarme">
-            <h4 style="margin: 0 0 15px 0; color: #333;">Configuração de Alertas</h4>
-            <div class="config-input-group">
-                <label>Minutos de antecedência:</label>
-                <input type="number" id="minutosAlerta" value="1" onchange="salvarPreferencias()">
-            </div>
-            <div class="config-input-group">
-                <label>Comportamento da Notificação:</label>
-                <select id="tipoNotificacao" onchange="salvarPreferencias()">
-                    <option value="aviso">Apenas Aviso (Sumir)</option>
-                    <option value="fixo">Fixar (Até fechar)</option>
-                </select>
-            </div>
-            <button id="btnConectar" onclick="solicitarNotificacao()" style="width:100%; padding:14px; background:#007bff; color:white; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">CONECTAR CELULAR</button>
-            <button onclick="location.reload()" style="width:100%; padding:10px; background:#f0f2f5; border:none; border-radius:25px; cursor:pointer; margin-top:15px; font-weight: 600;">ATUALIZAR APP</button>
+            <h4>Sons e Alertas</h4>
+            <select id="somAlarme" onchange="salvarPreferencias()">
+                <option value="default">Padrão</option>
+                <option value="bip">Bip Digital</option>
+            </select>
+            <button onclick="testarSom()" style="width:100%; padding:10px; margin-top:10px; border-radius:10px;">Ouvir Som 🔊</button>
+            <button id="btnConectar" onclick="solicitarNotificacao()" style="width:100%; padding:15px; background:#007bff; color:white; border:none; border-radius:40px; margin-top:20px; font-weight:bold;">CONECTAR CELULAR</button>
         </div>
         <div id="conteudoCategorias" class="escondido">
-            <h4 style="margin: 0 0 15px 0; color: #333;">Gerenciar Pastas</h4>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                <input type="text" id="novoNomeCat" placeholder="Nome da Pasta" style="padding: 10px; margin-bottom: 10px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <label style="font-size: 0.8rem; font-weight: bold;">Cor:</label>
-                    <input type="color" id="novaCorCat" value="#007bff" style="width: 50px; height: 40px; padding: 2px; border: none; cursor: pointer;">
-                </div>
-                <button onclick="adicionarNovaCategoriaVisual()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">+ CRIAR PASTA</button>
-            </div>
+            <h4>Gerenciar Pastas</h4>
             <div id="listaGerenciarCats"></div>
+            <button onclick="adicionarNovaPasta()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:10px; margin-top:10px;">+ NOVA PASTA</button>
         </div>
     </div>
 </div>
@@ -113,6 +91,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
@@ -125,80 +104,91 @@
         appId: "1:299659202964:web:e358210feb4d7784f63f81"
     };
 
-    const VAPID_KEY = "BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8";
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
+    let categoriaFiltroAtiva = "Geral";
+
     signInAnonymously(auth).then(async () => {
-        carregarPreferencias();
         await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
-    });
+    }).catch(e => console.error("Erro no Login:", e));
 
-    onMessage(messaging, (payload) => {
-        const tipo = document.getElementById('tipoNotificacao').value;
-        if (Notification.permission === "granted") {
-            new Notification(payload.notification.title, { body: payload.notification.body, requireInteraction: (tipo === 'fixo') });
-        }
-    });
-
-    window.salvarPreferencias = async () => {
-        const min = document.getElementById('minutosAlerta').value;
-        const tipo = document.getElementById('tipoNotificacao').value;
-        localStorage.setItem('agenda_minutos', min);
-        localStorage.setItem('agenda_tipo_notif', tipo);
-        try {
-            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { tipoNotificacao: tipo, minutosAntecedencia: min, atualizadoEm: new Date() }, { merge: true });
-        } catch (e) { console.error(e); }
-    };
-
-    window.carregarPreferencias = () => {
-        const min = localStorage.getItem('agenda_minutos');
-        const tipo = localStorage.getItem('agenda_tipo_notif');
-        if(min) document.getElementById('minutosAlerta').value = min;
-        if(tipo) document.getElementById('tipoNotificacao').value = tipo;
-    };
-
+    // --- 📂 CATEGORIAS E FILTRO ---
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaCategorias');
         const listaMngt = document.getElementById('listaGerenciarCats');
-        const snap = await getDocs(collection(db, "categorias"));
-        container.innerHTML = `<div class="category-tab ativo" style="background-color: #333; color: white; border-color: #333;" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
-        listaMngt.innerHTML = "";
-        snap.forEach(d => {
-            const c = d.data();
-            container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
-            listaMngt.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;"><span>${c.nome}</span><div style="display:flex; gap:10px; align-items:center;"><input type="color" value="${c.cor}" onchange="atualizarCorCategoria('${d.id}', this.value)" style="width:30px; height:30px; border:none; padding:0; cursor:pointer; background:none;"><button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button></div></div>`;
-        });
-        container.innerHTML += `<button class="btn-add-cat-circle" onclick="abrirConfig(); mudarAba('categorias');">+</button>`;
+        try {
+            const snap = await getDocs(collection(db, "categorias"));
+            container.innerHTML = `<div class="category-tab ativo" style="background-color:#333; color:white;" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
+            listaMngt.innerHTML = "";
+            snap.forEach(d => {
+                const c = d.data();
+                container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
+                listaMngt.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')">✕</button></div>`;
+            });
+            container.innerHTML += `<button onclick="abrirConfig(); mudarAba('categorias');" style="background:none; border:none; font-size:1.2rem; cursor:pointer; margin-left:10px;">+</button>`;
+        } catch (e) { container.innerHTML = "Erro ao carregar."; }
     };
 
     window.selecionarCat = (nome, cor, el) => {
+        categoriaFiltroAtiva = nome;
         document.querySelectorAll('.category-tab').forEach(b => {
-            b.classList.remove('ativo'); b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; b.style.borderColor = '#ddd';
+            b.style.backgroundColor = '#f8f9fa'; b.style.color = '#333';
         });
-        el.classList.add('ativo'); el.style.backgroundColor = cor; el.style.color = 'white'; el.style.borderColor = cor;
-        document.getElementById('categoriaSelecionada').value = nome;
-        document.getElementById('corSelecionada').value = cor;
+        el.style.backgroundColor = cor; el.style.color = 'white';
+        carregarTarefas();
     };
 
-    window.adicionarNovaCategoriaVisual = async () => {
-        const nome = document.getElementById('novoNomeCat').value;
-        const cor = document.getElementById('novaCorCat').value;
-        if (!nome) return alert("Digite o nome da pasta");
-        try { await addDoc(collection(db, "categorias"), { nome, cor }); document.getElementById('novoNomeCat').value = ""; carregarCategorias(); } catch (e) { console.error(e); }
+    // --- 📅 TAREFAS ---
+    window.carregarTarefas = async () => {
+        const lista = document.getElementById('listaTarefas');
+        const dataFiltro = document.getElementById('dataSeletor').value;
+        const dataObj = new Date(dataFiltro + 'T00:00:00');
+        const meses = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
+        document.getElementById('headerMes').innerText = `📅 ATIVIDADES DE ${meses[dataObj.getMonth()]}`;
+
+        try {
+            let q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
+            if(categoriaFiltroAtiva !== "Geral") {
+                q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), where("categoria", "==", categoriaFiltroAtiva), orderBy("hora", "asc"));
+            }
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+            snap.forEach(d => {
+                const t = d.data();
+                lista.innerHTML += `
+                    <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
+                        <div class="dia-badge">${dataObj.getDate()}<span>${['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][dataObj.getDay()]}</span></div>
+                        <div class="tarefa-info">
+                            <div style="font-size:0.65rem; color:#888;">${t.categoria}</div>
+                            <strong>${t.hora || '--:--'}</strong> - ${t.descricao}
+                        </div>
+                        <button class="btn-excluir-task" onclick="excluirTask('${d.id}')">✕</button>
+                    </div>`;
+            });
+            if(lista.innerHTML === "") lista.innerHTML = "<p style='text-align:center; color:#999;'>Sem atividades.</p>";
+        } catch (e) { console.error("Erro no filtro:", e); }
     };
 
-    window.atualizarCorCategoria = async (id, novaCor) => {
-        try { await setDoc(doc(db, "categorias", id), { cor: novaCor }, { merge: true }); carregarCategorias(); } catch (e) { console.error(e); }
+    // --- ☁️ SALVAMENTO ---
+    document.getElementById('btnSalvar').onclick = async () => {
+        const desc = document.getElementById('descTask').value;
+        if(!desc) return;
+        try {
+            await addDoc(collection(db, "tarefas"), {
+                descricao: desc, hora: document.getElementById('horaTask').value,
+                dataString: document.getElementById('dataSeletor').value,
+                categoria: document.getElementById('categoriaSelecionada').value,
+                corCategoria: document.getElementById('corSelecionada').value,
+                alertaDisparado: false, criadoEm: new Date()
+            });
+            document.getElementById('descTask').value = ""; carregarTarefas();
+        } catch (e) { alert("Erro ao salvar."); }
     };
-
-    // --- LÓGICA DE DATA E MÊS ---
-    const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor');
@@ -209,68 +199,13 @@
         carregarTarefas();
     };
 
-    window.carregarTarefas = async () => {
-        const lista = document.getElementById('listaTarefas');
-        const dataFiltro = document.getElementById('dataSeletor').value;
-        const dataObj = new Date(dataFiltro + 'T00:00:00');
-        
-        // Atualiza o título com o mês
-        document.getElementById('headerMes').innerText = `📅 Atividades de ${meses[dataObj.getMonth()]}`;
-
-        const snap = await getDocs(query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc")));
-        lista.innerHTML = "";
-        
-        snap.forEach(d => {
-            const t = d.data();
-            const diaNum = dataObj.getDate();
-            const diaSem = diasSemana[dataObj.getDay()];
-
-            lista.innerHTML += `
-                <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
-                    <div class="dia-badge">${diaNum}<span>${diaSem}</span></div>
-                    <div class="tarefa-info">
-                        <div style="font-size:0.7rem; color:#888; font-weight:700;">${t.categoria}</div>
-                        <strong>${t.hora}</strong> - ${t.descricao}
-                    </div>
-                    <button class="btn-excluir-task" onclick="excluirTask('${d.id}')">✕</button>
-                </div>`;
-        });
-        if(lista.innerHTML === "") lista.innerHTML = "<p style='color:#999; text-align:center;'>Sem atividades para este dia.</p>";
-    };
-
-    document.getElementById('btnSalvar').onclick = async () => {
-        const desc = document.getElementById('descTask').value;
-        if(!desc) return;
-        await addDoc(collection(db, "tarefas"), {
-            descricao: desc, hora: document.getElementById('horaTask').value,
-            dataString: document.getElementById('dataSeletor').value,
-            categoria: document.getElementById('categoriaSelecionada').value,
-            corCategoria: document.getElementById('corSelecionada').value,
-            alertaDisparado: false, criadoEm: new Date()
-        });
-        document.getElementById('descTask').value = ""; carregarTarefas();
-    };
-
-    window.solicitarNotificacao = async () => {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-            const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-            if (token) { await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() }, { merge: true }); document.getElementById('btnConectar').innerText = "CONEXÃO ATIVA ✅"; document.getElementById('btnConectar').style.background = "#28a745"; }
-        }
-    };
-
-    window.mudarAba = (aba) => {
-        const cA = document.getElementById('conteudoAlarme'), cC = document.getElementById('conteudoCategorias');
-        const tA = document.getElementById('tabAlarme'), tC = document.getElementById('tabCat');
-        if(aba==='alarme'){cA.classList.remove('escondido');cC.classList.add('escondido');tA.classList.add('ativo');tC.classList.remove('ativo');}
-        else{cC.classList.remove('escondido');cA.classList.add('escondido');tC.classList.add('ativo');tA.classList.remove('ativo');}
-    };
-
-    window.excluirTask = async (id) => { if(confirm("Apagar atividade?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
-    window.excluirCategoria = async (id) => { if(confirm("Apagar pasta?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategorias(); } };
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
     window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
+    window.mudarAba = (aba) => {
+        document.getElementById('conteudoAlarme').classList.toggle('escondido', aba !== 'alarme');
+        document.getElementById('conteudoCategorias').classList.toggle('escondido', aba !== 'categorias');
+    };
+    window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
 </script>
 </body>
 </html>
