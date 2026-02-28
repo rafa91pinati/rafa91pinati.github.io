@@ -184,8 +184,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
-    
+    import { getStorage, ref, uploadBytes, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+	
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
@@ -392,10 +392,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
         let linksFotos = [];
         try {
             for (let base64 of fotosNovasArray) {
-                const blob = await (await fetch(base64)).blob(); 
                 const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${Math.random().toString(36).substr(2,5)}.jpg`);
-                const snap = await uploadBytes(sRef, blob);
-                linksFotos.push(await getDownloadURL(snap.ref));
+                // Comando nativo do Firebase para subir Base64 (Resolve o Erro 400)
+                const snap = await uploadString(sRef, base64, 'data_url');
+                const url = await getDownloadURL(snap.ref);
+                linksFotos.push(url);
             }
             await addDoc(collection(db, "tarefas"), { 
                 uid: window.usuarioLogado.uid, // Vinculado ao Usuário Logado
