@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.9.9.8</title>
+    <title>Minha Agenda Inteligente - v1.0 (Final)</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -21,7 +21,7 @@
         .seta-secao { transition: transform 0.3s; font-size: 0.7rem; transform: rotate(-90deg); }
         .seta-expandida { transform: rotate(0deg); }
 
-        textarea, input[type="text"], input[type="time"], select, input[type="number"] { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; resize: none; }
+        textarea, input[type="text"], input[type="time"], select, input[type="number"], input[type="color"] { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; resize: none; }
         
         .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .tarefa-content { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; position: relative; }
@@ -99,8 +99,7 @@
       <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')">📂 Categorias</button>
     </div>
 
-<div id="abaAlarme" class="tabcontent" style="display: block;">
-      
+    <div id="abaAlarme" class="tabcontent" style="display: block;">
       <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
       <select id="tempoAntecedencia" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
         <option value="0">Na hora exata (0 minutos)</option>
@@ -134,13 +133,14 @@
       <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
       <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px;">
         <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
-        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1;">
+        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1; margin: 0;">
         <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
       </div>
       <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
       <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
       <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
     </div>
+
   </div>
 </div>
 
@@ -159,8 +159,8 @@
         authDomain: "agenda-4efa7.firebaseapp.com",
         projectId: "agenda-4efa7",
         storageBucket: "agenda-4efa7.appspot.com",
-        messagingSenderId: "299659202964",
-        appId: "1:299659202964:web:e358210feb4d7784f63f81"
+        appId: "1:299659202964:web:e358210feb4d7784f63f81",
+        messagingSenderId: "299659202964" 
     };
 
     const app = initializeApp(firebaseConfig);
@@ -175,18 +175,14 @@
     let tipoFiltroTempo = 'dia'; 
     let dataInicioSemana = '';
     let dataFimSemana = '';
+    window.tarefasMonitoramento = [];
 
     // --- SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
     }
 
-    // Gera um ID único para este aparelho, evitando que o PC apague o token do Celular
-    const getDeviceId = () => {
-        if (!auth.currentUser) return "dispositivo_desconhecido";
-        return auth.currentUser.uid; 
-    };
-
+    // --- CARREGAR PREFERÊNCIAS E AUTO-SAVE ---
     window.carregarPreferenciasNuvem = async () => {
         const docSnap = await getDoc(doc(db, "tokens_dispositivos", "meu_celular"));
         if (docSnap.exists()) {
@@ -209,11 +205,11 @@
                 minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
                 tipoNotificacao: document.getElementById('tipoNotificacao').value,
                 somSelecionado: document.getElementById('somAlarmeSelecionado').value
-            }, { merge: true });
-            console.log("Preferências atualizadas para este aparelho.");
+            }, { merge: true }); // Salva sem apagar a lista de tokens!
         }
     };
 
+    // --- ATIVAR NOTIFICAÇÕES PARA MÚLTIPLOS APARELHOS ---
     window.solicitarPermissaoNotificacao = () => {
         Notification.requestPermission().then((permission) => {
             if (permission === 'granted') {
@@ -221,7 +217,6 @@
                 const textoOriginal = btn.innerHTML;
                 btn.innerHTML = "⏳ Conectando..."; 
                 
-                // Força o Firebase a usar o Service Worker em segundo plano
                 navigator.serviceWorker.ready.then((registration) => {
                     getToken(messaging, { 
                         vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8',
@@ -229,7 +224,7 @@
                     })
                     .then(async (currentToken) => {
                         if (currentToken) {
-                            // Salva no documento unificado "meu_celular" e adiciona o token na LISTA
+                            // Salva na lista usando arrayUnion para não apagar outros aparelhos
                             await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
                                 tokens: arrayUnion(currentToken),
                                 minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
@@ -239,27 +234,22 @@
                             
                             btn.innerHTML = "✅ Conectado à Nuvem";
                             btn.style.background = "#28a745";
-                            alert("Aparelho sincronizado! Você receberá os alertas aqui também.");
+                            alert("Aparelho sincronizado na Nuvem!");
                         }
                     }).catch(err => {
-                        alert("Erro de conexão com o Firebase.");
+                        alert("Erro de conexão. O firebase-messaging-sw.js precisa estar na raiz.");
                         btn.innerHTML = textoOriginal;
                         console.error(err);
                     });
                 });
-            } else {
-                alert("Você bloqueou as permissões de notificação neste navegador.");
-            }
+            } else alert("Você bloqueou as permissões neste navegador.");
         });
     };
-    
-    // Variável global para armazenar todas as tarefas ativas do dia
-    window.tarefasMonitoramento = [];
 
     signInAnonymously(auth).then(async () => {
         await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
-        carregarPreferenciasNuvem();
+        carregarPreferenciasNuvem(); 
     });
 
     window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
@@ -277,13 +267,13 @@
     window.testarAlarme = () => {
         const somUrl = document.getElementById('somAlarmeSelecionado').value;
         const audio = new Audio(somUrl);
-        audio.play().catch(e => alert("Erro ao reproduzir. O navegador pode ter bloqueado o áudio automático."));
+        audio.play().catch(e => alert("Erro ao reproduzir o som."));
         if(Notification.permission === 'granted') {
-            new Notification("Teste de Alarme", { body: "O som e a notificação estão funcionando!" });
+            new Notification("Teste de Alarme", { body: "Notificação funcionando!" });
         }
     };
 
-    // O "Motor" que checa as tarefas a cada 60 segundos (Backup local)
+    // ALARME LOCAL PARA QUANDO A ABA ESTÁ ABERTA
     setInterval(() => {
         if (Notification.permission !== "granted") return; 
         
@@ -328,7 +318,7 @@
             const c = d.data();
             lista.innerHTML += `
                 <li style="display:flex; align-items:center; gap:10px; margin-bottom:10px; background:#f8f9fa; padding:10px; border-radius:8px; border: 1px solid #eee;">
-                    <input type="color" id="cor-edit-${d.id}" value="${c.cor}" style="width:35px; height:35px; border:none; border-radius:4px; cursor:pointer;" onchange="atualizarCorCategoria('${d.id}')">
+                    <input type="color" id="cor-edit-${d.id}" value="${c.cor}" style="width:35px; height:35px; border:none; padding:0; border-radius:4px; cursor:pointer;" onchange="atualizarCorCategoria('${d.id}')">
                     <span style="flex:1; font-weight:bold; color: #333;">${c.nome}</span>
                     <button onclick="excluirCategoria('${d.id}')" style="background:#ff4d4d; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">🗑️</button>
                 </li>`;
@@ -337,7 +327,7 @@
     window.atualizarCorCategoria = async (id) => { await updateDoc(doc(db, "categorias", id), { cor: document.getElementById(`cor-edit-${id}`).value }); carregarCategorias(); };
     window.excluirCategoria = async (id) => { if(confirm("Apagar categoria?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategoriasModal(); carregarCategorias(); } };
 
-    // --- EDIÇÃO (ARQUIVO E SALVAR) ---
+    // --- EDIÇÃO E SALVAMENTO ---
     window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
     window.removerFotoTemporaria = (idx) => { fotosTemporarias.splice(idx, 1); renderizarFotosEdicao(); };
     window.renderizarFotosEdicao = () => {
@@ -348,7 +338,6 @@
     window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
-    // --- NOVA TAREFA ---
     window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
         if(!desc) return alert("Digite a descrição!");
@@ -373,7 +362,7 @@
     const renderizarPreviewFotosNovas = () => { document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); };
     window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
-    // --- FILTROS DE TEMPO ---
+    // --- FILTROS DE TEMPO E LISTAGEM ---
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor'); const hoje = new Date(); tipoFiltroTempo = 'dia'; 
         if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
@@ -384,7 +373,6 @@
         carregarTarefas();
     };
 
-    // --- LISTAGEM ---
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas');
         const dataFiltro = document.getElementById('dataSeletor').value;
@@ -438,7 +426,6 @@
         if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px;'>Nenhuma atividade encontrada.</p>";
     };
 
-    // --- AUXILIARES ---
     window.carregarCategorias = async () => { const c = document.getElementById('listaCategorias'); const s = await getDocs(collection(db, "categorias")); c.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`; s.forEach(d => c.innerHTML += `<div class="category-tab" onclick="selecionarCat('${d.data().nome}', '${d.data().cor}', this)">${d.data().nome}</div>`); };
     window.selecionarCat = (nome, cor, el) => { categoriaFiltroAtiva = nome; document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; }); if(el) { el.style.backgroundColor = cor; el.style.color = 'white'; } carregarTarefas(); };
     window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
