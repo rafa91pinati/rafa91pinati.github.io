@@ -4,37 +4,31 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda - v1.3.6</title>
+    <title>Minha Agenda - v1.3.7</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* 🔵 TOP BOTS: SUPER REDONDOS */
         .timeline-header { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
         .btn-date { flex: 1; padding: 12px 0; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; transition: 0.3s; }
         .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; box-shadow: 0 4px 8px rgba(0,123,255,0.3); }
         #dataSeletor { flex: 1.5; padding: 10px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.9rem; text-align: center; font-weight: 600; }
 
-        /* 🔲 CATEGORIAS: MAIS QUADRADAS PARA DIFERENCIAR */
         .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; align-items: center; }
         .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; transition: 0.2s; }
         .category-tab.ativo { background: #333; color: white; border-color: #333; }
 
-        /* ➕ BOTÃO ADICIONAR: CÍRCULO COM MAIS */
         .btn-add-cat-circle { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #007bff; color: #007bff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: pointer; background: none; flex-shrink: 0; margin-left: 5px; }
 
-        /* 🟦 CABEÇALHOS ESTILOSOS COM BARRA AZUL */
         .header-secao { border-left: 6px solid #007bff; padding-left: 12px; margin: 25px 0 12px; color: #007bff; font-size: 0.9rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* FORMULÁRIO E TAREFAS */
         .secao-card { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 20px; }
-        input[type="text"], input[type="time"] { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        input[type="text"], input[type="time"], select { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
         #btnSalvar { background: #28a745; color: white; border: none; padding: 16px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
         .tarefa-item { background: #fff; margin-bottom: 12px; padding: 15px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; }
         .btn-excluir-task { position: absolute; right: 12px; top: 12px; background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 1.2rem; }
         
-        /* ⚙️ MODAL COM MINUTOS DE ALARME */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
         .modal-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
@@ -44,7 +38,7 @@
 
         .config-input-group { margin: 15px 0; text-align: left; }
         .config-input-group label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 8px; font-weight: bold; }
-        .config-input-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem; }
+        .config-input-group input, .config-input-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -85,10 +79,17 @@
         </div>
         
         <div id="conteudoAlarme">
-            <h4 style="margin: 0 0 15px 0; color: #333;">Dispositivo</h4>
+            <h4 style="margin: 0 0 15px 0; color: #333;">Configuração de Alertas</h4>
             <div class="config-input-group">
-                <label>Minutos de antecedência do alerta:</label>
-                <input type="number" id="minutosAlerta" value="1">
+                <label>Minutos de antecedência:</label>
+                <input type="number" id="minutosAlerta" value="1" onchange="salvarPreferencias()">
+            </div>
+            <div class="config-input-group">
+                <label>Comportamento da Notificação:</label>
+                <select id="tipoNotificacao" onchange="salvarPreferencias()">
+                    <option value="aviso">Apenas Aviso (Sumir)</option>
+                    <option value="fixo">Fixar (Até fechar)</option>
+                </select>
             </div>
             <button id="btnConectar" onclick="solicitarNotificacao()" style="width:100%; padding:14px; background:#007bff; color:white; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">CONECTAR CELULAR</button>
             <button onclick="location.reload()" style="width:100%; padding:10px; background:#f0f2f5; border:none; border-radius:25px; cursor:pointer; margin-top:15px; font-weight: 600;">ATUALIZAR APP</button>
@@ -124,16 +125,38 @@
     const messaging = getMessaging(app);
 
     signInAnonymously(auth).then(async () => {
+        carregarPreferencias();
         await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
     });
 
+    // --- Lógica de Notificação ---
     onMessage(messaging, (payload) => {
+        const tipo = document.getElementById('tipoNotificacao').value;
         if (Notification.permission === "granted") {
-            new Notification(payload.notification.title, { body: payload.notification.body });
+            new Notification(payload.notification.title, { 
+                body: payload.notification.body,
+                // Aqui está o segredo: requireInteraction: true impede que a notificação suma sozinha
+                requireInteraction: (tipo === 'fixo') 
+            });
         }
     });
 
+    window.salvarPreferencias = () => {
+        const min = document.getElementById('minutosAlerta').value;
+        const tipo = document.getElementById('tipoNotificacao').value;
+        localStorage.setItem('agenda_minutos', min);
+        localStorage.setItem('agenda_tipo_notif', tipo);
+    };
+
+    window.carregarPreferencias = () => {
+        const min = localStorage.getItem('agenda_minutos');
+        const tipo = localStorage.getItem('agenda_tipo_notif');
+        if(min) document.getElementById('minutosAlerta').value = min;
+        if(tipo) document.getElementById('tipoNotificacao').value = tipo;
+    };
+
+    // --- Resto das Funções Existentes ---
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaCategorias');
         const listaMngt = document.getElementById('listaGerenciarCats');
@@ -147,8 +170,6 @@
             container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
             listaMngt.innerHTML += `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer;">✕</button></div>`;
         });
-        
-        // BOTÃO MAIS NO CÍRCULO
         container.innerHTML += `<button class="btn-add-cat-circle" onclick="promptNovaCat()">+</button>`;
     };
 
@@ -190,8 +211,10 @@
     };
 
     document.getElementById('btnSalvar').onclick = async () => {
+        const desc = document.getElementById('descTask').value;
+        if(!desc) return;
         await addDoc(collection(db, "tarefas"), {
-            descricao: document.getElementById('descTask').value,
+            descricao: desc,
             hora: document.getElementById('horaTask').value,
             dataString: document.getElementById('dataSeletor').value,
             categoria: document.getElementById('categoriaSelecionada').value,
