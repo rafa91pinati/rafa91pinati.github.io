@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.7.0</title>
+    <title>Minha Agenda Inteligente - v1.7.5</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -36,17 +36,22 @@
         
         /* FOTOS */
         .container-fotos { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
-        .img-tarefa { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
+        .img-tarefa { width: 55px; height: 55px; border-radius: 8px; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: zoom-in; }
         
+        /* MODAL DE FOTO EXPANDIDA (TELA CHEIA) */
+        .modal-foto { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .modal-foto img { max-width: 95%; max-height: 85%; border-radius: 10px; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .fechar-foto { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer; }
+
         /* EDIÇÃO */
         .area-edicao { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd; }
-        .btn-salvar-edit { background: #007bff; color: white; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 10px; }
+        .btn-salvar-edit { background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 10px; }
         .btn-cancelar-edit { background: #f0f2f5; color: #65676b; border: none; padding: 10px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 5px; }
 
         .btn-excluir-task { background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 1.1rem; }
         .escondido { display: none !important; }
 
-        /* MODAL */
+        /* MODAIS GERAIS */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
     </style>
@@ -86,6 +91,11 @@
     <div id="listaTarefas">Sincronizando...</div>
 </div>
 
+<div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
+    <span class="fechar-foto">&times;</span>
+    <img id="imgGrande" src="">
+</div>
+
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
         <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.5rem; cursor:pointer;">✕</button>
@@ -114,12 +124,26 @@
 
     let categoriaFiltroAtiva = "Geral";
     let filtroDataTipo = "hoje";
-    let idEmEdicao = null; // Controla qual card está expandido
+    let idEmEdicao = null;
 
     signInAnonymously(auth).then(async () => {
         await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
     });
+
+    // --- FUNÇÕES DE VISUALIZAÇÃO DE FOTO ---
+    window.abrirFoto = (src) => {
+        const modal = document.getElementById('modalFotoExpandida');
+        const img = document.getElementById('imgGrande');
+        img.src = src;
+        modal.classList.remove('escondido');
+    };
+
+    window.fecharFoto = () => {
+        document.getElementById('modalFotoExpandida').classList.add('escondido');
+    };
+
+    // --- LÓGICA DO APP ---
 
     window.toggleSecao = (idConteudo, idSeta) => {
         const conteudo = document.getElementById(idConteudo);
@@ -152,7 +176,6 @@
         const input = document.getElementById('dataSeletor');
         document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
         if(el) el.classList.add('ativo');
-
         const hoje = new Date();
         if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
         else if (tipo === 'amanha') { const am = new Date(); am.setDate(hoje.getDate()+1); input.value = am.toLocaleDateString('en-CA'); }
@@ -162,7 +185,6 @@
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas');
         const dataFiltro = document.getElementById('dataSeletor').value;
-        
         let q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
         if (categoriaFiltroAtiva !== "Geral") {
             q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), where("categoria", "==", categoriaFiltroAtiva), orderBy("hora", "asc"));
@@ -176,14 +198,15 @@
             const dItem = new Date(t.dataString + 'T00:00:00');
             const isEditando = idEmEdicao === d.id;
 
-            // LÓGICA: Se não tem hora, o label fica vazio.
+            // Oculta "Sem Hora" se estiver vazio
             const labelHora = t.hora ? `<strong>${t.hora}</strong> - ` : "";
 
-            // LÓGICA MÚLTIPLAS FOTOS: Suporta array 'fotos' ou campo antigo 'foto'
+            // Renderiza fotos com clique para expandir
             let fotosHtml = "";
             const listaFotos = t.fotos || (t.foto ? [t.foto] : []);
             listaFotos.forEach(img => {
-                fotosHtml += `<img src="${img}" class="img-tarefa">`;
+                // event.stopPropagation() impede que o card abra o modo de edição ao clicar na foto
+                fotosHtml += `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`;
             });
 
             lista.innerHTML += `
@@ -202,7 +225,7 @@
                         <div class="area-edicao">
                             <textarea id="edit-desc-${d.id}">${t.descricao}</textarea>
                             <input type="time" id="edit-hora-${d.id}" value="${t.hora || ''}">
-                            <p style="font-size:0.7rem; color:gray; margin:5px 0">Add mais fotos:</p>
+                            <p style="font-size:0.75rem; color:gray; margin:5px 0">Adicionar mais fotos:</p>
                             <input type="file" id="edit-foto-${d.id}" accept="image/*" multiple>
                             <button class="btn-salvar-edit" onclick="salvarAlteracoes('${d.id}')">SALVAR ALTERAÇÕES</button>
                             <button class="btn-cancelar-edit" onclick="event.stopPropagation(); ativarEdicao(null)">CANCELAR</button>
@@ -221,22 +244,12 @@
         const novaDesc = document.getElementById(`edit-desc-${id}`).value;
         const novaHora = document.getElementById(`edit-hora-${id}`).value;
         const fileInput = document.getElementById(`edit-foto-${id}`);
-        
         let novasFotos = [];
         
         const processarESalvar = async () => {
             const taskRef = doc(db, "tarefas", id);
-            // Se houver novas fotos, adicionamos ao que já existe ou criamos nova lista
-            const dadosUpdate = {
-                descricao: novaDesc,
-                hora: novaHora,
-            };
-            
-            if (novasFotos.length > 0) {
-                // Aqui você pode decidir se limpa as antigas ou soma. Vou somar para você ter "mais de uma".
-                dadosUpdate.fotos = novasFotos; 
-            }
-
+            const dadosUpdate = { descricao: novaDesc, hora: novaHora };
+            if (novasFotos.length > 0) dadosUpdate.fotos = novasFotos; 
             await updateDoc(taskRef, dadosUpdate);
             idEmEdicao = null;
             carregarTarefas();
@@ -253,32 +266,24 @@
                 };
                 reader.readAsDataURL(fileInput.files[i]);
             }
-        } else {
-            await processarESalvar();
-        }
+        } else { await processarESalvar(); }
     };
 
     document.getElementById('btnSalvar').onclick = async () => {
         const desc = document.getElementById('descTask').value;
         const fileInput = document.getElementById('fotoTask');
         if(!desc) return;
-
         let fotosBase64 = [];
         const salvarNoFirebase = async () => {
             await addDoc(collection(db, "tarefas"), {
-                descricao: desc, 
-                hora: document.getElementById('horaTask').value,
+                descricao: desc, hora: document.getElementById('horaTask').value,
                 dataString: document.getElementById('dataSeletor').value,
                 categoria: document.getElementById('categoriaSelecionada').value,
                 corCategoria: document.getElementById('corSelecionada').value,
-                fotos: fotosBase64, // Agora salva como lista
-                criadoEm: new Date()
+                fotos: fotosBase64, criadoEm: new Date()
             });
-            document.getElementById('descTask').value = ""; 
-            document.getElementById('fotoTask').value = ""; 
-            carregarTarefas();
+            document.getElementById('descTask').value = ""; document.getElementById('fotoTask').value = ""; carregarTarefas();
         };
-
         if (fileInput.files.length > 0) {
             let filesProcessed = 0;
             for (let i = 0; i < fileInput.files.length; i++) {
