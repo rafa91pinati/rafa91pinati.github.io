@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.9.9.6</title>
+    <title>Minha Agenda Inteligente - v1.9.9.7</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -23,7 +23,7 @@
         .seta-expandida { transform: rotate(0deg); }
 
         /* COMPONENTES 100% DINÂMICOS */
-        textarea, input[type="text"], input[type="time"], select { 
+        textarea, input[type="text"], input[type="time"], select, input[type="number"] { 
             width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; resize: none; 
         }
         
@@ -51,6 +51,12 @@
         .escondido { display: none !important; }
         .modal-foto { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; align-items: center; justify-content: center; }
         .modal-foto img { max-width: 95%; max-height: 85%; border-radius: 10px; }
+
+        /* Abas Configuração */
+        .tablink { background-color: transparent; border: none; border-bottom: 3px solid transparent; border-radius: 0; }
+        .tablink.active { border-bottom: 3px solid #007bff; color: #007bff; }
+        .tabcontent { animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
     </style>
 </head>
 <body>
@@ -99,19 +105,34 @@
     </div>
 
     <div id="abaAlarme" class="tabcontent" style="display: block;">
-      <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência de (minutos):</label>
+      <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência (minutos):</label>
       <input type="number" id="tempoAntecedencia" value="10">
-      <br><br>
-      <button onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">Ativar Notificações Push</button>
+      
+      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme:</label>
+      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+        <select id="somAlarmeSelecionado" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+          <option value="alarme.mp3">Alarme Padrão</option>
+          <option value="notificacao.mp3">Notificação Curta</option>
+        </select>
+        <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
+      </div>
+
+      <button onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar Notificações Push</button>
     </div>
 
     <div id="abaCategorias" class="tabcontent" style="display: none;">
       <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
-      <div style="display: flex; gap: 8px;">
-        <input type="text" id="novaCategoria" placeholder="Nome da categoria...">
-        <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer;">+</button>
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px;">
+        <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
+        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1;">
+        <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
       </div>
-      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:10px;"></ul>
+      
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+      
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
+      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;">
+        </ul>
     </div>
   </div>
 </div>
@@ -155,9 +176,13 @@
         setarData('hoje', document.getElementById('btnHoje'));
     });
 
-    // --- CONTROLES DO MENU DE CONFIGURAÇÕES ---
-    window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; };
+    // --- CONTROLES DO MENU DE CONFIGURAÇÕES (v1.9.9.7) ---
+    window.abrirConfig = () => { 
+        document.getElementById('modalConfiguracoes').style.display = 'flex'; 
+        carregarCategoriasModal(); 
+    };
     window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
+    
     window.abrirAba = (evt, nomeAba) => {
         let i, tabcontent, tablinks;
         tabcontent = document.getElementsByClassName("tabcontent");
@@ -168,7 +193,7 @@
         evt.currentTarget.classList.add("active");
     };
 
-    // --- SISTEMA DE NOTIFICAÇÕES PUSH ---
+    // --- FUNCIONALIDADES DE ALARME E NOTIFICAÇÃO ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
     }
@@ -189,9 +214,60 @@
         });
     };
 
+    window.testarAlarme = () => {
+        const som = document.getElementById('somAlarmeSelecionado').value;
+        const audio = new Audio(som);
+        audio.play().catch(e => alert("Não foi possível tocar. Verifique se o arquivo '" + som + "' está salvo na pasta."));
+    };
+
     onMessage(messaging, (payload) => {
         alert(`🔔 ${payload.notification.title}\n${payload.notification.body}`);
     });
+
+    // --- GERENCIADOR DE CATEGORIAS (v1.9.9.7) ---
+    window.adicionarCategoria = async () => {
+        const nome = document.getElementById('novaCategoria').value;
+        const cor = document.getElementById('corNovaCategoria').value;
+        if(!nome) return alert("Digite um nome para a categoria!");
+        
+        await addDoc(collection(db, "categorias"), { nome: nome, cor: cor });
+        document.getElementById('novaCategoria').value = ""; 
+        carregarCategoriasModal(); 
+        carregarCategorias(); 
+    };
+
+    window.carregarCategoriasModal = async () => {
+        const lista = document.getElementById('listaCategoriasModal');
+        lista.innerHTML = "<p style='text-align:center; font-size: 12px; color: #888;'>Carregando...</p>";
+        
+        const snap = await getDocs(collection(db, "categorias"));
+        lista.innerHTML = "";
+        
+        snap.forEach(d => {
+            const c = d.data();
+            lista.innerHTML += `
+                <li style="display:flex; align-items:center; gap:10px; margin-bottom:10px; background:#f8f9fa; padding:10px; border-radius:8px; border: 1px solid #eee;">
+                    <input type="color" id="cor-edit-${d.id}" value="${c.cor}" style="width:35px; height:35px; padding:0; border:none; border-radius:4px; cursor:pointer;" onchange="atualizarCorCategoria('${d.id}')">
+                    <span style="flex:1; font-weight:bold; color: #333;">${c.nome}</span>
+                    <button onclick="excluirCategoria('${d.id}')" style="background:#ff4d4d; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">🗑️</button>
+                </li>
+            `;
+        });
+    };
+
+    window.atualizarCorCategoria = async (id) => {
+        const novaCor = document.getElementById(`cor-edit-${id}`).value;
+        await updateDoc(doc(db, "categorias", id), { cor: novaCor });
+        carregarCategorias(); 
+    };
+
+    window.excluirCategoria = async (id) => {
+        if(confirm("Tem certeza que deseja apagar esta categoria?")) {
+            await deleteDoc(doc(db, "categorias", id));
+            carregarCategoriasModal(); 
+            carregarCategorias(); 
+        }
+    };
 
     // --- EDIÇÃO (ARQUIVO E SALVAR) ---
     window.ativarEdicao = (id, fotos) => {
@@ -293,7 +369,6 @@
         const dataFiltro = document.getElementById('dataSeletor').value;
         let q;
 
-        // Otimização para não quebrar índices no Firebase
         if (tipoFiltroTempo === 'semana') {
             q = query(collection(db, "tarefas"), where("dataString", ">=", dataInicioSemana), where("dataString", "<=", dataFimSemana), orderBy("dataString", "asc"));
         } else {
@@ -306,7 +381,6 @@
         let tarefas = [];
         snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
 
-        // Ordenação extra no cliente para a visão semanal e filtro de categoria
         if (tipoFiltroTempo === 'semana') {
             tarefas.sort((a, b) => {
                 if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00");
@@ -321,7 +395,6 @@
             const isEditando = idEmEdicao === t.id;
             const listaFotos = t.fotos || [];
             
-            // Corrige o dia da semana dinâmico (Ao invés de mostrar sempre "SÁB")
             const dataObj = new Date(t.dataString + 'T00:00:00');
             const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
@@ -372,7 +445,6 @@
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
-	
-	</script>
+</script>
 </body>
 </html>
