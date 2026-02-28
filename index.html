@@ -381,30 +381,38 @@
             });
     };
 
+// [V2] FUNÇÃO PARA ENTRAR
+    window.fazerLogin = () => {
+        const email = document.getElementById('emailLogin').value;
+        const senha = document.getElementById('senhaLogin').value;
+        
+        if(!email || !senha) return alert("Preencha o e-mail e a senha, Rafael!");
+
+        signInWithEmailAndPassword(auth, email, senha)
+            .then(() => {
+                console.log("Login de sucesso!");
+            })
+            .catch((error) => {
+                // Aqui o app te avisa o que deu errado
+                if (error.code === 'auth/invalid-credential') alert("E-mail ou senha incorretos.");
+                else if (error.code === 'auth/user-not-found') alert("Usuário não encontrado.");
+                else alert("Erro: " + error.message);
+            });
+    };
+
     // [V2] FUNÇÃO PARA CRIAR CONTA
     window.criarConta = () => {
         const email = document.getElementById('emailLogin').value;
         const senha = document.getElementById('senhaLogin').value;
         
-        if(!email || !senha) return alert("Preencha os campos para criar sua conta.");
-        if(senha.length < 6) return alert("A senha deve ter pelo menos 6 dígitos.");
+        if(!email || !senha) return alert("Coloque os dados para criar a conta!");
+        if(senha.length < 6) return alert("A senha precisa de pelo menos 6 números/letras.");
 
         createUserWithEmailAndPassword(auth, email, senha)
-            .then(async (userCredential) => {
-                const user = userCredential.user;
-                
-                // Opcional: Criar o perfil inicial na coleção 'usuarios' que você indexou
-                await setDoc(doc(db, "usuarios", user.uid), {
-                    Nome: email.split('@')[0], // Usa a primeira parte do e-mail como nome
-                    email: email,
-                    preferencias: { minutosAntecedencia: 0 }
-                });
-
-                alert("Conta criada com sucesso! Você já está logado.");
-            })
+            .then(() => alert("Conta criada! A agenda vai abrir agora."))
             .catch((error) => {
-                if (error.code === 'auth/email-already-in-use') alert("Este e-mail já está sendo usado.");
-                else alert("Erro ao criar conta: " + error.message);
+                if (error.code === 'auth/email-already-in-use') alert("Este e-mail já está cadastrado.");
+                else alert("Erro ao criar: " + error.message);
             });
     };
 	
