@@ -99,10 +99,24 @@
       <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')">📂 Categorias</button>
     </div>
 
-    <div id="abaAlarme" class="tabcontent" style="display: block;">
-      <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência (minutos):</label>
-      <input type="number" id="tempoAntecedencia" value="10">
+<div id="abaAlarme" class="tabcontent" style="display: block;">
       
+      <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
+      <select id="tempoAntecedencia" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+        <option value="0">Na hora exata (0 minutos)</option>
+        <option value="5">5 minutos antes</option>
+        <option value="10" selected>10 minutos antes</option>
+        <option value="15">15 minutos antes</option>
+        <option value="30">30 minutos antes</option>
+        <option value="60">1 hora antes</option>
+      </select>
+      
+      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Comportamento da Notificação:</label>
+      <select id="tipoNotificacao" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+        <option value="normal">Push Normal (Some sozinha da tela)</option>
+        <option value="fixa">Push Fixo (Fica na tela até eu fechar)</option>
+      </select>
+
       <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme (Internet):</label>
       <div style="display: flex; gap: 8px; margin-bottom: 15px;">
         <select id="somAlarmeSelecionado" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
@@ -113,7 +127,7 @@
         <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
       </div>
 
-      <button onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Permitir Notificações Locais</button>
+      <button onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
     </div>
 
     <div id="abaCategorias" class="tabcontent" style="display: none;">
@@ -136,8 +150,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+	import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
@@ -180,10 +194,31 @@
     };
 
     // --- SISTEMA DE ALARME LOCAL (Monitora enquanto a aba existe) ---
-    window.solicitarPermissaoNotificacao = () => {
+window.solicitarPermissaoNotificacao = () => {
         Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') alert("Permissão concedida! Mantenha o app aberto ou minimizado para receber os alertas.");
-            else alert("Permissão negada pelo usuário.");
+            if (permission === 'granted') {
+                getToken(messaging, { vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8' })
+                .then(async (currentToken) => {
+                    if (currentToken) {
+                        // Pega os valores escolhidos no modal
+                        const antecedencia = document.getElementById('tempoAntecedencia').value;
+                        const tipo = document.getElementById('tipoNotificacao').value;
+                        const som = document.getElementById('somAlarmeSelecionado').value;
+
+                        // Salva tudo no banco para o servidor (Cloud Function) ler
+                        await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
+                            token: currentToken,
+                            minutosAntecedencia: antecedencia,
+                            tipoNotificacao: tipo,
+                            somSelecionado: som
+                        });
+                        
+                        alert("Notificações conectadas com a Nuvem!");
+                    }
+                }).catch((err) => alert("Erro ao ativar notificações: " + err));
+            } else {
+                alert("Permissão negada.");
+            }
         });
     };
 
@@ -266,8 +301,23 @@
     window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
         if(!desc) return alert("Digite a descrição!");
-        await addDoc(collection(db, "tarefas"), { descricao: desc, hora: document.getElementById('horaTask').value, dataString: document.getElementById('dataSeletor').value, categoria: categoriaFiltroAtiva, fotos: fotosNovasArray, criadoEm: new Date() });
-        document.getElementById('descTask').value = ""; fotosNovasArray = []; renderizarPreviewFotosNovas(); carregarTarefas();
+        
+        await addDoc(collection(db, "tarefas"), { 
+            descricao: desc, 
+            hora: document.getElementById('horaTask').value, 
+            dataString: document.getElementById('dataSeletor').value, 
+            categoria: categoriaFiltroAtiva, 
+            fotos: fotosNovasArray, 
+            criadoEm: new Date(),
+            // NOVOS CAMPOS PARA A CLOUD FUNCTION:
+            alarmeAtivo: true,
+            alertaDisparado: false 
+        });
+        
+        document.getElementById('descTask').value = ""; 
+        fotosNovasArray = []; 
+        renderizarPreviewFotosNovas(); 
+        carregarTarefas();
     };
     window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); }; r.readAsDataURL(f); }); input.value = ""; };
     const renderizarPreviewFotosNovas = () => { document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); };
