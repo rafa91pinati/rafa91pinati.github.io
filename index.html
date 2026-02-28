@@ -410,12 +410,12 @@ window.salvarNovaTarefa = async () => {
         let linksFotos = [];
         try {
             for (let base64 of fotosNovasArray) {
-                // Dentro do loop de fotos da função salvarNovaTarefa:
-                const blob = await (await fetch(base64)).blob(); // Converte texto em arquivo real
-                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}.jpg`);
-                const snap = await uploadBytes(sRef, blob);
-                const url = await getDownloadURL(snap.ref);
-                linksFotos.push(url);
+               // Dentro do loop de fotos da função salvarNovaTarefa:
+               const blob = await (await fetch(base64)).blob(); // Converte texto em arquivo real
+               const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}.jpg`);
+               const snap = await uploadBytes(sRef, blob);
+               const url = await getDownloadURL(snap.ref);
+               linksFotos.push(url);
             }
             await addDoc(collection(db, "tarefas"), { 
                 uid: window.usuarioLogado.uid,
@@ -470,36 +470,19 @@ window.salvarNovaTarefa = async () => {
     };
 
     window.carregarTarefas = async () => {
-    if (!window.usuarioLogado) return;
-    const lista = document.getElementById('listaTarefas');
-    const dataFiltro = document.getElementById('dataSeletor').value;
-    
-    // Adicionado filtro de UID para segurança
-    const q = query(collection(db, "tarefas"), 
-              where("uid", "==", window.usuarioLogado.uid), 
-              where("dataString", "==", dataFiltro), 
-              orderBy("hora", "asc"));
+        const lista = document.getElementById('listaTarefas');
+        const dataFiltro = document.getElementById('dataSeletor').value;
+        let q;
 
-    try {
+        if (tipoFiltroTempo === 'semana') q = query(collection(db, "tarefas"), where("dataString", ">=", dataInicioSemana), where("dataString", "<=", dataFimSemana), orderBy("dataString", "asc"));
+        else q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
+
         const snap = await getDocs(q);
         lista.innerHTML = "";
+        
         let tarefas = [];
         snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
-        window.tarefasMonitoramento = tarefas;
 
-        tarefas.forEach(t => {
-            lista.innerHTML += `
-                <div class="tarefa-item">
-                    <div class="tarefa-content">
-                        <div style="font-weight:bold;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
-                        <div class="container-fotos">${(t.fotos || []).map(img => `<img src="${img}" class="img-tarefa">`).join('')}</div>
-                        <button onclick="excluirTask('${t.id}')" style="position:absolute; right:10px; top:10px; background:none; border:none; color:red; cursor:pointer;">✕</button>
-                    </div>
-                </div>`;
-        });
-        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center;'>Nenhuma atividade encontrada.</p>";
-    } catch (e) { console.error("Erro ao carregar:", e); }
-};
         window.tarefasMonitoramento = tarefas;
 
         if (tipoFiltroTempo === 'semana') tarefas.sort((a, b) => { if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); return a.dataString.localeCompare(b.dataString); });
