@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda - v1.3.7</title>
+    <title>Minha Agenda - v1.3.8</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -16,7 +16,7 @@
 
         .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; align-items: center; }
         .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; transition: 0.2s; }
-        .category-tab.ativo { background: #333; color: white; border-color: #333; }
+        /* A cor ativa agora é controlada via JS para ser dinâmica */
 
         .btn-add-cat-circle { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #007bff; color: #007bff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: pointer; background: none; flex-shrink: 0; margin-left: 5px; }
 
@@ -96,19 +96,17 @@
         </div>
 
         <div id="conteudoCategorias" class="escondido">
-    <h4 style="margin: 0 0 15px 0; color: #333;">Gerenciar Pastas</h4>
-    
-    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-        <input type="text" id="novoNomeCat" placeholder="Nome da Pasta" style="padding: 10px; margin-bottom: 10px;">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-            <label style="font-size: 0.8rem; font-weight: bold;">Cor:</label>
-            <input type="color" id="novaCorCat" value="#007bff" style="width: 50px; height: 40px; padding: 2px; border: none;">
+            <h4 style="margin: 0 0 15px 0; color: #333;">Gerenciar Pastas</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <input type="text" id="novoNomeCat" placeholder="Nome da Pasta" style="padding: 10px; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <label style="font-size: 0.8rem; font-weight: bold;">Cor:</label>
+                    <input type="color" id="novaCorCat" value="#007bff" style="width: 50px; height: 40px; padding: 2px; border: none; cursor: pointer;">
+                </div>
+                <button onclick="adicionarNovaCategoriaVisual()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">+ CRIAR PASTA</button>
+            </div>
+            <div id="listaGerenciarCats"></div>
         </div>
-        <button onclick="adicionarNovaCategoriaVisual()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">+ CRIAR PASTA</button>
-    </div>
-
-    <div id="listaGerenciarCats"></div>
-</div>
     </div>
 </div>
 
@@ -140,38 +138,33 @@
         setarData('hoje', document.getElementById('btnHoje'));
     });
 
-    // --- Lógica de Notificação ---
     onMessage(messaging, (payload) => {
         const tipo = document.getElementById('tipoNotificacao').value;
         if (Notification.permission === "granted") {
             new Notification(payload.notification.title, { 
                 body: payload.notification.body,
-                // Aqui está o segredo: requireInteraction: true impede que a notificação suma sozinha
                 requireInteraction: (tipo === 'fixo') 
             });
         }
     });
 
-window.salvarPreferencias = async () => {
-    const min = document.getElementById('minutosAlerta').value;
-    const tipo = document.getElementById('tipoNotificacao').value;
-    
-    // Salva localmente (para a interface carregar rápido)
-    localStorage.setItem('agenda_minutos', min);
-    localStorage.setItem('agenda_tipo_notif', tipo);
+    window.salvarPreferencias = async () => {
+        const min = document.getElementById('minutosAlerta').value;
+        const tipo = document.getElementById('tipoNotificacao').value;
+        localStorage.setItem('agenda_minutos', min);
+        localStorage.setItem('agenda_tipo_notif', tipo);
 
-    // Sincroniza com o Firestore para a Cloud Function saber
-    try {
-        await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { 
-            tipoNotificacao: tipo,
-            minutosAntecedencia: min,
-            atualizadoEm: new Date() 
-        }, { merge: true }); // O merge evita apagar o token que já está lá
-        console.log("Preferências sincronizadas com a nuvem!");
-    } catch (e) {
-        console.error("Erro ao sincronizar:", e);
-    }
-};
+        try {
+            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { 
+                tipoNotificacao: tipo,
+                minutosAntecedencia: min,
+                atualizadoEm: new Date() 
+            }, { merge: true });
+            console.log("Preferências sincronizadas!");
+        } catch (e) {
+            console.error("Erro ao sincronizar:", e);
+        }
+    };
 
     window.carregarPreferencias = () => {
         const min = localStorage.getItem('agenda_minutos');
@@ -180,52 +173,72 @@ window.salvarPreferencias = async () => {
         if(tipo) document.getElementById('tipoNotificacao').value = tipo;
     };
 
-    // --- Resto das Funções Existentes ---
+    // --- CATEGORIAS COM CORES DINÂMICAS ---
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaCategorias');
         const listaMngt = document.getElementById('listaGerenciarCats');
         const snap = await getDocs(collection(db, "categorias"));
         
-        container.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
+        // Categoria Geral (Sempre ativa no início)
+        container.innerHTML = `<div class="category-tab ativo" style="background-color: #333; color: white; border-color: #333;" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
         listaMngt.innerHTML = "";
 
         snap.forEach(d => {
             const c = d.data();
             container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
-            listaMngt.innerHTML += `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer;">✕</button></div>`;
+            
+            // Item na lista de configurações com edição de cor
+            listaMngt.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;">
+                    <span>${c.nome}</span>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="color" value="${c.cor}" onchange="atualizarCorCategoria('${d.id}', this.value)" style="width:30px; height:30px; border:none; padding:0; cursor:pointer; background:none;">
+                        <button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button>
+                    </div>
+                </div>`;
         });
-        container.innerHTML += `<button class="btn-add-cat-circle" onclick="promptNovaCat()">+</button>`;
+        
+        // Botão + abre as configurações na aba de pastas
+        container.innerHTML += `<button class="btn-add-cat-circle" onclick="abrirConfig(); mudarAba('categorias');">+</button>`;
     };
-	
-	window.adicionarNovaCategoriaVisual = async () => {
-    const nome = document.getElementById('novoNomeCat').value;
-    const cor = document.getElementById('novaCorCat').value;
-    
-    if (!nome) {
-        alert("Digite um nome para a pasta");
-        return;
-    }
-
-    try {
-        await addDoc(collection(db, "categorias"), { 
-            nome: nome, 
-            cor: cor 
-        });
-        document.getElementById('novoNomeCat').value = ""; // Limpa o campo
-        carregarCategorias();
-        alert("Pasta criada com sucesso!");
-    } catch (e) {
-        console.error("Erro ao criar categoria:", e);
-    }
-};
 
     window.selecionarCat = (nome, cor, el) => {
-        document.querySelectorAll('.category-tab').forEach(b => b.classList.remove('ativo'));
+        document.querySelectorAll('.category-tab').forEach(b => {
+            b.classList.remove('ativo');
+            b.style.backgroundColor = '#f8f9fa';
+            b.style.color = '#1c1e21';
+            b.style.borderColor = '#ddd';
+        });
+
         el.classList.add('ativo');
+        el.style.backgroundColor = cor;
+        el.style.color = 'white';
+        el.style.borderColor = cor;
+
         document.getElementById('categoriaSelecionada').value = nome;
         document.getElementById('corSelecionada').value = cor;
     };
 
+    window.adicionarNovaCategoriaVisual = async () => {
+        const nome = document.getElementById('novoNomeCat').value;
+        const cor = document.getElementById('novaCorCat').value;
+        if (!nome) return alert("Digite o nome da pasta");
+
+        try {
+            await addDoc(collection(db, "categorias"), { nome, cor });
+            document.getElementById('novoNomeCat').value = "";
+            carregarCategorias();
+        } catch (e) { console.error(e); }
+    };
+
+    window.atualizarCorCategoria = async (id, novaCor) => {
+        try {
+            await setDoc(doc(db, "categorias", id), { cor: novaCor }, { merge: true });
+            carregarCategorias(); // Recarrega para aplicar as cores na barra principal
+        } catch (e) { console.error("Erro ao atualizar cor:", e); }
+    };
+
+    // --- TAREFAS E DATA ---
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor');
         document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
@@ -276,7 +289,7 @@ window.salvarPreferencias = async () => {
             const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
             const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
             if (token) {
-                await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() });
+                await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() }, { merge: true });
                 document.getElementById('btnConectar').innerText = "CONEXÃO ATIVA ✅";
                 document.getElementById('btnConectar').style.background = "#28a745";
             }
@@ -288,13 +301,6 @@ window.salvarPreferencias = async () => {
         const tA = document.getElementById('tabAlarme'), tC = document.getElementById('tabCat');
         if(aba==='alarme'){cA.classList.remove('escondido');cC.classList.add('escondido');tA.classList.add('ativo');tC.classList.remove('ativo');}
         else{cC.classList.remove('escondido');cA.classList.add('escondido');tC.classList.add('ativo');tA.classList.remove('ativo');}
-    };
-
-    window.promptNovaCat = async () => {
-        const nome = prompt("Nome da Pasta:"); if (!nome) return;
-        const cor = prompt("Cor Hex (ex: #007bff):", "#333");
-        await addDoc(collection(db, "categorias"), { nome, cor });
-        carregarCategorias();
     };
 
     window.excluirTask = async (id) => { if(confirm("Apagar atividade?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
