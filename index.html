@@ -7,33 +7,35 @@
     <title>Minha Agenda Inteligente - v1.0 Final</title>
     
     <style>
-        /* [DESIGN] - Estilização básica, cores e layout dos cards */
+        /* [ESTILO] - Interface baseada no layout moderno de cards e pílulas */
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Botões de Data (Hoje, Amanhã, Semana) */
+        /* Cabeçalho de Navegação (Hoje/Amanhã/Semana) conforme imagem de referência */
         .timeline-header { display: flex; gap: 4px; margin-bottom: 20px; align-items: center; width: 100%; box-sizing: border-box; }
         .btn-date { flex: 1; padding: 10px 2px; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; min-width: 0; }
         .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
         #dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.8rem; text-align: center; font-weight: 600; }
 
-        /* Categorias e Seções Retráteis */
+        /* Estilo das Abas de Categorias e Seções Retráteis */
         .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; }
         .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
         .header-secao { display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #007bff; padding: 8px 12px; margin: 20px 0 10px; color: #007bff; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; cursor: pointer; background: #f8f9fa; border-radius: 0 8px 8px 0; }
         
-        /* Itens da Lista e Fotos */
-        textarea, input[type="text"], input[type="time"], select, input[type="number"], input[type="color"] { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; resize: none; }
+        /* Cards de Tarefa com Badge de Data Lateral */
         .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .tarefa-content { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; position: relative; }
         .dia-badge { font-size: 1.5rem; font-weight: 900; color: #333; min-width: 45px; text-align: center; }
         .dia-badge span { display: block; font-size: 0.6rem; text-transform: uppercase; color: #888; }
+        
+        /* Inputs e Formulários */
+        textarea, input[type="text"], input[type="time"], select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .container-fotos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
         .img-tarefa { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
 
-        /* Utilitários: Modais e estados escondidos */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
         .escondido { display: none !important; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; }
     </style>
 </head>
 <body>
@@ -56,9 +58,9 @@
     <div id="secaoAdd" class="secao-card escondido">
         <input type="text" id="descTask" placeholder="O que agendar hoje?">
         <div id="previewFotosNovas" class="container-fotos"></div>
-        <div class="grid-50" style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px;">
             <input type="time" id="horaTask">
-            <button onclick="document.getElementById('fotoTask').click()" style="flex:1; padding:12px; border-radius:8px; border:1px dashed #007bff; color:#007bff; cursor:pointer;">📷 ARQUIVO</button>
+            <button onclick="document.getElementById('fotoTask').click()" style="flex:1; border-radius:8px; border:1px dashed #007bff; color:#007bff; cursor:pointer;">📷 FOTO</button>
             <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
         </div>
         <button onclick="salvarNovaTarefa()" style="background:#28a745; color:white; border:none; padding:15px; width:100%; border-radius:25px; font-weight:bold; margin-top:10px; cursor:pointer;">Salvar na Nuvem</button>
@@ -71,14 +73,28 @@
     <div id="listaTarefas">Carregando atividades...</div>
 </div>
 
+<div id="modalConfiguracoes" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span onclick="fecharModalConfig()" style="float: right; font-size: 24px; cursor: pointer;">&times;</span>
+    <h3>Configurações de Alarme</h3>
+    <label>Avisar com antecedência:</label>
+    <select id="tempoAntecedencia" onchange="atualizarPreferenciasNuvem()">
+        <option value="0">Na hora exata</option>
+        <option value="5">5 minutos antes</option>
+        <option value="10">10 minutos antes</option>
+    </select>
+    <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:12px; border-radius:8px; width:100%; margin-top:15px; font-weight:bold; cursor:pointer;">🔔 Conectar na Nuvem</button>
+  </div>
+</div>
+
 <script type="module">
-    // [IMPORTAÇÕES] - Módulos do Firebase v12.4.0
+    // [IMPORTAÇÕES] - Firebase v12.4.0
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 
-    // [CONFIG] - Credenciais do seu banco de dados
+    // Credenciais do Projeto
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
@@ -88,30 +104,25 @@
         messagingSenderId: "299659202964" 
     };
 
-    // Inicialização
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
-    // [VARIÁVEIS GLOBAIS] - Controlam o estado da tela
-    let idEmEdicao = null;
     let fotosNovasArray = [];
     let categoriaFiltroAtiva = "Geral";
-    window.tarefasMonitoramento = [];
 
     /**
-     * [FUNÇÃO: SERVICE WORKER]
-     * Registra o arquivo firebase-messaging-sw.js para notificações em background.
+     * [SERVICE WORKER] - Essencial para rodar em background.
+     * Corrigido sem a barra '/' para não dar erro no GitHub Pages.
      */
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log('Erro no SW:', err));
+        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log('Erro SW:', err));
     }
 
     /**
-     * [FUNÇÃO: CONECTAR NUVEM]
-     * Pede permissão e salva o TOKEN único do dispositivo.
-     * Importante: Usa arrayUnion para manter PC e Celular sincronizados.
+     * [CONEXÃO NUVEM] - Captura o Token FCM do aparelho.
+     * Usa arrayUnion para garantir que o PC não apague o Token do Celular.
      */
     window.solicitarPermissaoNotificacao = () => {
         Notification.requestPermission().then((permission) => {
@@ -125,12 +136,12 @@
                     })
                     .then(async (currentToken) => {
                         if (currentToken) {
+                            // Salva no Firestore na lista 'tokens'
                             await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
                                 tokens: arrayUnion(currentToken),
-                                minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
-                                somSelecionado: document.getElementById('somAlarmeSelecionado').value
+                                minutosAntecedencia: document.getElementById('tempoAntecedencia').value
                             }, { merge: true });
-                            btn.innerHTML = "✅ Conectado à Nuvem";
+                            btn.innerHTML = "✅ Conectado";
                             btn.style.background = "#28a745";
                         }
                     });
@@ -140,12 +151,12 @@
     };
 
     /**
-     * [FUNÇÃO: SALVAR TAREFA]
-     * Envia os dados para a coleção 'tarefas' com a flag 'alarmeAtivo'.
+     * [SALVAR TAREFA] - Grava no Firestore.
+     * alarmeAtivo e alertaDisparado controlam o envio de notificações pelo Node.js.
      */
     window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
-        if(!desc) return alert("Dê um nome à tarefa!");
+        if(!desc) return alert("Descreva a tarefa!");
         await addDoc(collection(db, "tarefas"), { 
             descricao: desc, 
             hora: document.getElementById('horaTask').value, 
@@ -153,18 +164,15 @@
             categoria: categoriaFiltroAtiva, 
             fotos: fotosNovasArray, 
             criadoEm: new Date(),
-            alarmeAtivo: true,     // Ativa monitoramento no Node.js
-            alertaDisparado: false // Inicia como falso para ser notificado
+            alarmeAtivo: true,     // Sinal para o servidor vigiar
+            alertaDisparado: false // Sinal para o servidor saber que não enviou ainda
         });
-        document.getElementById('descTask').value = ""; 
-        fotosNovasArray = []; 
-        document.getElementById('previewFotosNovas').innerHTML = "";
+        limparCampos();
         carregarTarefas();
     };
 
     /**
-     * [FUNÇÃO: CARREGAR TAREFAS]
-     * Busca dados do Firestore e monta os cards na tela conforme a data selecionada.
+     * [LISTAR TAREFAS] - Query no Firestore filtrada por data e ordenada por hora.
      */
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas');
@@ -173,13 +181,8 @@
         const snap = await getDocs(q);
         
         lista.innerHTML = "";
-        let tarefas = [];
-        snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
-        window.tarefasMonitoramento = tarefas; 
-
-        if (categoriaFiltroAtiva !== "Geral") tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
-
-        tarefas.forEach(t => {
+        snap.forEach(d => {
+            const t = d.data();
             const dataObj = new Date(t.dataString + 'T00:00:00');
             const dias = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
             lista.innerHTML += `
@@ -190,24 +193,18 @@
                             <div style="font-weight:700;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
                             <div class="container-fotos">${(t.fotos || []).map(img => `<img src="${img}" class="img-tarefa">`).join('')}</div>
                         </div>
-                        <button onclick="excluirTask('${t.id}')" style="background:none; border:none; color:red; cursor:pointer;">✕</button>
+                        <button onclick="excluirTask('${d.id}')" style="background:none; border:none; color:red; cursor:pointer;">✕</button>
                     </div>
                 </div>`;
         });
     };
 
-    // [INICIALIZAÇÃO AUTOMÁTICA]
-    signInAnonymously(auth).then(async () => {
+    // Inicialização ao carregar a página
+    signInAnonymously(auth).then(() => {
         setarData('hoje', document.getElementById('btnHoje'));
-        const docSnap = await getDoc(doc(db, "tokens_dispositivos", "meu_celular"));
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            document.getElementById('tempoAntecedencia').value = data.minutosAntecedencia || "0";
-            document.getElementById('somAlarmeSelecionado').value = data.somSelecionado || "";
-        }
     });
 
-    // [AUXILIARES] - Funções de data e interface
+    // Funções de Auxílio de Interface
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor');
         const hoje = new Date();
@@ -223,6 +220,9 @@
 
     window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    window.abrirConfig = () => document.getElementById('modalConfiguracoes').style.display = 'flex';
+    window.fecharModalConfig = () => document.getElementById('modalConfiguracoes').style.display = 'none';
+    const limparCampos = () => { document.getElementById('descTask').value = ""; fotosNovasArray = []; document.getElementById('previewFotosNovas').innerHTML = ""; };
 </script>
 </body>
 </html>
