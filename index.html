@@ -9,11 +9,60 @@
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        .timeline-header { display: flex; gap: 5px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
-        .btn-date { flex: 1; padding: 10px 0; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; transition: 0.3s; min-width: 70px; }
-        .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; box-shadow: 0 4px 8px rgba(0,123,255,0.3); }
-        #dataSeletor { flex: 1.5; padding: 8px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.85rem; text-align: center; font-weight: 600; min-width: 120px; }
+        .timeline-header { 
+    display: flex; 
+    gap: 4px; 
+    margin-bottom: 20px; 
+    align-items: center; 
+    flex-wrap: nowrap; /* Proíbe a quebra de linha */
+    overflow-x: auto; /* Permite rolar se o celular for MUITO pequeno */
+    scrollbar-width: none; /* Esconde barra no Firefox */
+    padding-bottom: 5px;
+}
+.timeline-header::-webkit-scrollbar { display: none; } /* Esconde barra no Chrome/Safari */
 
+.btn-date { 
+    flex: 0 0 auto; /* Impede que os botões esmaguem uns aos outros */
+    padding: 10px 12px; 
+    border-radius: 25px; 
+    border: 1px solid #ddd; 
+    background: #fff; 
+    cursor: pointer; 
+    font-size: 0.7rem; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+}
+
+#dataSeletor { 
+    flex: 1; /* Ocupa o espaço que sobrar no meio */
+    min-width: 100px; /* Garante que o calendário não suma */
+    padding: 8px; 
+    border-radius: 25px; 
+    border: 1px solid #ddd; 
+    font-size: 0.8rem; 
+    text-align: center; 
+}
+
+.btn-config { 
+    flex: 0 0 auto; 
+    background: none; 
+    border: none; 
+    font-size: 1.3rem; 
+    cursor: pointer; 
+    color: #ccd0d5; 
+    padding: 0 5px;
+}
+
+.btn-date.ativo { background: #007bff; color: white; border-color: #007bff; box-shadow: 0 4px 8px rgba(0,123,255,0.3); }
+        #dataSeletor { 
+    flex: 1; /* Ocupa o espaço que sobrar no meio */
+    min-width: 100px; /* Garante que o calendário não suma */
+    padding: 8px; 
+    border-radius: 25px; 
+    border: 1px solid #ddd; 
+    font-size: 0.8rem; 
+    text-align: center; 
+}
         .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; align-items: center; }
         .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; transition: 0.2s; }
         .btn-add-cat-circle { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #007bff; color: #007bff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: pointer; background: none; flex-shrink: 0; margin-left: 5px; }
