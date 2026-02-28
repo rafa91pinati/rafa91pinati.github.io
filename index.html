@@ -20,12 +20,15 @@
         .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
 
         .header-secao { display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #007bff; padding: 8px 12px; margin: 20px 0 10px; color: #007bff; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; cursor: pointer; background: #f8f9fa; border-radius: 0 8px 8px 0; }
+        .seta-secao { transition: transform 0.3s; font-size: 0.7rem; }
+        .seta-invertida { transform: rotate(-90deg); }
         .secao-card { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 15px; }
 
-        input[type="text"], input[type="time"], select, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 0.95rem; }
+        input[type="text"], input[type="time"], select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        #btnSalvar { background: #28a745; color: white; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; }
         
-        /* CARDS */
-        .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        /* CARD DE TAREFA */
+        .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease; }
         .tarefa-content { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
         .dia-badge { font-size: 1.5rem; font-weight: 900; color: #333; min-width: 40px; text-align: center; line-height: 1; }
         .dia-badge span { display: block; font-size: 0.6rem; text-transform: uppercase; color: #888; }
@@ -34,20 +37,21 @@
         /* FOTOS */
         .container-fotos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
         .foto-wrapper { position: relative; display: inline-block; }
-        .img-tarefa { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
+        .img-tarefa { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: zoom-in; }
         .btn-remover-foto { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; z-index: 10; border: 2px solid white; }
 
         /* EDIÇÃO */
         .area-edicao { margin-top: 10px; }
-        .edit-row-flex { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-        .btn-add-item { background: #e7f3ff; color: #007bff; border: 1px dashed #007bff; padding: 10px; border-radius: 8px; flex: 1; font-size: 0.8rem; font-weight: bold; cursor: pointer; text-align: center; }
-        .btn-grupo-edicao { display: flex; gap: 8px; }
+        .edit-row-flex { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .btn-arquivo-edit { flex: 1; background: #f0f2f5; border: 1px dashed #007bff; color: #007bff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        
+        .btn-grupo-edicao { display: flex; gap: 10px; margin-top: 10px; }
         .btn-salvar-edit { background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; flex: 1; font-weight: bold; cursor: pointer; }
         .btn-cancelar-edit { background: #f0f2f5; color: #65676b; border: none; padding: 12px; border-radius: 8px; flex: 1; font-weight: bold; cursor: pointer; }
 
         .escondido { display: none !important; }
         .modal-foto { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .modal-foto img { max-width: 95%; max-height: 85%; }
+        .modal-foto img { max-width: 95%; max-height: 85%; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -56,7 +60,9 @@
     <div class="timeline-header">
         <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
         <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
         <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
     </div>
 
     <div class="category-tabs" id="listaCategorias">Carregando...</div>
@@ -72,17 +78,33 @@
         
         <div style="display: flex; gap: 10px; align-items: center;">
             <input type="time" id="horaTask" style="flex: 1;">
-            <button class="btn-add-item" onclick="document.getElementById('fotoTask').click()">📷 Arquivo</button>
+            <button class="btn-arquivo-edit" style="flex: 1.2;" onclick="document.getElementById('fotoTask').click()">📷 Arquivo</button>
             <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
         </div>
-        <button id="btnSalvar" style="background:#28a745; color:white; border:none; padding:15px; width:100%; border-radius:25px; font-weight:bold; margin-top:10px;">Salvar na Nuvem</button>
+        <button id="btnSalvar">Salvar na Nuvem</button>
     </div>
 
+    <div class="header-secao" onclick="toggleSecao('listaTarefas', 'setaLista')">
+        <span id="headerMes">📅 Atividades</span>
+        <span id="setaLista">▼</span>
+    </div>
     <div id="listaTarefas">Sincronizando...</div>
 </div>
 
 <div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
     <img id="imgGrande" src="">
+</div>
+
+<div id="modalConfig" class="modal escondido">
+    <div class="modal-content">
+        <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.5rem; cursor:pointer;">✕</button>
+        <div class="modal-tabs">
+            <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
+            <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
+        </div>
+        <div id="conteudoAlarme">...</div>
+        <div id="conteudoCategorias" class="escondido">...</div>
+    </div>
 </div>
 
 <script type="module">
@@ -104,12 +126,12 @@
     const auth = getAuth(app);
 
     let idEmEdicao = null;
-    let fotosTemporarias = []; // Para Edição
-    let fotosNovasArray = [];  // Para Novo Agendamento
+    let fotosTemporarias = []; // Para a Edição de cards existentes
+    let fotosNovasArray = [];  // Para o formulário de Nova Tarefa
     let categoriaFiltroAtiva = "Geral";
 
     signInAnonymously(auth).then(async () => {
-        await carregarCategorias();
+        await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
     });
 
@@ -125,7 +147,7 @@
             };
             reader.readAsDataURL(file);
         });
-        input.value = ""; // Limpa para permitir selecionar os mesmos arquivos se deletados
+        input.value = ""; 
     };
 
     const renderizarPreviewFotosNovas = () => {
@@ -146,7 +168,6 @@
     document.getElementById('btnSalvar').onclick = async () => {
         const desc = document.getElementById('descTask').value;
         if(!desc) return;
-        
         await addDoc(collection(db, "tarefas"), {
             descricao: desc,
             hora: document.getElementById('horaTask').value,
@@ -155,9 +176,7 @@
             fotos: fotosNovasArray,
             criadoEm: new Date()
         });
-        
         document.getElementById('descTask').value = "";
-        document.getElementById('horaTask').value = "";
         fotosNovasArray = [];
         renderizarPreviewFotosNovas();
         carregarTarefas();
@@ -182,7 +201,7 @@
         container.innerHTML = fotosTemporarias.map((img, idx) => `
             <div class="foto-wrapper">
                 <img src="${img}" class="img-tarefa">
-                <button class="btn-remover-foto" onclick="removerFotoTemporaria(${idx})">×</button>
+                <button class="btn-remover-foto" onclick="event.stopPropagation(); removerFotoTemporaria(${idx})">×</button>
             </div>
         `).join('');
     };
@@ -222,22 +241,26 @@
         
         snap.forEach(d => {
             const t = d.data();
+            const dItem = new Date(t.dataString + 'T00:00:00');
             const isEditando = idEmEdicao === d.id;
             const listaFotos = t.fotos || [];
 
             lista.innerHTML += `
-                <div class="tarefa-item">
+                <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
                     <div class="tarefa-content" onclick="ativarEdicao('${d.id}', ${JSON.stringify(listaFotos).replace(/"/g, '&quot;')})">
+                        <div class="dia-badge">${dItem.getDate()}<span>${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][dItem.getDay()]}</span></div>
                         <div class="tarefa-info">
                             ${isEditando ? `
-                                <textarea id="edit-desc-${d.id}" style="font-weight:bold; height:90px; border:2px solid #007bff;">${t.descricao}</textarea>
+                                <textarea id="edit-desc-${d.id}" style="font-weight:bold; height:90px; border: 2px solid #007bff;">${t.descricao}</textarea>
                                 
                                 <div id="container-fotos-edit-${d.id}" class="container-fotos"></div>
                                 
                                 <div class="area-edicao">
                                     <div class="edit-row-flex">
                                         <input type="time" id="edit-hora-${d.id}" value="${t.hora || ''}">
-                                        <button class="btn-add-item" onclick="event.stopPropagation(); document.getElementById('edit-foto-${d.id}').click()">📷 Arquivo</button>
+                                        <button class="btn-arquivo-edit" onclick="event.stopPropagation(); document.getElementById('edit-foto-${d.id}').click()">
+                                            📷 Arquivo
+                                        </button>
                                     </div>
                                     <input type="file" id="edit-foto-${d.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
                                     
@@ -247,24 +270,27 @@
                                     </div>
                                 </div>
                             ` : `
+                                <div style="font-size:0.6rem; font-weight:700; color:#888;">${t.categoria}</div>
                                 <div style="font-weight:bold;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
                                 <div class="container-fotos">
                                     ${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}
                                 </div>
                             `}
                         </div>
+                        ${!isEditando ? `<button class="btn-excluir-task" onclick="event.stopPropagation(); excluirTask('${d.id}')">✕</button>` : ''}
                     </div>
                 </div>`;
             if(isEditando) renderizarFotosEdicao();
         });
     };
 
+    // --- OUTROS ---
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaCategorias');
         const snap = await getDocs(collection(db, "categorias"));
-        container.innerHTML = `<div class="category-tab ativo">Geral</div>`;
+        container.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
         snap.forEach(d => {
-            container.innerHTML += `<div class="category-tab">${d.data().nome}</div>`;
+            container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${d.data().nome}', '${d.data().cor}', this)">${d.data().nome}</div>`;
         });
     };
 
@@ -280,9 +306,13 @@
         carregarTarefas();
     };
 
-    window.toggleSecao = (idC) => document.getElementById(idC).classList.toggle('escondido');
+    window.toggleSecao = (idC, idS) => {
+        document.getElementById(idC).classList.toggle('escondido');
+        if(idS) document.getElementById(idS).classList.toggle('seta-invertida');
+    };
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
+    window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
 </script>
 </body>
 </html>
