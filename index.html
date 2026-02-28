@@ -19,27 +19,36 @@
         .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; align-items: center; }
         .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
 
-        /* TAREFAS */
+        .header-secao { display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #007bff; padding: 8px 12px; margin: 20px 0 10px; color: #007bff; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; cursor: pointer; background: #f8f9fa; border-radius: 0 8px 8px 0; }
+        .seta-secao { transition: transform 0.3s; font-size: 0.7rem; }
+        .seta-invertida { transform: rotate(-90deg); }
+        .secao-card { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 15px; }
+
+        input[type="text"], input[type="time"], select, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 0.9rem; }
+        #btnSalvar { background: #28a745; color: white; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        /* CARD DE TAREFA */
         .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .tarefa-content { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .tarefa-content { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+        .dia-badge { font-size: 1.5rem; font-weight: 900; color: #333; min-width: 40px; text-align: center; line-height: 1; }
+        .dia-badge span { display: block; font-size: 0.6rem; text-transform: uppercase; color: #888; }
         .tarefa-info { flex: 1; }
         
-        /* FOTOS LADO A LADO */
-        .container-fotos { display: flex; gap: 8px; overflow-x: auto; padding: 5px 0; scrollbar-width: none; }
-        .foto-wrapper { position: relative; flex: 0 0 auto; }
-        .img-tarefa { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #ddd; cursor: zoom-in; }
-        
-        /* BOTÃO X NA FOTO */
-        .btn-remove-foto { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        /* FOTOS E EDIÇÃO DE FOTOS */
+        .container-fotos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .foto-wrapper { position: relative; display: inline-block; }
+        .img-tarefa { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
+        .btn-remover-foto { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
-        /* ÁREA DE EDIÇÃO */
-        .area-edicao { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd; }
-        .btn-add-mais-foto { background: #f0f2f5; border: 2px dashed #ccd0d5; border-radius: 8px; padding: 10px; width: 100%; color: #65676b; font-weight: 600; cursor: pointer; margin: 10px 0; }
-        .btn-salvar-edit { background: #007bff; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 10px; }
+        /* EDIÇÃO */
+        .area-edicao { margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0; }
+        .btn-grupo-edicao { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-salvar-edit { background: #007bff; color: white; border: none; padding: 10px; border-radius: 8px; flex: 1.5; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        .btn-cancelar-edit { background: #f0f2f5; color: #65676b; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        
+        .btn-add-item { background: #e7f3ff; color: #007bff; border: 1px dashed #007bff; padding: 8px; border-radius: 8px; width: 100%; font-size: 0.75rem; font-weight: bold; cursor: pointer; margin-top: 5px; }
 
         .escondido { display: none !important; }
-        
-        /* LIGHTBOX */
         .modal-foto { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; align-items: center; justify-content: center; }
         .modal-foto img { max-width: 95%; max-height: 85%; border-radius: 10px; }
     </style>
@@ -48,13 +57,26 @@
 
 <div class="container">
     <div class="timeline-header">
-        <button class="btn-date ativo" onclick="setarData('hoje', this)">Hoje</button>
-        <button class="btn-date" onclick="setarData('amanha', this)">Amanhã</button>
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
         <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.5rem;">⚙️</button>
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
     </div>
 
-    <div class="category-tabs" id="listaCategorias"></div>
+    <div class="category-tabs" id="listaCategorias">Carregando...</div>
+
+    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
+        <span>📝 ADD Tarefa</span>
+        <span id="setaAdd" class="seta-secao">▼</span>
+    </div>
+    <div id="secaoAdd" class="secao-card">
+        <input type="text" id="descTask" placeholder="O que agendar hoje?">
+        <div style="display: flex; gap: 10px;">
+            <input type="time" id="horaTask" style="flex: 1;">
+            <input type="file" id="fotoTask" accept="image/*" multiple style="flex: 1.2; font-size: 0.7rem;">
+        </div>
+        <button id="btnSalvar">Salvar na Nuvem</button>
+    </div>
 
     <div id="listaTarefas">Sincronizando...</div>
 </div>
@@ -65,7 +87,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -81,16 +103,81 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    let categoriaFiltroAtiva = "Geral";
     let idEmEdicao = null;
-    let fotosEmEdicao = []; // Lista temporária para gerenciar remoções e adições
+    let fotosTemporarias = []; // Armazena as fotos atuais para permitir exclusão antes de salvar
 
     signInAnonymously(auth).then(() => {
         carregarCategorias();
-        setarData('hoje');
+        setarData('hoje', document.getElementById('btnHoje'));
     });
 
-    // --- GERENCIAMENTO DE TAREFAS ---
+    window.ativarEdicao = (id, fotosAtuais) => {
+        idEmEdicao = id;
+        fotosTemporarias = [...fotosAtuais];
+        carregarTarefas();
+    };
+
+    window.removerFotoTemporaria = (index) => {
+        fotosTemporarias.splice(index, 1);
+        renderizarFotosEdicao();
+    };
+
+    const renderizarFotosEdicao = () => {
+        const container = document.getElementById(`container-fotos-edit-${idEmEdicao}`);
+        if(!container) return;
+        container.innerHTML = fotosTemporarias.map((img, idx) => `
+            <div class="foto-wrapper">
+                <img src="${img}" class="img-tarefa">
+                <button class="btn-remover-foto" onclick="removerFotoTemporaria(${idx})">×</button>
+            </div>
+        `).join('');
+    };
+
+    window.adicionarCampoLink = (id) => {
+        const container = document.getElementById(`links-container-${id}`);
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Cole o link da foto aqui...';
+        input.className = 'link-input-edit';
+        container.appendChild(input);
+    };
+
+    window.salvarAlteracoes = async (id) => {
+        const novaDesc = document.getElementById(`edit-desc-${id}`).value;
+        const novaHora = document.getElementById(`edit-hora-${id}`).value;
+        const fileInput = document.getElementById(`edit-foto-${id}`);
+        
+        // Coletar links manuais
+        const linksInputs = document.querySelectorAll(`#links-container-${id} .link-input-edit`);
+        linksInputs.forEach(input => {
+            if(input.value.trim() !== "") fotosTemporarias.push(input.value.trim());
+        });
+
+        const finalizarSalvar = async () => {
+            await updateDoc(doc(db, "tarefas", id), {
+                descricao: novaDesc,
+                hora: novaHora,
+                fotos: fotosTemporarias
+            });
+            idEmEdicao = null;
+            carregarTarefas();
+        };
+
+        if (fileInput.files.length > 0) {
+            let processados = 0;
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    fotosTemporarias.push(reader.result);
+                    processados++;
+                    if (processados === fileInput.files.length) finalizarSalvar();
+                };
+                reader.readAsDataURL(fileInput.files[i]);
+            }
+        } else {
+            finalizarSalvar();
+        }
+    };
 
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas');
@@ -101,102 +188,80 @@
         lista.innerHTML = "";
         snap.forEach(d => {
             const t = d.data();
+            const dItem = new Date(t.dataString + 'T00:00:00');
             const isEditando = idEmEdicao === d.id;
             const listaFotos = t.fotos || (t.foto ? [t.foto] : []);
 
-            let fotosHtml = "";
-            listaFotos.forEach((img, index) => {
-                fotosHtml += `
-                    <div class="foto-wrapper">
-                        <img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">
-                        ${isEditando ? `<button class="btn-remove-foto" onclick="event.stopPropagation(); removerFotoLocal(${index})">✕</button>` : ''}
-                    </div>`;
-            });
+            let fotosHtml = isEditando ? "" : listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('');
 
             lista.innerHTML += `
                 <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
-                    <div class="tarefa-content" onclick="abrirModoEdicao('${d.id}', ${JSON.stringify(listaFotos).replace(/"/g, '&quot;')})">
+                    <div class="tarefa-content" onclick="ativarEdicao('${d.id}', ${JSON.stringify(listaFotos).replace(/"/g, '&quot;')})">
+                        <div class="dia-badge">${dItem.getDate()}<span>${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][dItem.getDay()]}</span></div>
                         <div class="tarefa-info">
-                            <div style="font-size:0.7rem; color:gray;">${t.categoria}</div>
-                            <strong>${t.hora ? t.hora + ' - ' : ''}</strong>${t.descricao}
-                            <div class="container-fotos">${fotosHtml}</div>
-                        </div>
-                    </div>
+                            <div style="font-size:0.6rem; font-weight:700; color:#888;">${t.categoria}</div>
+                            
+                            ${isEditando ? `
+                                <textarea id="edit-desc-${d.id}" style="height:80px; font-weight:bold;">${t.descricao}</textarea>
+                                <div id="container-fotos-edit-${d.id}" class="container-fotos"></div>
+                                <div class="area-edicao">
+                                    <input type="time" id="edit-hora-${d.id}" value="${t.hora || ''}">
+                                    
+                                    <button class="btn-add-item" onclick="document.getElementById('edit-foto-${d.id}').click()">📷 + Adicionar Fotos (Arquivo)</button>
+                                    <input type="file" id="edit-foto-${d.id}" class="escondido" accept="image/*" multiple onchange="renderizarPreviaLocal('${d.id}')">
+                                    
+                                    <div id="links-container-${d.id}"></div>
+                                    <button class="btn-add-item" onclick="adicionarCampoLink('${d.id}')">🔗 + Adicionar Link de Foto</button>
 
-                    ${isEditando ? `
-                        <div class="area-edicao">
-                            <textarea id="edit-desc-${d.id}">${t.descricao}</textarea>
-                            <input type="time" id="edit-hora-${d.id}" value="${t.hora || ''}">
-                            
-                            <button class="btn-add-mais-foto" onclick="document.getElementById('input-mais-foto').click()">+ Adicionar mais fotos</button>
-                            <input type="file" id="input-mais-foto" class="escondido" accept="image/*" multiple onchange="adicionarFotosNovas(this)">
-                            
-                            <button class="btn-salvar-edit" onclick="salvarNoFirebase('${d.id}')">SALVAR VERSÃO FINAL</button>
-                            <button style="width:100%; border:none; background:none; color:gray; margin-top:10px;" onclick="cancelarEdicao()">Cancelar</button>
+                                    <div class="btn-grupo-edicao">
+                                        <button class="btn-salvar-edit" onclick="salvarAlteracoes('${d.id}')">SALVAR VERSÃO FINAL</button>
+                                        <button class="btn-cancelar-edit" onclick="event.stopPropagation(); ativarEdicao(null, [])">CANCELAR</button>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div style="font-weight:bold;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
+                                <div class="container-fotos">${fotosHtml}</div>
+                            `}
                         </div>
-                    ` : ''}
+                        ${!isEditando ? `<button class="btn-excluir-task" onclick="event.stopPropagation(); excluirTask('${d.id}')">✕</button>` : ''}
+                    </div>
                 </div>`;
+            
+            if(isEditando) renderizarFotosEdicao();
         });
     };
 
-    // Abre a edição e carrega as fotos atuais para a lista temporária
-    window.abrirModoEdicao = (id, fotosAtuais) => {
-        if (idEmEdicao === id) return; // Já está aberto
-        idEmEdicao = id;
-        fotosEmEdicao = [...fotosAtuais]; // Copia as fotos para podermos editar
-        carregarTarefas();
-    };
-
-    window.cancelarEdicao = () => {
-        idEmEdicao = null;
-        fotosEmEdicao = [];
-        carregarTarefas();
-    };
-
-    // Remove a foto apenas da lista temporária (antes de salvar)
-    window.removerFotoLocal = (index) => {
-        fotosEmEdicao.splice(index, 1);
-        carregarTarefas(); // Atualiza a visão para sumir a foto com o X
-    };
-
-    // Converte novas fotos para Base64 e joga na lista temporária
-    window.adicionarFotosNovas = (input) => {
-        const files = input.files;
-        let carregadas = 0;
-        for (let i = 0; i < files.length; i++) {
+    // --- Outras Funções de Suporte ---
+    window.renderizarPreviaLocal = (id) => {
+        const input = document.getElementById(`edit-foto-${id}`);
+        for (let i = 0; i < input.files.length; i++) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                fotosEmEdicao.push(reader.result);
-                carregadas++;
-                if (carregadas === files.length) carregarTarefas();
+                fotosTemporarias.push(reader.result);
+                renderizarFotosEdicao();
             };
-            reader.readAsDataURL(files[i]);
+            reader.readAsDataURL(input.files[i]);
         }
     };
 
-    window.salvarNoFirebase = async (id) => {
-        const desc = document.getElementById(`edit-desc-${id}`).value;
-        const hora = document.getElementById(`edit-hora-${id}`).value;
-        
-        await updateDoc(doc(db, "tarefas", id), {
-            descricao: desc,
-            hora: hora,
-            fotos: fotosEmEdicao // Salva a lista final (com remoções e adições)
-        });
-        
-        idEmEdicao = null;
+    window.setarData = (tipo, el) => {
+        const input = document.getElementById('dataSeletor');
+        const hoje = new Date();
+        if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
+        else if (tipo === 'amanha') { const am = new Date(); am.setDate(hoje.getDate()+1); input.value = am.toLocaleDateString('en-CA'); }
+        document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
+        if(el) el.classList.add('ativo');
         carregarTarefas();
     };
 
-    // --- OUTRAS FUNÇÕES ---
+    window.toggleSecao = (idC, idS) => {
+        document.getElementById(idC).classList.toggle('escondido');
+        document.getElementById(idS).classList.toggle('seta-invertida');
+    };
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
-    window.setarData = (tipo) => {
-        const input = document.getElementById('dataSeletor');
-        if (tipo === 'hoje') input.value = new Date().toLocaleDateString('en-CA');
-        carregarTarefas();
-    };
-    window.carregarCategorias = async () => { /* Sua lógica de categorias */ };
+    window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    window.carregarCategorias = () => { /* mantém sua lógica de carregar categorias */ };
 </script>
 </body>
 </html>
