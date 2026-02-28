@@ -4,117 +4,119 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.0</title>
+    <title>Minha Agenda Inteligente - v1.0 (Final)</title>
     <style>
-        /* DESIGN MODERNO: Cores extraídas da imagem de referência */
-        :root {
-            --primary-blue: #5D6D9E;    /* Azul dos botões ativos */
-            --bg-gray: #F0F2F5;        /* Cor de fundo da página */
-            --card-white: #FFFFFF;     /* Fundo dos cartões */
-            --success-green: #2E7D32;  /* Botão salvar */
-            --text-dark: #1c1e21;      /* Texto principal */
-            --border-radius: 18px;     /* Arredondamento padrão */
-        }
-
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background-color: var(--bg-gray); 
-            padding: 10px; margin: 0; color: var(--text-dark); 
-        }
-
-        /* CONTAINER PRINCIPAL: Efeito de sombra suave e centralização */
-        .container { 
-            max-width: 480px; margin: auto; background: white; 
-            padding: 20px; border-radius: 25px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-        }
-
-        /* BOTÕES DE DATA: Formato 'Pill' (pílula) conforme a imagem */
-        .timeline-header { display: flex; gap: 6px; margin-bottom: 25px; align-items: center; }
-        .btn-date { 
-            flex: 1; padding: 12px 5px; border-radius: 30px; 
-            border: 1px solid #e0e0e0; background: #fff; 
-            font-size: 0.75rem; font-weight: 700; cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-date.ativo { 
-            background: var(--primary-blue); 
-            color: white; border-color: var(--primary-blue); 
-        }
-
-        /* INPUT DE DATA: Estilo moderno com ícone */
-        #dataSeletor { 
-            flex: 1.8; padding: 10px; border-radius: 30px; 
-            border: 1px solid #ddd; text-align: center; font-weight: 600; 
-        }
-
-        /* CATEGORIAS: Abas deslizantes */
-        .category-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; }
-        .category-tab { 
-            padding: 10px 22px; border-radius: 12px; 
-            border: 1px solid #eee; background: #fff; 
-            font-weight: 600; white-space: nowrap; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        }
-
-        /* ITENS DA LISTA: Design de cards empilhados da imagem */
-        .tarefa-item { 
-            background: var(--card-white); margin-bottom: 15px; 
-            padding: 18px; border-radius: var(--border-radius); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: 1px solid #f0f0f0;
-            position: relative;
-        }
-        .tarefa-content { display: flex; align-items: center; gap: 15px; }
-        
-        /* BADGE DE DATA: Círculo lateral com dia e semana */
-        .dia-badge { 
-            background: #eef1f6; padding: 10px; 
-            border-radius: 50%; min-width: 50px; 
-            height: 50px; text-align: center; 
-            display: flex; flex-direction: column; justify-content: center;
-        }
-        .dia-badge b { font-size: 1.2rem; display: block; line-height: 1; }
-        .dia-badge span { font-size: 0.6rem; color: #666; }
-
-        .btn-salvar-nuvem {
-            background: var(--success-green); color: white;
-            border: none; padding: 16px; width: 100%;
-            border-radius: 30px; font-weight: bold;
-            font-size: 1rem; cursor: pointer;
-        }
-
+        /* ESTILIZAÇÃO: Definições visuais de botões, containers e itens da lista */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
+        .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-date { flex: 1; padding: 10px 2px; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; min-width: 0; }
+        .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
+        #dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.8rem; text-align: center; font-weight: 600; }
+        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; }
+        .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+        .header-secao { display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #007bff; padding: 8px 12px; margin: 20px 0 10px; color: #007bff; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; cursor: pointer; background: #f8f9fa; border-radius: 0 8px 8px 0; }
+        textarea, input[type="text"], input[type="time"], select, input[type="number"], input[type="color"] { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; resize: none; }
+        .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .dia-badge { font-size: 1.5rem; font-weight: 900; color: #333; min-width: 45px; text-align: center; }
+        .dia-badge span { display: block; font-size: 0.6rem; text-transform: uppercase; color: #888; }
+        .img-tarefa { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
         .escondido { display: none !important; }
+        .tablink.active { border-bottom: 3px solid #007bff; color: #007bff; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="timeline-header">
-        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">HOJE</button>
-        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">AMANHÃ</button>
-        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">SEMANA</button>
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
         <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.3rem;">⚙️</button>
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
     </div>
 
-    <div class="category-tabs" id="listaCategorias">Carregando...</div>
+    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
 
-    <div class="header-secao" onclick="toggleSecao('secaoAdd')">
-        <span>📝 ADD TAREFA</span>
+    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
+        <span>📝 ADD Tarefa</span>
+        <span id="setaAdd" class="seta-secao">▼</span>
     </div>
-    <div id="secaoAdd" class="escondido">
+    <div id="secaoAdd" class="secao-card escondido">
         <input type="text" id="descTask" placeholder="O que agendar hoje?">
+        <div id="previewFotosNovas" class="container-fotos"></div>
         <div class="grid-50">
             <input type="time" id="horaTask">
-            <button onclick="document.getElementById('fotoTask').click()">📎 Anexar Arquivo</button>
+            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
             <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
         </div>
-        <button class="btn-salvar-nuvem" onclick="salvarNovaTarefa()">☁️ Salvar na Nuvem</button>
+        <button id="btnSalvar" onclick="salvarNovaTarefa()" style="background:#28a745; color:white; border:none; padding:15px; width:100%; border-radius:25px; font-weight:bold; margin-top:10px;">Salvar na Nuvem</button>
     </div>
 
-    <div id="listaTarefas" style="margin-top: 20px;"></div>
+    <div class="header-secao" onclick="toggleSecao('listaTarefas', 'setaLista')">
+        <span id="headerMes">📅 Atividades</span>
+        <span id="setaLista" class="seta-secao seta-expandida">▼</span>
+    </div>
+    <div id="listaTarefas">Carregando atividades...</div>
 </div>
+
+<div id="modalConfiguracoes" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="fecharModalConfig()" style="float: right; font-size: 24px; cursor: pointer;">&times;</span>
+    <h2>Configurações</h2>
+    
+    <div class="category-tabs" style="margin-bottom: 15px;">
+      <button class="category-tab active tablink" onclick="abrirAba(event, 'abaAlarme')">🔔 Alarmes</button>
+      <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')">📂 Categorias</button>
+    </div>
+
+    <div id="abaAlarme" class="tabcontent" style="display: block;">
+      <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
+      <select id="tempoAntecedencia" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+        <option value="0">Na hora exata (0 minutos)</option>
+        <option value="5">5 minutos antes</option>
+        <option value="10">10 minutos antes</option>
+        <option value="15">15 minutos antes</option>
+        <option value="30">30 minutos antes</option>
+        <option value="60">1 hora antes</option>
+      </select>
+      
+      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Comportamento da Notificação:</label>
+      <select id="tipoNotificacao" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+        <option value="normal">Push Normal (Some sozinha da tela)</option>
+        <option value="fixa">Push Fixo (Fica na tela até eu fechar)</option>
+      </select>
+
+      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme (Internet):</label>
+      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+        <select id="somAlarmeSelecionado" onchange="atualizarPreferenciasNuvem()" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+          <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Relógio Digital</option>
+          <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Bip Curto</option>
+          <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Corneta</option>
+        </select>
+        <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
+      </div>
+      <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
+    </div>
+
+    <div id="abaCategorias" class="tabcontent" style="display: none;">
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px;">
+        <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
+        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1; margin: 0;">
+        <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
+      </div>
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+    </div>
+  </div>
+</div>
+
+<div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
+    <img id="imgGrande" src="">
+</div>
+
 <script type="module">
     // FIREBASE: Importação de bibliotecas para Banco de Dados, Autenticação e Mensageria
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
