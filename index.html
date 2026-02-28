@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.9.9.5</title>
+    <title>Minha Agenda Inteligente - v1.9.9.6</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -43,15 +43,11 @@
         .btn-salvar-azul { background: #007bff; color: white; }
 
         .btn-excluir-task { background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 1.2rem; position: absolute; right: 0; top: 0; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
-        .modal-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
-        .tab-btn { background: none; border: none; padding: 12px; cursor: pointer; opacity: 0.3; font-size: 1.8rem; }
-        .tab-btn.ativo { opacity: 1; border-bottom: 4px solid #007bff; }
-        .config-card { background: #f9fafb; border: 1px solid #edf2f7; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
         .grid-50 { display: flex; gap: 10px; align-items: center; width: 100%; }
         .grid-50 > * { flex: 1; }
 
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
         .escondido { display: none !important; }
         .modal-foto { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; align-items: center; justify-content: center; }
         .modal-foto img { max-width: 95%; max-height: 85%; border-radius: 10px; }
@@ -95,40 +91,15 @@
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
         <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.5rem; cursor:pointer;">✕</button>
-        <div class="modal-tabs">
-            <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
-            <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
-        </div>
-        <div id="conteudoAlarme">
-            <h4 style="margin: 0 0 15px 0;">Alarmes</h4>
-            <div class="config-card">
-                <select id="somAlarme" onchange="salvarPreferencias()">
-                    <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3">Sino Padrão</option>
-                    <option value="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3">Aviso Suave</option>
-                </select>
-                <button onclick="testarSom()" style="width:100%; padding:8px; background:#e2e8f0; border:none; border-radius:8px; font-size:0.75rem; font-weight:bold; margin-top:5px; cursor:pointer;">Testar Som 🔊</button>
+        <h4 style="margin: 0 0 15px 0;">Pastas</h4>
+        <div style="background: #f8f9fa; padding: 12px; border-radius: 10px;">
+            <div class="grid-50" style="margin-bottom:10px;">
+                <input type="text" id="novoNomeCat" placeholder="Nome">
+                <input type="color" id="novaCorCat" value="#007bff">
             </div>
-            <div class="config-card">
-                <label style="font-size: 0.8rem; font-weight: 600;">Antecedência:</label>
-                <select id="minutosAlerta" onchange="salvarPreferencias()">
-                    <option value="0">Na hora</option>
-                    <option value="5">5 min antes</option>
-                    <option value="15">15 min antes</option>
-                </select>
-            </div>
-            <button onclick="solicitarNotificacao()" style="width:100%; padding:14px; background:#007bff; color:white; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">CONECTAR CELULAR 📲</button>
+            <button onclick="adicionarNovaCategoriaFirebase()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold;">+ CRIAR PASTA</button>
         </div>
-        <div id="conteudoCategorias" class="escondido">
-            <h4 style="margin: 0 0 15px 0;">Gerenciar Pastas</h4>
-            <div style="background: #f8f9fa; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
-                <div class="grid-50" style="margin-bottom:10px;">
-                    <input type="text" id="novoNomeCat" placeholder="Nome" style="margin:0;">
-                    <input type="color" id="novaCorCat" value="#007bff" style="height:45px; border:none; padding:0; background:none; cursor:pointer;">
-                </div>
-                <button onclick="adicionarNovaCategoriaFirebase()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">+ CRIAR PASTA</button>
-            </div>
-            <div id="listaGerenciarCats" style="max-height: 180px; overflow-y: auto;"></div>
-        </div>
+        <div id="listaGerenciarCats" style="max-height: 180px; overflow-y: auto; margin-top: 10px;"></div>
     </div>
 </div>
 
@@ -158,53 +129,23 @@
     let fotosTemporarias = []; 
     let fotosNovasArray = [];  
     let categoriaFiltroAtiva = "Geral";
-    let notificacoesEnviadas = new Set();
 
     signInAnonymously(auth).then(async () => {
-        carregarPreferencias();
         await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
-        setInterval(monitorAlarme, 30000);
     });
 
-    // --- NOVA TAREFA ---
-    window.prepararFotosNovas = (input) => {
-        Array.from(input.files).forEach(f => {
-            if (fotosNovasArray.length >= 4) return;
-            const reader = new FileReader();
-            reader.onloadend = () => { fotosNovasArray.push(reader.result); renderizarPreviewFotosNovas(); };
-            reader.readAsDataURL(f);
-        });
-        input.value = "";
-    };
-
-    const renderizarPreviewFotosNovas = () => {
-        const container = document.getElementById('previewFotosNovas');
-        container.innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join('');
-    };
-
-    window.removerFotoNova = (index) => { fotosNovasArray.splice(index, 1); renderizarPreviewFotosNovas(); };
-
-    window.salvarNovaTarefa = async () => {
-        const desc = document.getElementById('descTask').value;
-        if(!desc) return alert("Digite a descrição!");
-        await addDoc(collection(db, "tarefas"), {
-            descricao: desc, hora: document.getElementById('horaTask').value,
-            dataString: document.getElementById('dataSeletor').value,
-            categoria: categoriaFiltroAtiva, fotos: fotosNovasArray, criadoEm: new Date()
-        });
-        document.getElementById('descTask').value = ""; document.getElementById('horaTask').value = "";
-        fotosNovasArray = []; renderizarPreviewFotosNovas(); carregarTarefas();
-    };
-
-    // --- EDIÇÃO INTELIGENTE ---
+    // --- EDIÇÃO (CORREÇÃO: ARQUIVO E SALVAR) ---
     window.ativarEdicao = (id, fotos) => {
         if(idEmEdicao === id) idEmEdicao = null; 
         else { idEmEdicao = id; fotosTemporarias = [...fotos]; }
         carregarTarefas();
     };
 
-    window.removerFotoTemporaria = (idx) => { fotosTemporarias.splice(idx, 1); renderizarFotosEdicao(); };
+    window.removerFotoTemporaria = (idx) => {
+        fotosTemporarias.splice(idx, 1);
+        renderizarFotosEdicao();
+    };
 
     window.renderizarFotosEdicao = () => {
         const container = document.getElementById(`container-fotos-edit-${idEmEdicao}`);
@@ -220,7 +161,10 @@
         Array.from(input.files).forEach(file => {
             if (fotosTemporarias.length >= 4) return;
             const reader = new FileReader();
-            reader.onloadend = () => { fotosTemporarias.push(reader.result); renderizarFotosEdicao(); };
+            reader.onloadend = () => {
+                fotosTemporarias.push(reader.result);
+                renderizarFotosEdicao();
+            };
             reader.readAsDataURL(file);
         });
         input.value = "";
@@ -232,6 +176,33 @@
         await updateDoc(doc(db, "tarefas", id), { descricao: novaDesc, hora: novaHora, fotos: fotosTemporarias });
         idEmEdicao = null; carregarTarefas();
     };
+
+    // --- NOVA TAREFA ---
+    window.salvarNovaTarefa = async () => {
+        const desc = document.getElementById('descTask').value;
+        if(!desc) return alert("Digite a descrição!");
+        await addDoc(collection(db, "tarefas"), {
+            descricao: desc, hora: document.getElementById('horaTask').value,
+            dataString: document.getElementById('dataSeletor').value,
+            categoria: categoriaFiltroAtiva, fotos: fotosNovasArray, criadoEm: new Date()
+        });
+        document.getElementById('descTask').value = ""; fotosNovasArray = []; renderizarPreviewFotosNovas(); carregarTarefas();
+    };
+
+    window.prepararFotosNovas = (input) => {
+        Array.from(input.files).forEach(f => {
+            if (fotosNovasArray.length >= 4) return;
+            const r = new FileReader();
+            r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); };
+            r.readAsDataURL(f);
+        });
+        input.value = "";
+    };
+
+    const renderizarPreviewFotosNovas = () => {
+        document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join('');
+    };
+    window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
     // --- LISTAGEM ---
     window.carregarTarefas = async () => {
@@ -245,23 +216,22 @@
         lista.innerHTML = "";
         snap.forEach(d => {
             const t = d.data();
-            const dItem = new Date(t.dataString + 'T00:00:00');
             const isEditando = idEmEdicao === d.id;
             const listaFotos = t.fotos || [];
 
             lista.innerHTML += `
                 <div class="tarefa-item">
                     <div class="tarefa-content" onclick="ativarEdicao('${d.id}', ${JSON.stringify(listaFotos).replace(/"/g, '&quot;')})">
-                        <div class="dia-badge">${dItem.getDate()}<span>${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][dItem.getDay()]}</span></div>
+                        <div class="dia-badge">${new Date(t.dataString + 'T00:00:00').getDate()}<span>SÁB</span></div>
                         <div class="tarefa-info">
                             ${isEditando ? `
-                                <textarea id="edit-desc-${d.id}">${t.descricao}</textarea>
+                                <textarea id="edit-desc-${d.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
                                 <div id="container-fotos-edit-${d.id}" class="container-fotos"></div>
-                                <div class="area-edicao">
+                                <div class="area-edicao" onclick="event.stopPropagation()">
                                     <input type="time" id="edit-hora-${d.id}" value="${t.hora || ''}">
                                     <div class="btn-grupo-edicao-final">
-                                        <button class="btn-acao-edit btn-arquivo-azul" onclick="event.stopPropagation(); document.getElementById('edit-foto-${d.id}').click()">📷 ARQUIVO</button>
-                                        <button class="btn-acao-edit btn-salvar-azul" onclick="event.stopPropagation(); salvarAlteracoes('${d.id}')">SALVAR</button>
+                                        <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('edit-foto-${d.id}').click()">📷 ARQUIVO</button>
+                                        <button class="btn-acao-edit btn-salvar-azul" onclick="salvarAlteracoes('${d.id}')">SALVAR</button>
                                     </div>
                                     <input type="file" id="edit-foto-${d.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
                                 </div>
@@ -277,50 +247,13 @@
         });
     };
 
-    // --- CONFIGURAÇÕES ---
+    // --- AUXILIARES ---
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaCategorias');
-        const listaMngt = document.getElementById('listaGerenciarCats');
         const snap = await getDocs(collection(db, "categorias"));
         container.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
-        listaMngt.innerHTML = "";
-        snap.forEach(d => {
-            const c = d.data();
-            container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
-            listaMngt.innerHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
-                    <input type="color" value="${c.cor}" onchange="atualizarCorPasta('${d.id}', this.value)" style="width:30px; height:30px; border:none; background:none; cursor:pointer;">
-                    <span>${c.nome}</span>
-                    <button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer; font-size:1.1rem;">✕</button>
-                </div>`;
-        });
+        snap.forEach(d => container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${d.data().nome}', '${d.data().cor}', this)">${d.data().nome}</div>`);
     };
-
-    window.atualizarCorPasta = async (id, novaCor) => { await updateDoc(doc(db, "categorias", id), { cor: novaCor }); carregarCategorias(); };
-    window.adicionarNovaCategoriaFirebase = async () => {
-        const nome = document.getElementById('novoNomeCat').value;
-        if(!nome) return;
-        await addDoc(collection(db, "categorias"), { nome: nome, cor: document.getElementById('novaCorCat').value });
-        document.getElementById('novoNomeCat').value = ""; carregarCategorias();
-    };
-
-    // --- AUXILIARES ---
-    const monitorAlarme = async () => {
-        if (Notification.permission !== "granted") return;
-        const conf = JSON.parse(localStorage.getItem('agenda_config') || '{"min":0,"som":""}');
-        const target = new Date(new Date().getTime() + (conf.min * 60000));
-        const q = query(collection(db, "tarefas"), where("dataString", "==", target.toLocaleDateString('en-CA')), where("hora", "==", target.getHours().toString().padStart(2, '0') + ":" + target.getMinutes().toString().padStart(2, '0')));
-        const snap = await getDocs(q);
-        snap.forEach(d => {
-            if (!notificacoesEnviadas.has(d.id + "_" + target.getMinutes())) {
-                new Notification("Agenda: " + d.data().descricao);
-                notificacoesEnviadas.add(d.id + "_" + target.getMinutes());
-                if (conf.som) new Audio(conf.som).play();
-            }
-        });
-    };
-
-    window.solicitarNotificacao = () => Notification.requestPermission().then(p => alert(p === "granted" ? "Conectado!" : "Acesso negado."));
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor');
         if (tipo === 'hoje') input.value = new Date().toLocaleDateString('en-CA');
@@ -337,18 +270,9 @@
     window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
     window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
-    window.mudarAba = (aba) => {
-        document.getElementById('conteudoAlarme').classList.toggle('escondido', aba !== 'alarme');
-        document.getElementById('conteudoCategorias').classList.toggle('escondido', aba !== 'categorias');
-        document.getElementById('tabAlarme').classList.toggle('ativo', aba === 'alarme');
-        document.getElementById('tabCat').classList.toggle('ativo', aba === 'categorias');
-    };
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
-    window.excluirCategoria = async (id) => { if(confirm("Apagar pasta?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategorias(); } };
-    window.salvarPreferencias = () => localStorage.setItem('agenda_config', JSON.stringify({ min: parseInt(document.getElementById('minutosAlerta').value), som: document.getElementById('somAlarme').value }));
-    window.carregarPreferencias = () => { const d = localStorage.getItem('agenda_config'); if(d) { const c = JSON.parse(d); document.getElementById('minutosAlerta').value = c.min; document.getElementById('somAlarme').value = c.som; } };
 </script>
 </body>
 </html>
