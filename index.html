@@ -402,47 +402,36 @@ onAuthStateChanged(auth, (user) => {
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
 window.salvarNovaTarefa = async () => {
-    const desc = document.getElementById('descTask').value;
-    if(!desc || !window.usuarioLogado) return alert("Verifique a descrição ou login!");
-    
-    const btn = document.getElementById('btnSalvar');
-    btn.innerHTML = "⏳ Subindo arquivos...";
-    btn.disabled = true;
+        const desc = document.getElementById('descTask').value;
+        if(!desc) return alert("Dê um nome!");
+        const btn = document.getElementById('btnSalvar');
+        btn.innerHTML = "⏳ Subindo arquivos..."; btn.disabled = true;
 
-    let linksFotos = [];
-    try {
-        for (let base64 of fotosNovasArray) {
-            // CONVERSÃO ESSENCIAL PARA O STORAGE
-            const blob = await (await fetch(base64)).blob();
-            const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${Math.random().toString(36).substr(2,5)}.jpg`);
-            const snap = await uploadBytes(sRef, blob);
-            const url = await getDownloadURL(snap.ref);
-            linksFotos.push(url);
-        }
-
-        await addDoc(collection(db, "tarefas"), { 
-            uid: window.usuarioLogado.uid,
-            descricao: desc, 
-            hora: document.getElementById('horaTask').value, 
-            dataString: document.getElementById('dataSeletor').value, 
-            categoria: categoriaFiltroAtiva, 
-            fotos: linksFotos, 
-            criadoEm: new Date(),
-            alarmeAtivo: true, alertaDisparado: false 
-        });
-        
-        fotosNovasArray = []; document.getElementById('descTask').value = "";
-        document.getElementById('previewFotosNovas').innerHTML = ""; 
-        carregarTarefas();
-        alert("Salvo com sucesso!");
-    } catch (e) { 
-        console.error(e);
-        alert("Erro ao salvar. Verifique se as regras do Storage foram publicadas."); 
-    } finally { 
-        btn.innerHTML = "Salvar na Nuvem"; 
-        btn.disabled = false; 
-    }
-};
+        let linksFotos = [];
+        try {
+            for (let base64 of fotosNovasArray) {
+                // Dentro do loop de fotos da função salvarNovaTarefa:
+                const blob = await (await fetch(base64)).blob(); // Converte texto em arquivo real
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}.jpg`);
+                const snap = await uploadBytes(sRef, blob);
+                const url = await getDownloadURL(snap.ref);
+                linksFotos.push(url);
+            }
+            await addDoc(collection(db, "tarefas"), { 
+                uid: window.usuarioLogado.uid,
+                descricao: desc, 
+                hora: document.getElementById('horaTask').value, 
+                dataString: document.getElementById('dataSeletor').value, 
+                categoria: categoriaFiltroAtiva, 
+                fotos: linksFotos, 
+                criadoEm: new Date(),
+                alarmeAtivo: true, alertaDisparado: false 
+            });
+            fotosNovasArray = []; document.getElementById('descTask').value = "";
+            document.getElementById('previewFotosNovas').innerHTML = ""; carregarTarefas();
+        } catch (e) { alert("Erro ao salvar."); }
+        finally { btn.innerHTML = "Salvar na Nuvem"; btn.disabled = false; }
+    };
 
     window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
