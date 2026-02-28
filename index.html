@@ -4,54 +4,60 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda - Minimalista</title>
+    <title>Minha Agenda - v1.3.2</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; padding: 10px; margin: 0; color: #333; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
+        .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         
-        .timeline-header { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
-        .btn-date { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
-        .btn-date.ativo { background: #333; color: white; border-color: #333; }
-        #dataSeletor { flex: 1.5; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.85rem; }
+        /* HEADER SIMPLES */
+        .timeline-header { display: flex; gap: 6px; margin-bottom: 15px; align-items: center; }
+        .btn-date { flex: 1; padding: 12px 0; border-radius: 4px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
+        #dataSeletor { flex: 1.5; padding: 10px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.9rem; }
 
-        /* 📋 --- CATEGORIAS SIMPLES --- */
-        .category-list {
+        /* 📋 CATEGORIAS TIPO "TABS" (LIMPAS) */
+        .category-tabs {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             overflow-x: auto;
-            padding-bottom: 15px;
+            padding-bottom: 12px;
             margin-bottom: 15px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 2px solid #f0f0f0;
             scrollbar-width: none;
         }
-        .category-item {
-            padding: 8px 16px;
-            border-radius: 6px;
+        .category-tab {
+            padding: 8px 18px;
+            border-radius: 4px;
             border: 1px solid #ddd;
-            background: #fff;
+            background: #f8f9fa;
             cursor: pointer;
             font-size: 0.85rem;
-            font-weight: 500;
+            font-weight: 600;
             white-space: nowrap;
-            transition: all 0.2s;
+            color: #444;
+            transition: 0.2s;
         }
-        .category-item.ativo {
+        .category-tab.ativo {
+            background: #333;
             color: white;
-            border-color: transparent;
+            border-color: #333;
         }
 
-        .header-secao { font-size: 0.9rem; font-weight: bold; margin: 20px 0 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .header-secao { font-size: 0.8rem; font-weight: 800; margin: 15px 0 8px; color: #8d949e; text-transform: uppercase; }
         
-        .secao-card { background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; }
-        input[type="text"], input[type="time"] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        /* CARD DE ENTRADA */
+        .secao-card { background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 15px; }
+        input[type="text"], input[type="time"] { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
         
-        #btnSalvar { background: #28a745; color: white; border: none; padding: 14px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        #btnSalvar { background: #28a745; color: white; border: none; padding: 14px; border-radius: 4px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
         
-        .tarefa-item { background: #fff; margin-bottom: 12px; padding: 15px; border-radius: 8px; border-left: 4px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.03); position: relative; }
-        .btn-excluir { position: absolute; right: 10px; top: 10px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
+        /* LISTA DE TAREFAS */
+        .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 6px; border-left: 5px solid #007bff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
+        .btn-excluir { position: absolute; right: 8px; top: 8px; background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.1rem; opacity: 0.6; }
+        .tarefa-meta { font-size: 0.75rem; color: #65676b; margin-bottom: 4px; font-weight: bold; }
         
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 12px; position: relative; }
+        .modal-content { background: white; width: 85%; max-width: 350px; padding: 20px; border-radius: 8px; position: relative; }
         .escondido { display: none !important; }
     </style>
 </head>
@@ -62,39 +68,39 @@
         <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
         <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
         <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#999;">⚙️</button>
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
     </div>
 
-    <div class="category-list" id="listaCategorias">Carregando...</div>
+    <div class="category-tabs" id="listaCategorias">Carregando...</div>
 
-    <div class="header-secao">Nova Tarefa</div>
+    <div class="header-secao">Nova Atividade</div>
     <div class="secao-card">
-        <input type="text" id="descTask" placeholder="O que vamos fazer?">
-        <div style="display: flex; gap: 10px;">
+        <input type="text" id="descTask" placeholder="O que agendar?">
+        <div style="display: flex; gap: 8px;">
             <input type="time" id="horaTask" style="flex: 1;">
-            <input type="file" id="fotoTask" accept="image/*" style="flex: 1; font-size: 0.7rem; align-self: center;">
+            <input type="file" id="fotoTask" accept="image/*" style="flex: 1.2; font-size: 0.7rem; align-self: center;">
         </div>
         <input type="hidden" id="categoriaSelecionada" value="Geral">
         <input type="hidden" id="corSelecionada" value="#333">
-        <button id="btnSalvar">Salvar Agenda</button>
+        <button id="btnSalvar">Salvar na Agenda</button>
     </div>
 
-    <div class="header-secao">Atividades</div>
+    <div class="header-secao">Tarefas do Dia</div>
     <div id="listaTarefas">Sincronizando...</div>
 </div>
 
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
-        <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2rem; cursor:pointer;">✕</button>
-        <h3 style="margin-top:0;">Configurações</h3>
-        <button onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:10px;">CONECTAR DISPOSITIVO</button>
-        <button onclick="location.reload()" style="width:100%; padding:10px; background:#f0f0f0; border:none; border-radius:6px; cursor:pointer;">RECARREGAR</button>
+        <button onclick="fecharConfig()" style="position: absolute; right: 10px; top: 10px; border:none; background:none; font-size:1.2rem; cursor:pointer;">✕</button>
+        <h4 style="margin: 0 0 15px 0;">Ajustes</h4>
+        <button onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; margin-bottom:10px;">CONECTAR CELULAR</button>
+        <button onclick="location.reload()" style="width:100%; padding:10px; background:#f0f2f5; border:none; border-radius:4px; cursor:pointer;">ATUALIZAR APP</button>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
@@ -125,33 +131,28 @@
         }
     });
 
+    // CATEGORIAS LIMPAS - APENAS TEXTO
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaCategorias');
         const snap = await getDocs(collection(db, "categorias"));
-        container.innerHTML = `<div class="category-item ativo" style="background-color: #333; color: white;" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
+        container.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
         snap.forEach(d => {
             const c = d.data();
-            container.innerHTML += `<div class="category-item" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
+            container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
         });
-        container.innerHTML += `<div onclick="promptNovaCat()" style="cursor:pointer; padding:8px; color:#007bff; font-weight:bold;">+</div>`;
+        container.innerHTML += `<div onclick="promptNovaCat()" style="padding: 8px 12px; color: #007bff; font-weight: bold; cursor: pointer;">+ Novo</div>`;
     };
 
     window.selecionarCat = (nome, cor, el) => {
-        document.querySelectorAll('.category-item').forEach(b => {
-            b.classList.remove('ativo');
-            b.style.backgroundColor = "white";
-            b.style.color = "#333";
-        });
+        document.querySelectorAll('.category-tab').forEach(b => b.classList.remove('ativo'));
         el.classList.add('ativo');
-        el.style.backgroundColor = cor;
-        el.style.color = "white";
         document.getElementById('categoriaSelecionada').value = nome;
         document.getElementById('corSelecionada').value = cor;
     };
 
     window.promptNovaCat = async () => {
-        const nome = prompt("Nome:"); if (!nome) return;
-        const cor = prompt("Cor (Hex):", "#333");
+        const nome = prompt("Nome da Categoria:"); if (!nome) return;
+        const cor = prompt("Cor Hex (ex: #007bff):", "#333");
         await addDoc(collection(db, "categorias"), { nome, cor });
         carregarCategorias();
     };
@@ -177,14 +178,14 @@
         snap.forEach(d => {
             const t = d.data();
             lista.innerHTML += `
-                <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#ddd'}">
+                <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
                     <button class="btn-excluir" onclick="excluirTask('${d.id}')">✕</button>
-                    <span style="font-size: 0.8rem; color: #999;">${t.categoria}</span><br>
+                    <div class="tarefa-meta">${t.categoria}</div>
                     <strong>${t.hora}</strong> - ${t.descricao}
-                    ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:6px; margin-top:10px; display:block;">` : ""}
+                    ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:4px; margin-top:10px; display:block;">` : ""}
                 </div>`;
         });
-        if(lista.innerHTML === "") lista.innerHTML = "<p style='color:#ccc; text-align:center;'>Nenhuma tarefa.</p>";
+        if(lista.innerHTML === "") lista.innerHTML = "<p style='color:#999; text-align:center; font-size:0.9rem;'>Nada para hoje.</p>";
     };
 
     document.getElementById('btnSalvar').onclick = async () => {
@@ -214,11 +215,11 @@
             const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
             const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
             if (token) await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() });
-            alert("Conectado!");
+            alert("Conectado com Sucesso!");
         }
     };
 
-    window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    window.excluirTask = async (id) => { if(confirm("Remover esta atividade?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
     window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
 </script>
