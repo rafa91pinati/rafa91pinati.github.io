@@ -393,27 +393,21 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
         try {
             for (let base64 of fotosNovasArray) {
                 const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${Math.random().toString(36).substr(2,5)}.jpg`);
-                // Comando nativo do Firebase para subir Base64 (Resolve o Erro 400)
+                // Correção definitiva para o erro 400
                 const snap = await uploadString(sRef, base64, 'data_url');
-                const url = await getDownloadURL(snap.ref);
-                linksFotos.push(url);
+                linksFotos.push(await getDownloadURL(snap.ref));
             }
             await addDoc(collection(db, "tarefas"), { 
-                uid: window.usuarioLogado.uid, // Vinculado ao Usuário Logado
-                descricao: desc, 
+                uid: window.usuarioLogado.uid, descricao: desc, 
                 hora: document.getElementById('horaTask').value, 
                 dataString: document.getElementById('dataSeletor').value, 
-                categoria: categoriaFiltroAtiva, 
-                fotos: linksFotos, 
-                criadoEm: new Date(),
-                alarmeAtivo: true, alertaDisparado: false 
+                categoria: categoriaFiltroAtiva, fotos: linksFotos, 
+                criadoEm: new Date(), alarmeAtivo: true, alertaDisparado: false 
             });
             fotosNovasArray = []; document.getElementById('descTask').value = "";
             document.getElementById('previewFotosNovas').innerHTML = ""; carregarTarefas();
-            alert("Tarefa salva com sucesso na nuvem!");
-        } catch (e) { alert("Erro ao salvar."); console.error(e); }
-        finally { btn.innerHTML = "Salvar na Nuvem"; btn.disabled = false; }
-    };
+            alert("Tarefa salva com sucesso!");
+        } catch (e) { console.error("Erro no Storage:", e); alert("Erro ao salvar a foto."); }
 
     window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
@@ -423,6 +417,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
         btn.innerHTML = "⏳ Enviando..."; btn.disabled = true;
         try {
             const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
+            // Garanta que você está usando uploadBytes (e não uploadString) para o arquivo (PDF/Doc)
             const snap = await uploadBytes(sRef, file);
             const url = await getDownloadURL(snap.ref);
             await addDoc(collection(db, "arquivos_fixos"), {
