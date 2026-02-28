@@ -524,5 +524,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };</script>
+	window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); document.getElementById('previewFotosNovas').innerHTML += `<img src="${r.result}" class="img-tarefa">`; }; r.readAsDataURL(f); }); };
+    window.abrirConfig = () => document.getElementById('modalConfiguracoes').style.display = 'flex';
+    window.fecharModalConfig = () => document.getElementById('modalConfiguracoes').style.display = 'none';
+</script>
 </body>
 </html>
