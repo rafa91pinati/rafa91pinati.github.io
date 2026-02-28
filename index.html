@@ -56,6 +56,16 @@
 </head>
 <body>
 
+<div id="telaLogin" class="modal">
+    <div class="modal-content">
+        <h2 style="text-align:center;">Agenda v2.0</h2>
+        <input type="email" id="emailLogin" placeholder="Seu e-mail">
+        <input type="password" id="senhaLogin" placeholder="Sua senha">
+        <button onclick="fazerLogin()" style="background:#007bff; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">Entrar</button>
+        <button onclick="criarConta()" style="background:none; color:#007bff; border:none; width:100%; margin-top:10px; cursor:pointer;">Criar nova conta</button>
+    </div>
+</div>
+
 <div class="container">
     <div class="timeline-header">
         <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
@@ -151,8 +161,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+	import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
@@ -179,7 +189,7 @@
 
     // --- SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
+        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
     }
 
     // --- CARREGAR PREFERÊNCIAS E AUTO-SAVE ---
@@ -246,11 +256,40 @@
         });
     };
 
-    signInAnonymously(auth).then(async () => {
-        await carregarCategorias(); 
-        setarData('hoje', document.getElementById('btnHoje'));
-        carregarPreferenciasNuvem(); 
+// [V2] MONITOR DE USUÁRIO: O "Coração" da segurança
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // Se o usuário estiver logado, esconde a tela de login e abre a agenda
+            document.getElementById('telaLogin').classList.add('escondido');
+            console.log("Logado como:", user.email);
+            
+            // Carrega os dados específicos deste usuário
+            carregarCategorias(); 
+            setarData('hoje', document.getElementById('btnHoje'));
+            carregarPreferenciasNuvem(); 
+        } else {
+            // Se deslogar, mostra a tela de login novamente
+            document.getElementById('telaLogin').classList.remove('escondido');
+        }
     });
+
+    // Função para entrar com e-mail cadastrado
+    window.fazerLogin = () => {
+        const email = document.getElementById('emailLogin').value;
+        const senha = document.getElementById('senhaLogin').value;
+        if(!email || !senha) return alert("Preencha tudo!");
+        signInWithEmailAndPassword(auth, email, senha).catch(err => alert("Erro: " + err.message));
+    };
+
+    // Função para criar um novo usuário no seu Firebase
+    window.criarConta = () => {
+        const email = document.getElementById('emailLogin').value;
+        const senha = document.getElementById('senhaLogin').value;
+        if(!email || !senha) return alert("Preencha tudo!");
+        createUserWithEmailAndPassword(auth, email, senha)
+            .then(() => alert("Conta criada!"))
+            .catch(err => alert("Erro ao criar conta: " + err.message));
+    };
 
     window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
     window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
