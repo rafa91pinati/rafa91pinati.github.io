@@ -184,9 +184,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-	import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
-
-    const firebaseConfig = {
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
+    
+	const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
         projectId: "agenda-4efa7",
@@ -277,7 +277,40 @@
             } else alert("Você bloqueou as permissões neste navegador.");
         });
     };
+// Monitor de Usuário (Versão 2)
+    onAuthStateChanged(auth, (user) => {
+        const tela = document.getElementById('telaLogin');
+        if (user) {
+            if(tela) tela.classList.add('escondido');
+            console.log("Logado:", user.email);
+            // Inicia o app
+            if (typeof carregarCategorias === "function") carregarCategorias();
+            setarData('hoje', document.getElementById('btnHoje'));
+        } else {
+            if(tela) tela.classList.remove('escondido');
+        }
+    });
 
+    // PENDURANDO AS FUNÇÕES NO WINDOW (Essencial para os botões HTML funcionarem)
+    window.fazerLogin = () => {
+        const email = document.getElementById('emailLogin').value;
+        const senha = document.getElementById('senhaLogin').value;
+        signInWithEmailAndPassword(auth, email, senha)
+            .then(() => alert("Bem-vindo de volta!"))
+            .catch(err => alert("Erro ao entrar: " + err.code));
+    };
+
+    window.criarConta = () => {
+        const email = document.getElementById('emailLogin').value;
+        const senha = document.getElementById('senhaLogin').value;
+        if(senha.length < 6) return alert("A senha precisa de 6 dígitos!");
+        
+        createUserWithEmailAndPassword(auth, email, senha)
+            .then(() => alert("Conta criada com sucesso!"))
+            .catch(err => alert("Erro ao criar: " + err.code));
+    };
+
+    window.fazerLogout = () => { if(confirm("Sair?")) signOut(auth); };
 // [V2] FUNÇÃO: SUBIR ARQUIVO PARA O STORAGE E SALVAR LINK NO BANCO
     window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
@@ -343,80 +376,9 @@
     };
 	
 	
-// [V2] MONITOR DE USUÁRIO: O "Coração" da segurança
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // Se o usuário estiver logado, esconde a tela de login e abre a agenda
-            document.getElementById('telaLogin').classList.add('escondido');
-            console.log("Logado como:", user.email);
-            
-            // Carrega os dados específicos deste usuário
-            carregarCategorias(); 
-            setarData('hoje', document.getElementById('btnHoje'));
-            carregarPreferenciasNuvem(); 
-        } else {
-            // Se deslogar, mostra a tela de login novamente
-            document.getElementById('telaLogin').classList.remove('escondido');
-        }
-    });
 
     // Função para entrar com e-mail cadastrado
-// [V2] FUNÇÃO PARA ENTRAR
-    window.fazerLogin = () => {
-        const email = document.getElementById('emailLogin').value;
-        const senha = document.getElementById('senhaLogin').value;
-        
-        if(!email || !senha) return alert("Por favor, preencha o e-mail e a senha.");
 
-        signInWithEmailAndPassword(auth, email, senha)
-            .then(() => {
-                console.log("Login realizado!");
-            })
-            .catch((error) => {
-                // Traduzindo os erros do Firebase para você
-                if (error.code === 'auth/user-not-found') alert("Usuário não cadastrado.");
-                else if (error.code === 'auth/wrong-password') alert("Senha incorreta.");
-                else if (error.code === 'auth/invalid-email') alert("E-mail inválido.");
-                else alert("Erro ao entrar: " + error.message);
-            });
-    };
-
-// [V2] FUNÇÃO PARA ENTRAR
-    window.fazerLogin = () => {
-        const email = document.getElementById('emailLogin').value;
-        const senha = document.getElementById('senhaLogin').value;
-        
-        if(!email || !senha) return alert("Preencha e-mail e senha!");
-
-        signInWithEmailAndPassword(auth, email, senha)
-            .then((userCredential) => {
-                alert("Login realizado!");
-            })
-            .catch((error) => {
-                // EXIBE O ERRO NA TELA PARA DIAGNÓSTICO
-                console.error("Erro no login:", error.code);
-                alert("ERRO NO LOGIN: " + error.code); 
-            });
-    };
-
-    // [V2] FUNÇÃO PARA CRIAR CONTA
-    window.criarConta = () => {
-        const email = document.getElementById('emailLogin').value;
-        const senha = document.getElementById('senhaLogin').value;
-        
-        if(!email || !senha) return alert("Preencha os campos!");
-        if(senha.length < 6) return alert("A senha precisa de 6 dígitos.");
-
-        createUserWithEmailAndPassword(auth, email, senha)
-            .then((userCredential) => {
-                alert("CONTA CRIADA COM SUCESSO!");
-                // Após criar, ele deve aparecer na lista
-            })
-            .catch((error) => {
-                console.error("Erro no cadastro:", error.code);
-                alert("ERRO NO CADASTRO: " + error.code);
-            });
-    };
 	
 
     window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
