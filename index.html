@@ -4,120 +4,54 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.5.0</title>
+    <title>Minha Agenda Inteligente - v1.5.1</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        .timeline-header { 
-    display: flex; 
-    gap: 4px; 
-    margin-bottom: 20px; 
-    align-items: center; 
-    flex-wrap: nowrap; /* Proíbe a quebra de linha */
-    overflow-x: auto; /* Permite rolar se o celular for MUITO pequeno */
-    scrollbar-width: none; /* Esconde barra no Firefox */
-    padding-bottom: 5px;
-}
-.timeline-header::-webkit-scrollbar { display: none; } /* Esconde barra no Chrome/Safari */
-
-.btn-date { 
-    flex: 0 0 auto; /* Impede que os botões esmaguem uns aos outros */
-    padding: 10px 12px; 
-    border-radius: 25px; 
-    border: 1px solid #ddd; 
-    background: #fff; 
-    cursor: pointer; 
-    font-size: 0.7rem; 
-    font-weight: 800; 
-    text-transform: uppercase; 
-}
-
-#dataSeletor { 
-    flex: 1; /* Ocupa o espaço que sobrar no meio */
-    min-width: 100px; /* Garante que o calendário não suma */
-    padding: 8px; 
-    border-radius: 25px; 
-    border: 1px solid #ddd; 
-    font-size: 0.8rem; 
-    text-align: center; 
-}
-
-.btn-config { 
-    flex: 0 0 auto; 
-    background: none; 
-    border: none; 
-    font-size: 1.3rem; 
-    cursor: pointer; 
-    color: #ccd0d5; 
-    padding: 0 5px;
-}
-
-.btn-date.ativo { background: #007bff; color: white; border-color: #007bff; box-shadow: 0 4px 8px rgba(0,123,255,0.3); }
-        #dataSeletor { 
-    flex: 1; /* Ocupa o espaço que sobrar no meio */
-    min-width: 100px; /* Garante que o calendário não suma */
-    padding: 8px; 
-    border-radius: 25px; 
-    border: 1px solid #ddd; 
-    font-size: 0.8rem; 
-    text-align: center; 
-}
-        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; align-items: center; }
-        .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; transition: 0.2s; }
-        .btn-add-cat-circle { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #007bff; color: #007bff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; cursor: pointer; background: none; flex-shrink: 0; margin-left: 5px; }
-
-        /* ESTILOS PARA SESSÕES MINIMIZÁVEIS */
-        .header-secao { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-left: 6px solid #007bff; 
-            padding: 5px 12px; 
-            margin: 25px 0 12px; 
-            color: #007bff; 
-            font-size: 0.9rem; 
-            font-weight: 900; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-            cursor: pointer;
-            background: #f8f9fa;
-            border-radius: 0 8px 8px 0;
-        }
-        .seta-secao { transition: transform 0.3s; font-size: 0.8rem; margin-right: 5px; }
-        .seta-invertida { transform: rotate(-90deg); }
-
-        .secao-card { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 20px; transition: all 0.3s ease; }
-        input[type="text"], input[type="time"], select, input[type="number"] { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
-        #btnSalvar { background: #28a745; color: white; border: none; padding: 16px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        /* CABEÇALHO EM UMA LINHA ÚNICA */
+        .timeline-header { display: flex; gap: 5px; margin-bottom: 20px; align-items: center; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+        .timeline-header::-webkit-scrollbar { display: none; }
         
-        .tarefa-item { background: #fff; margin-bottom: 12px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; display: flex; align-items: center; gap: 15px; }
-        .dia-badge { font-size: 1.8rem; font-weight: 900; color: #333; min-width: 45px; text-align: center; line-height: 1; }
-        .dia-badge span { display: block; font-size: 0.65rem; text-transform: uppercase; color: #888; }
+        .btn-date { flex: 0 0 auto; padding: 10px 8px; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+        .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
+        #dataSeletor { flex: 1; min-width: 100px; padding: 8px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.8rem; text-align: center; }
+        .btn-config-icon { flex: 0 0 auto; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ccd0d5; }
+
+        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; align-items: center; }
+        .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+
+        /* SESSÕES MINIMIZÁVEIS */
+        .header-secao { display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #007bff; padding: 8px 12px; margin: 20px 0 10px; color: #007bff; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; cursor: pointer; background: #f8f9fa; border-radius: 0 8px 8px 0; }
+        .seta-secao { transition: transform 0.3s; font-size: 0.7rem; }
+        .seta-invertida { transform: rotate(-90deg); }
+        .secao-card { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 15px; }
+
+        input[type="text"], input[type="time"], select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        #btnSalvar { background: #28a745; color: white; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px; }
+        .dia-badge { font-size: 1.5rem; font-weight: 900; color: #333; min-width: 40px; text-align: center; line-height: 1; }
+        .dia-badge span { display: block; font-size: 0.6rem; text-transform: uppercase; color: #888; }
         .tarefa-info { flex: 1; }
-        .btn-excluir-task { background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 1.2rem; padding: 5px; }
+        .img-tarefa { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
+        .btn-excluir-task { background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 1.1rem; }
         
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
-        .modal-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
-        .tab-btn { background: none; border: none; padding: 12px; cursor: pointer; opacity: 0.3; font-size: 1.8rem; }
-        .tab-btn.ativo { opacity: 1; border-bottom: 4px solid #007bff; }
         .escondido { display: none !important; }
-        
-        .config-card { background: #f9fafb; border: 1px solid #edf2f7; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-        .config-label { font-size: 0.85rem; color: #4a5568; font-weight: 600; display: flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="timeline-header">
-    <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-    <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-    <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
-    <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-    <button class="btn-config" onclick="abrirConfig()">⚙️</button>
-</div>
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
+        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+        <button class="btn-config-icon" onclick="abrirConfig()">⚙️</button>
+    </div>
 
     <div class="category-tabs" id="listaCategorias">Carregando...</div>
 
@@ -136,64 +70,35 @@
         <button id="btnSalvar">Salvar na Nuvem</button>
     </div>
 
-    <div class="header-secao" onclick="toggleSecao('secaoLista', 'setaLista')">
+    <div class="header-secao" onclick="toggleSecao('listaTarefas', 'setaLista')">
         <span id="headerMes">📅 Atividades</span>
         <span id="setaLista" class="seta-secao">▼</span>
     </div>
-    <div id="secaoLista">
-        <div id="listaTarefas">Sincronizando...</div>
-    </div>
+    <div id="listaTarefas">Sincronizando...</div>
 </div>
 
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
         <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.5rem; cursor:pointer;">✕</button>
-        <div class="modal-tabs">
-            <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
-            <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
+        <div style="display:flex; justify-content:space-around; margin-bottom:20px;">
+            <button onclick="mudarAba('alarme')" id="tabAlarme" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">🔔</button>
+            <button onclick="mudarAba('categorias')" id="tabCat" style="background:none; border:none; font-size:1.5rem; cursor:pointer; opacity:0.3;">📂</button>
         </div>
+
         <div id="conteudoAlarme">
-            <h4 style="margin: 0 0 15px 0; color: #333;">Configuração de Alertas</h4>
-            <div class="config-card">
-                <label class="config-label">🎵 Som da Notificação:</label>
-                <select id="somAlarme" onchange="salvarPreferencias()">
-                    <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3">Padrão (Sino)</option>
-                    <option value="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3">Bip Digital</option>
-                    <option value="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3">Aviso Suave</option>
-                    <option value="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3">Alerta Urgente</option>
-                </select>
-                <button onclick="testarSom()" style="width:100%; padding:8px; background:#e2e8f0; border:none; border-radius:8px; font-size:0.8rem; font-weight:bold; cursor:pointer;">Ouvir Selecionado 🔊</button>
-            </div>
-            <div class="config-card">
-                <label class="config-label">⏰ Lembrar com antecedência:</label>
-                <select id="minutosAlerta" onchange="salvarPreferencias()">
-                    <option value="0">Na hora exata</option>
-                    <option value="1">1 minuto antes</option>
-                    <option value="5">5 minutos antes</option>
-                    <option value="10">10 minutos antes</option>
-                    <option value="15">15 minutos antes</option>
-                    <option value="30">30 minutos antes</option>
-                </select>
-            </div>
-            <div class="config-card">
-                <label class="config-label">⚡ Comportamento:</label>
-                <select id="tipoNotificacao" onchange="salvarPreferencias()">
-                    <option value="aviso">Apenas Aviso (Sumir)</option>
-                    <option value="fixo">Fixar (Até fechar)</option>
-                </select>
-            </div>
-            <button id="btnConectar" onclick="solicitarNotificacao()" style="width:100%; padding:14px; background:#007bff; color:white; border:none; border-radius:25px; font-weight:bold; cursor:pointer; margin-top: 10px;">CONECTAR CELULAR</button>
+            <h4 style="margin:0 0 15px 0;">Alertas</h4>
+            <select id="somAlarme" onchange="salvarPreferencias()">
+                <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3">Padrão</option>
+                <option value="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3">Suave</option>
+            </select>
+            <button id="btnConectar" onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:20px; margin-top:10px;">CONECTAR CELULAR</button>
         </div>
+
         <div id="conteudoCategorias" class="escondido">
-            <h4 style="margin: 0 0 15px 0; color: #333;">Gerenciar Pastas</h4>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                <input type="text" id="novoNomeCat" placeholder="Nome da Pasta" style="padding: 10px; margin-bottom: 10px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <label style="font-size: 0.8rem; font-weight: bold;">Cor:</label>
-                    <input type="color" id="novaCorCat" value="#007bff" style="width: 50px; height: 40px; padding: 2px; border: none; cursor: pointer;">
-                </div>
-                <button onclick="adicionarNovaCategoriaVisual()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">+ CRIAR PASTA</button>
-            </div>
+            <h4 style="margin:0 0 15px 0;">Gerenciar Pastas</h4>
+            <input type="text" id="novoNomeCat" placeholder="Nome da Pasta">
+            <input type="color" id="novaCorCat" value="#007bff" style="width:100%; height:40px; border:none; cursor:pointer;">
+            <button onclick="adicionarNovaCategoriaVisual()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; margin:10px 0;">+ CRIAR PASTA</button>
             <div id="listaGerenciarCats"></div>
         </div>
     </div>
@@ -202,7 +107,6 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -214,22 +118,18 @@
         appId: "1:299659202964:web:e358210feb4d7784f63f81"
     };
 
-    const VAPID_KEY = "BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8";
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const messaging = getMessaging(app);
 
     let categoriaFiltroAtiva = "Geral";
-    let filtroAtual = "hoje"; // 'hoje', 'amanha', 'semana', 'custom'
+    let filtroDataTipo = "hoje";
 
     signInAnonymously(auth).then(async () => {
-        carregarPreferencias();
         await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
     });
 
-    // --- FUNÇÕES DE INTERFACE ---
     window.toggleSecao = (idConteudo, idSeta) => {
         const conteudo = document.getElementById(idConteudo);
         const seta = document.getElementById(idSeta);
@@ -237,224 +137,123 @@
         seta.classList.toggle('seta-invertida');
     };
 
+    window.carregarCategorias = async () => {
+        const container = document.getElementById('listaCategorias');
+        const listaMngt = document.getElementById('listaGerenciarCats');
+        const snap = await getDocs(collection(db, "categorias"));
+        
+        container.innerHTML = `<div class="category-tab ativo" id="tabGeral" style="background-color: #333; color: white; border-color: #333;" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
+        if(listaMngt) listaMngt.innerHTML = "";
+
+        snap.forEach(d => {
+            const c = d.data();
+            container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
+            if(listaMngt) {
+                listaMngt.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee;"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer;">✕</button></div>`;
+            }
+        });
+        container.innerHTML += `<button class="btn-add-cat-circle" onclick="abrirConfig(); mudarAba('categorias');">+</button>`;
+    };
+
+    window.selecionarCat = (nome, cor, el) => {
+        categoriaFiltroAtiva = nome;
+        document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; });
+        el.style.backgroundColor = cor; el.style.color = 'white';
+        document.getElementById('categoriaSelecionada').value = nome;
+        document.getElementById('corSelecionada').value = cor;
+        carregarTarefas();
+    };
+
     window.setarData = (tipo, el) => {
-        filtroAtual = tipo;
+        filtroDataTipo = tipo;
         const input = document.getElementById('dataSeletor');
         document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
         if(el) el.classList.add('ativo');
 
         const hoje = new Date();
         if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
-        else if (tipo === 'amanha') { 
-            const am = new Date(); 
-            am.setDate(hoje.getDate()+1); 
-            input.value = am.toLocaleDateString('en-CA'); 
-        } else if (tipo === 'semana') {
-            // Calcula segunda-feira da semana atual
-            const diaSema = hoje.getDay(); // 0(Dom) a 6(Sab)
-            const diff = hoje.getDate() - diaSema + (diaSema === 0 ? -6 : 1);
-            const segunda = new Date(hoje.setDate(diff));
-            input.value = segunda.toLocaleDateString('en-CA');
+        else if (tipo === 'amanha') { const am = new Date(); am.setDate(hoje.getDate()+1); input.value = am.toLocaleDateString('en-CA'); }
+        else if (tipo === 'semana') {
+            const diff = hoje.getDate() - hoje.getDay() + (hoje.getDay() === 0 ? -6 : 1);
+            input.value = new Date(hoje.setDate(diff)).toLocaleDateString('en-CA');
         }
         carregarTarefas();
     };
 
-    // --- LÓGICA DE FILTRO SEMANAL E DIÁRIO ---
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas');
-        const dataReferencia = document.getElementById('dataSeletor').value;
-        const dataObj = new Date(dataReferencia + 'T00:00:00');
-        document.getElementById('headerMes').innerText = `📅 Atividades de ${meses[dataObj.getMonth()]}`;
-
+        const dataFiltro = document.getElementById('dataSeletor').value;
+        const dataObj = new Date(dataFiltro + 'T00:00:00');
+        
         try {
             let q;
-            if (filtroAtual === 'semana') {
-                const dataFim = new Date(dataObj);
-                dataFim.setDate(dataObj.getDate() + 6);
+            if (filtroDataTipo === 'semana') {
+                const dataFim = new Date(dataObj); dataFim.setDate(dataObj.getDate() + 6);
                 const dataFimStr = dataFim.toLocaleDateString('en-CA');
-
-                if (categoriaFiltroAtiva === "Geral") {
-                    q = query(collection(db, "tarefas"), 
-                        where("dataString", ">=", dataReferencia), 
-                        where("dataString", "<=", dataFimStr),
-                        orderBy("dataString", "asc"),
-                        orderBy("hora", "asc"));
-                } else {
-                    q = query(collection(db, "tarefas"), 
-                        where("categoria", "==", categoriaFiltroAtiva),
-                        where("dataString", ">=", dataReferencia), 
-                        where("dataString", "<=", dataFimStr),
-                        orderBy("dataString", "asc"),
-                        orderBy("hora", "asc"));
-                }
+                q = query(collection(db, "tarefas"), where("dataString", ">=", dataFiltro), where("dataString", "<=", dataFimStr), orderBy("dataString", "asc"), orderBy("hora", "asc"));
             } else {
-                if (categoriaFiltroAtiva === "Geral") {
-                    q = query(collection(db, "tarefas"), where("dataString", "==", dataReferencia), orderBy("hora", "asc"));
-                } else {
-                    q = query(collection(db, "tarefas"), where("dataString", "==", dataReferencia), where("categoria", "==", categoriaFiltroAtiva), orderBy("hora", "asc"));
-                }
+                if (categoriaFiltroAtiva === "Geral") q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
+                else q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), where("categoria", "==", categoriaFiltroAtiva), orderBy("hora", "asc"));
             }
 
             const snap = await getDocs(q);
             lista.innerHTML = "";
-            
             snap.forEach(d => {
-                // Dentro do snap.forEach da função carregarTarefas:
-const t = d.data();
-const htmlFoto = t.foto ? `<img src="${t.foto}" style="width:50px; height:50px; border-radius:8px; object-fit:cover; margin-left:10px;">` : "";
-
-lista.innerHTML += `
-    <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
-        <div class="dia-badge">${dItem.getDate()}<span>${diasSemana[dItem.getDay()]}</span></div>
-        <div class="tarefa-info">
-            <div style="font-size:0.7rem; color:#888; font-weight:700;">${t.categoria}</div>
-            <strong>${t.hora || 'Sem Hora'}</strong> - ${t.descricao}
-        </div>
-        ${htmlFoto} <button class="btn-excluir-task" onclick="excluirTask('${d.id}')">✕</button>
-    </div>`;
+                const t = d.data();
+                const dItem = new Date(t.dataString + 'T00:00:00');
+                const htmlFoto = t.foto ? `<img src="${t.foto}" class="img-tarefa">` : "";
+                lista.innerHTML += `
+                    <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
+                        <div class="dia-badge">${dItem.getDate()}<span>${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][dItem.getDay()]}</span></div>
+                        <div class="tarefa-info">
+                            <div style="font-size:0.6rem; font-weight:700;">${t.categoria}</div>
+                            <strong>${t.hora || 'Sem Hora'}</strong> - ${t.descricao}
+                        </div>
+                        ${htmlFoto}
+                        <button class="btn-excluir-task" onclick="excluirTask('${d.id}')">✕</button>
+                    </div>`;
             });
-            if(lista.innerHTML === "") lista.innerHTML = "<p style='color:#999; text-align:center; padding:20px;'>Nenhuma atividade encontrada.</p>";
+            if(!lista.innerHTML) lista.innerHTML = "<p style='text-align:center; color:#999;'>Nada agendado.</p>";
         } catch (e) { 
-            console.error("Erro no filtro:", e);
-            lista.innerHTML = `<div style='color:orange; font-size:0.8rem; text-align:center; padding:10px;'>
-                ⚠️ Filtro indisponível. <br> Verifique o Logcat para criar o novo índice composto.
-            </div>`;
+            console.error(e); 
+            lista.innerHTML = "<p style='color:orange; font-size:0.8rem; text-align:center;'>Filtro indisponível. Verifique os índices no Console do Firebase.</p>";
         }
     };
 
-    // --- SALVAR COM LÓGICA DE ALARME CONDICIONAL ---
     document.getElementById('btnSalvar').onclick = async () => {
-    const desc = document.getElementById('descTask').value;
-    const fileInput = document.getElementById('fotoTask');
-    if(!desc) return;
+        const desc = document.getElementById('descTask').value;
+        const fileInput = document.getElementById('fotoTask');
+        if(!desc) return;
 
-    let fotoBase64 = "";
-
-    // Se houver um arquivo selecionado, converte para string
-    if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        
-        reader.onloadend = async () => {
-            fotoBase64 = reader.result;
-            await enviarParaFirestore(fotoBase64);
+        const salvarNoFirebase = async (fotoBase64) => {
+            await addDoc(collection(db, "tarefas"), {
+                descricao: desc, hora: document.getElementById('horaTask').value,
+                dataString: document.getElementById('dataSeletor').value,
+                categoria: document.getElementById('categoriaSelecionada').value,
+                corCategoria: document.getElementById('corSelecionada').value,
+                foto: fotoBase64, alarmeAtivo: document.getElementById('horaTask').value !== "",
+                criadoEm: new Date()
+            });
+            document.getElementById('descTask').value = ""; document.getElementById('fotoTask').value = ""; carregarTarefas();
         };
-        reader.readAsDataURL(file);
-    } else {
-        await enviarParaFirestore("");
-    }
-};
 
-// Função auxiliar para organizar o envio
-async function enviarParaFirestore(fotoStr) {
-    const desc = document.getElementById('descTask').value;
-    const hora = document.getElementById('horaTask').value;
-    
-    await addDoc(collection(db, "tarefas"), {
-        descricao: desc,
-        hora: hora,
-        dataString: document.getElementById('dataSeletor').value,
-        categoria: document.getElementById('categoriaSelecionada').value,
-        corCategoria: document.getElementById('corSelecionada').value,
-        foto: fotoStr, // A foto agora é salva aqui!
-        alarmeAtivo: hora !== "",
-        alertaDisparado: false,
-        criadoEm: new Date()
-    });
-    
-    document.getElementById('descTask').value = "";
-    document.getElementById('fotoTask').value = ""; // Limpa o campo de foto
-    carregarTarefas();
-}
-
-    // --- (RESTANTE DAS FUNÇÕES MANTIDAS) ---
-    window.testarSom = () => {
-        const urlSom = document.getElementById('somAlarme').value;
-        new Audio(urlSom).play().catch(e => console.log("Áudio bloqueado."));
+        if (fileInput.files.length > 0) {
+            const reader = new FileReader();
+            reader.onloadend = () => salvarNoFirebase(reader.result);
+            reader.readAsDataURL(fileInput.files[0]);
+        } else { await salvarNoFirebase(""); }
     };
 
-window.carregarCategorias = async () => {
-    const container = document.getElementById('listaCategorias');
-    const listaMngt = document.getElementById('listaGerenciarCats'); // Elemento do modal
-    const snap = await getDocs(collection(db, "categorias"));
-    
-    // Limpa e reseta o botão Geral
-    container.innerHTML = `<div class="category-tab ativo" id="tabGeral" style="background-color: #333; color: white; border-color: #333;" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
-    if(listaMngt) listaMngt.innerHTML = ""; // Limpa a lista de edição se ela existir
-
-    snap.forEach(d => {
-        const c = d.data();
-        // Adiciona na barra de abas
-        container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
-        
-        // Adiciona na lista de gerenciamento (modal)
-        if(listaMngt) {
-            listaMngt.innerHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;">
-                    <span>${c.nome}</span>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <input type="color" value="${c.cor}" onchange="atualizarCorCategoria('${d.id}', this.value)" style="width:30px; height:30px; border:none; background:none; cursor:pointer;">
-                        <button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button>
-                    </div>
-                </div>`;
-        }
-    });
-    container.innerHTML += `<button class="btn-add-cat-circle" onclick="abrirConfig(); mudarAba('categorias');">+</button>`;
-};
-
-    window.selecionarCat = (nome, cor, el) => {
-        categoriaFiltroAtiva = nome;
-        document.querySelectorAll('.category-tab').forEach(b => {
-            b.classList.remove('ativo'); b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; b.style.borderColor = '#ddd';
-        });
-        el.classList.add('ativo'); el.style.backgroundColor = cor; el.style.color = 'white'; el.style.borderColor = cor;
-        document.getElementById('categoriaSelecionada').value = nome;
-        document.getElementById('corSelecionada').value = cor;
-        carregarTarefas();
-    };
-
-    const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-    window.salvarPreferencias = async () => {
-        const config = { min: document.getElementById('minutosAlerta').value, tipo: document.getElementById('tipoNotificacao').value, som: document.getElementById('somAlarme').value };
-        localStorage.setItem('agenda_config', JSON.stringify(config));
-        await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { tipoNotificacao: config.tipo, minutosAntecedencia: config.min, somSelecionado: config.som, atualizadoEm: new Date() }, { merge: true });
-    };
-
-    window.carregarPreferencias = () => {
-        const data = localStorage.getItem('agenda_config');
-        if(data) {
-            const config = JSON.parse(data);
-            document.getElementById('minutosAlerta').value = config.min || 0;
-            document.getElementById('tipoNotificacao').value = config.tipo || 'aviso';
-            document.getElementById('somAlarme').value = config.som || "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
-        }
-    };
-
-    window.solicitarNotificacao = async () => {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-            const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-            if (token) { 
-                await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() }, { merge: true }); 
-                document.getElementById('btnConectar').innerText = "CONEXÃO ATIVA ✅"; 
-                document.getElementById('btnConectar').style.background = "#28a745"; 
-            }
-        }
-    };
-
-    window.mudarAba = (aba) => {
-        const cA = document.getElementById('conteudoAlarme'), cC = document.getElementById('conteudoCategorias');
-        const tA = document.getElementById('tabAlarme'), tC = document.getElementById('tabCat');
-        if(aba==='alarme'){cA.classList.remove('escondido');cC.classList.add('escondido');tA.classList.add('ativo');tC.classList.remove('ativo');}
-        else{cC.classList.remove('escondido');cA.classList.add('escondido');tC.classList.add('ativo');tA.classList.remove('ativo');}
-    };
-
-    window.excluirTask = async (id) => { if(confirm("Apagar atividade?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    window.excluirCategoria = async (id) => { if(confirm("Apagar pasta?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategorias(); } };
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
     window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
+    window.mudarAba = (aba) => {
+        document.getElementById('conteudoAlarme').classList.toggle('escondido', aba !== 'alarme');
+        document.getElementById('conteudoCategorias').classList.toggle('escondido', aba !== 'categorias');
+        document.getElementById('tabAlarme').style.opacity = aba === 'alarme' ? "1" : "0.3";
+        document.getElementById('tabCat').style.opacity = aba === 'categorias' ? "1" : "0.3";
+    };
 </script>
 </body>
 </html>
