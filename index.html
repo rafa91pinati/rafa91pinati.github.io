@@ -159,67 +159,80 @@
     let dataInicioSemana = '';
     let dataFimSemana = '';
     // Nova função que busca os dados quando o app abre
-window.carregarPreferenciasNuvem = async () => {
-        const docSnap = await getDoc(doc(db, "tokens_dispositivos", "meu_celular"));
+// Gera um ID único para este aparelho, evitando que o PC apague o token do Celular
+    const getDeviceId = () => {
+        if (!auth.currentUser) return "dispositivo_desconhecido";
+        return auth.currentUser.uid; 
+    };
+
+    window.carregarPreferenciasNuvem = async () => {
+        const docSnap = await getDoc(doc(db, "tokens_dispositivos", getDeviceId()));
         if (docSnap.exists()) {
             const data = docSnap.data();
             
-            // Só preenche se o dado existir no banco. Se não, usa o padrão do HTML.
             if(data.minutosAntecedencia !== undefined) document.getElementById('tempoAntecedencia').value = String(data.minutosAntecedencia);
             if(data.tipoNotificacao) document.getElementById('tipoNotificacao').value = data.tipoNotificacao;
             if(data.somSelecionado) document.getElementById('somAlarmeSelecionado').value = data.somSelecionado;
             
-            // Já muda o botão para verde logo de cara!
             const btn = document.getElementById('btnConectarNuvem');
             btn.innerHTML = "✅ Conectado à Nuvem";
             btn.style.background = "#28a745";
         }
     };
 
-    // Chame a função logo após o login anônimo
-    signInAnonymously(auth).then(async () => {
-        await carregarCategorias(); 
-        setarData('hoje', document.getElementById('btnHoje'));
-        carregarPreferenciasNuvem(); // <-- ADICIONE ESTA LINHA AQUI
-    });
-// Auto-save: Salva na nuvem toda vez que você altera um seletor
     window.atualizarPreferenciasNuvem = async () => {
         const btn = document.getElementById('btnConectarNuvem');
         if (btn.innerText.includes("Conectado")) {
-            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
+            await setDoc(doc(db, "tokens_dispositivos", getDeviceId()), {
                 minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
                 tipoNotificacao: document.getElementById('tipoNotificacao').value,
                 somSelecionado: document.getElementById('somAlarmeSelecionado').value
-            }, { merge: true }); // Merge garante que não vai apagar o Token!
-            console.log("Preferências atualizadas na nuvem com sucesso.");
+            }, { merge: true });
+            console.log("Preferências atualizadas para este aparelho.");
         }
     };
-	
-    // Função de conectar atualizada para mudar o botão na hora
-   window.solicitarPermissaoNotificacao = () => {
+
+    window.solicitarPermissaoNotificacao = () => {
+        const btn = document.getElementById('btnConectarNuvem');
+        
+        // Se já está verde, não precisa travar pedindo token de novo.
+        if (btn.innerText.includes("Conectado")) {
+            window.atualizarPreferenciasNuvem();
+            alert("Sincronizado! As configurações foram atualizadas na nuvem.");
+            return;
+        }
+
         Notification.requestPermission().then((permission) => {
             if (permission === 'granted') {
-                const btn = document.getElementById('btnConectarNuvem');
                 btn.innerHTML = "⏳ Conectando..."; 
                 
-                getToken(messaging, { vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8' })
-                .then(async (currentToken) => {
-                    if (currentToken) {
-                        await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
-                            token: currentToken,
-                            minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
-                            tipoNotificacao: document.getElementById('tipoNotificacao').value,
-                            somSelecionado: document.getElementById('somAlarmeSelecionado').value
-                        }, { merge: true });
-                        
-                        btn.innerHTML = "✅ Conectado à Nuvem";
-                        btn.style.background = "#28a745";
-                    }
-                }).catch(err => {
-                    alert("Erro ao ativar: " + err);
-                    btn.innerHTML = "🔔 Conectar na Nuvem";
+                // Força o Firebase a usar o arquivo em segundo plano, evitando travamentos
+                navigator.serviceWorker.ready.then((registration) => {
+                    getToken(messaging, { 
+                        vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8',
+                        serviceWorkerRegistration: registration 
+                    })
+                    .then(async (currentToken) => {
+                        if (currentToken) {
+                            await setDoc(doc(db, "tokens_dispositivos", getDeviceId()), {
+                                token: currentToken,
+                                minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
+                                tipoNotificacao: document.getElementById('tipoNotificacao').value,
+                                somSelecionado: document.getElementById('somAlarmeSelecionado').value
+                            }, { merge: true });
+                            
+                            btn.innerHTML = "✅ Conectado à Nuvem";
+                            btn.style.background = "#28a745";
+                        }
+                    }).catch(err => {
+                        alert("Erro de conexão. Verifique se o firebase-messaging-sw.js está na raiz do servidor.");
+                        btn.innerHTML = "🔔 Conectar na Nuvem";
+                        console.error(err);
+                    });
                 });
-            } else alert("Permissão negada.");
+            } else {
+                alert("Você bloqueou as permissões de notificação neste navegador.");
+            }
         });
     };
 	
