@@ -299,17 +299,19 @@
             lista.innerHTML = "";
             
             snap.forEach(d => {
-                const t = d.data();
-                const dItem = new Date(t.dataString + 'T00:00:00');
-                lista.innerHTML += `
-                    <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
-                        <div class="dia-badge">${dItem.getDate()}<span>${diasSemana[dItem.getDay()]}</span></div>
-                        <div class="tarefa-info">
-                            <div style="font-size:0.7rem; color:#888; font-weight:700;">${t.categoria}</div>
-                            <strong>${t.hora || 'Sem Hora'}</strong> - ${t.descricao}
-                        </div>
-                        <button class="btn-excluir-task" onclick="excluirTask('${d.id}')">✕</button>
-                    </div>`;
+                // Dentro do snap.forEach da função carregarTarefas:
+const t = d.data();
+const htmlFoto = t.foto ? `<img src="${t.foto}" style="width:50px; height:50px; border-radius:8px; object-fit:cover; margin-left:10px;">` : "";
+
+lista.innerHTML += `
+    <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
+        <div class="dia-badge">${dItem.getDate()}<span>${diasSemana[dItem.getDay()]}</span></div>
+        <div class="tarefa-info">
+            <div style="font-size:0.7rem; color:#888; font-weight:700;">${t.categoria}</div>
+            <strong>${t.hora || 'Sem Hora'}</strong> - ${t.descricao}
+        </div>
+        ${htmlFoto} <button class="btn-excluir-task" onclick="excluirTask('${d.id}')">✕</button>
+    </div>`;
             });
             if(lista.innerHTML === "") lista.innerHTML = "<p style='color:#999; text-align:center; padding:20px;'>Nenhuma atividade encontrada.</p>";
         } catch (e) { 
@@ -322,23 +324,48 @@
 
     // --- SALVAR COM LÓGICA DE ALARME CONDICIONAL ---
     document.getElementById('btnSalvar').onclick = async () => {
-        const desc = document.getElementById('descTask').value;
-        const hora = document.getElementById('horaTask').value;
-        if(!desc) return;
+    const desc = document.getElementById('descTask').value;
+    const fileInput = document.getElementById('fotoTask');
+    if(!desc) return;
+
+    let fotoBase64 = "";
+
+    // Se houver um arquivo selecionado, converte para string
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
         
-        await addDoc(collection(db, "tarefas"), {
-            descricao: desc, 
-            hora: hora,
-            dataString: document.getElementById('dataSeletor').value,
-            categoria: document.getElementById('categoriaSelecionada').value,
-            corCategoria: document.getElementById('corSelecionada').value,
-            alertaDisparado: false,
-            // Se não tem hora, o alarme não é solicitado
-            alarmeAtivo: hora !== "", 
-            criadoEm: new Date()
-        });
-        document.getElementById('descTask').value = ""; carregarTarefas();
-    };
+        reader.onloadend = async () => {
+            fotoBase64 = reader.result;
+            await enviarParaFirestore(fotoBase64);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        await enviarParaFirestore("");
+    }
+};
+
+// Função auxiliar para organizar o envio
+async function enviarParaFirestore(fotoStr) {
+    const desc = document.getElementById('descTask').value;
+    const hora = document.getElementById('horaTask').value;
+    
+    await addDoc(collection(db, "tarefas"), {
+        descricao: desc,
+        hora: hora,
+        dataString: document.getElementById('dataSeletor').value,
+        categoria: document.getElementById('categoriaSelecionada').value,
+        corCategoria: document.getElementById('corSelecionada').value,
+        foto: fotoStr, // A foto agora é salva aqui!
+        alarmeAtivo: hora !== "",
+        alertaDisparado: false,
+        criadoEm: new Date()
+    });
+    
+    document.getElementById('descTask').value = "";
+    document.getElementById('fotoTask').value = ""; // Limpa o campo de foto
+    carregarTarefas();
+}
 
     // --- (RESTANTE DAS FUNÇÕES MANTIDAS) ---
     window.testarSom = () => {
@@ -346,16 +373,34 @@
         new Audio(urlSom).play().catch(e => console.log("Áudio bloqueado."));
     };
 
-    window.carregarCategorias = async () => {
-        const container = document.getElementById('listaCategorias');
-        const snap = await getDocs(collection(db, "categorias"));
-        container.innerHTML = `<div class="category-tab ativo" id="tabGeral" style="background-color: #333; color: white; border-color: #333;" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
-        snap.forEach(d => {
-            const c = d.data();
-            container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
-        });
-        container.innerHTML += `<button class="btn-add-cat-circle" onclick="abrirConfig(); mudarAba('categorias');">+</button>`;
-    };
+window.carregarCategorias = async () => {
+    const container = document.getElementById('listaCategorias');
+    const listaMngt = document.getElementById('listaGerenciarCats'); // Elemento do modal
+    const snap = await getDocs(collection(db, "categorias"));
+    
+    // Limpa e reseta o botão Geral
+    container.innerHTML = `<div class="category-tab ativo" id="tabGeral" style="background-color: #333; color: white; border-color: #333;" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
+    if(listaMngt) listaMngt.innerHTML = ""; // Limpa a lista de edição se ela existir
+
+    snap.forEach(d => {
+        const c = d.data();
+        // Adiciona na barra de abas
+        container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
+        
+        // Adiciona na lista de gerenciamento (modal)
+        if(listaMngt) {
+            listaMngt.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;">
+                    <span>${c.nome}</span>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="color" value="${c.cor}" onchange="atualizarCorCategoria('${d.id}', this.value)" style="width:30px; height:30px; border:none; background:none; cursor:pointer;">
+                        <button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button>
+                    </div>
+                </div>`;
+        }
+    });
+    container.innerHTML += `<button class="btn-add-cat-circle" onclick="abrirConfig(); mudarAba('categorias');">+</button>`;
+};
 
     window.selecionarCat = (nome, cor, el) => {
         categoriaFiltroAtiva = nome;
