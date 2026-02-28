@@ -136,7 +136,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 	import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -192,15 +192,44 @@
         }
     };
 
-    window.solicitarPermissaoNotificacao = () => {
-        const btn = document.getElementById('btnConectarNuvem');
-        
-        // Se já está verde, não precisa travar pedindo token de novo.
-        if (btn.innerText.includes("Conectado")) {
-            window.atualizarPreferenciasNuvem();
-            alert("Sincronizado! As configurações foram atualizadas na nuvem.");
-            return;
-        }
+window.solicitarPermissaoNotificacao = () => {
+        Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+                const btn = document.getElementById('btnConectarNuvem');
+                const textoOriginal = btn.innerHTML;
+                btn.innerHTML = "⏳ Conectando..."; 
+                
+                // Força o Firebase a usar o Service Worker em segundo plano
+                navigator.serviceWorker.ready.then((registration) => {
+                    getToken(messaging, { 
+                        vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8',
+                        serviceWorkerRegistration: registration 
+                    })
+                    .then(async (currentToken) => {
+                        if (currentToken) {
+                            // Salva no documento unificado "meu_celular" e adiciona o token na LISTA
+                            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
+                                tokens: arrayUnion(currentToken),
+                                minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
+                                tipoNotificacao: document.getElementById('tipoNotificacao').value,
+                                somSelecionado: document.getElementById('somAlarmeSelecionado').value
+                            }, { merge: true });
+                            
+                            btn.innerHTML = "✅ Conectado à Nuvem";
+                            btn.style.background = "#28a745";
+                            alert("Aparelho sincronizado! Você receberá os alertas aqui também.");
+                        }
+                    }).catch(err => {
+                        alert("Erro de conexão com o Firebase.");
+                        btn.innerHTML = textoOriginal;
+                        console.error(err);
+                    });
+                });
+            } else {
+                alert("Você bloqueou as permissões de notificação neste navegador.");
+            }
+        });
+    };
 
         Notification.requestPermission().then((permission) => {
             if (permission === 'granted') {
