@@ -4,24 +4,21 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.5.1</title>
+    <title>Minha Agenda Inteligente - v1.6.0</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* CABEÇALHO EM UMA LINHA ÚNICA */
+        /* CABEÇALHO EM UMA LINHA */
         .timeline-header { display: flex; gap: 5px; margin-bottom: 20px; align-items: center; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
         .timeline-header::-webkit-scrollbar { display: none; }
-        
-        .btn-date { flex: 0 0 auto; padding: 10px 8px; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+        .btn-date { flex: 0 0 auto; padding: 10px 10px; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
         .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
-        #dataSeletor { flex: 1; min-width: 100px; padding: 8px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.8rem; text-align: center; }
-        .btn-config-icon { flex: 0 0 auto; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ccd0d5; }
+        #dataSeletor { flex: 1; min-width: 100px; padding: 8px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.85rem; text-align: center; font-weight: 600; }
 
         .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; align-items: center; }
         .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
 
-        /* SESSÕES MINIMIZÁVEIS */
         .header-secao { display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #007bff; padding: 8px 12px; margin: 20px 0 10px; color: #007bff; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; cursor: pointer; background: #f8f9fa; border-radius: 0 8px 8px 0; }
         .seta-secao { transition: transform 0.3s; font-size: 0.7rem; }
         .seta-invertida { transform: rotate(-90deg); }
@@ -37,8 +34,14 @@
         .img-tarefa { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
         .btn-excluir-task { background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 1.1rem; }
         
+        /* DESIGN BONITO DO MODAL */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
         .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
+        .modal-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
+        .tab-btn { background: none; border: none; padding: 12px; cursor: pointer; opacity: 0.3; font-size: 1.8rem; }
+        .tab-btn.ativo { opacity: 1; border-bottom: 4px solid #007bff; }
+        .config-card { background: #f9fafb; border: 1px solid #edf2f7; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+        .config-label { font-size: 0.8rem; color: #4a5568; font-weight: 600; display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
         .escondido { display: none !important; }
     </style>
 </head>
@@ -50,7 +53,7 @@
         <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
         <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
         <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button class="btn-config-icon" onclick="abrirConfig()">⚙️</button>
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
     </div>
 
     <div class="category-tabs" id="listaCategorias">Carregando...</div>
@@ -80,25 +83,48 @@
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
         <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.5rem; cursor:pointer;">✕</button>
-        <div style="display:flex; justify-content:space-around; margin-bottom:20px;">
-            <button onclick="mudarAba('alarme')" id="tabAlarme" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">🔔</button>
-            <button onclick="mudarAba('categorias')" id="tabCat" style="background:none; border:none; font-size:1.5rem; cursor:pointer; opacity:0.3;">📂</button>
+        <div class="modal-tabs">
+            <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
+            <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
         </div>
 
         <div id="conteudoAlarme">
-            <h4 style="margin:0 0 15px 0;">Alertas</h4>
-            <select id="somAlarme" onchange="salvarPreferencias()">
-                <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3">Padrão</option>
-                <option value="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3">Suave</option>
-            </select>
-            <button id="btnConectar" onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:20px; margin-top:10px;">CONECTAR CELULAR</button>
+            <h4 style="margin: 0 0 15px 0; color: #333;">Configuração de Alertas</h4>
+            <div class="config-card">
+                <label class="config-label">🎵 Som:</label>
+                <select id="somAlarme" onchange="salvarPreferencias()">
+                    <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3">Padrão (Sino)</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3">Aviso Suave</option>
+                    <option value="https://assets.mixkit.co/active_storage/sfx/995/995-preview.mp3">Urgente</option>
+                </select>
+                <button onclick="testarSom()" style="width:100%; padding:8px; background:#e2e8f0; border:none; border-radius:8px; font-size:0.75rem; font-weight:bold; cursor:pointer;">Testar Som 🔊</button>
+            </div>
+            <div class="config-card">
+                <label class="config-label">⏰ Antecedência:</label>
+                <select id="minutosAlerta" onchange="salvarPreferencias()">
+                    <option value="0">Na hora</option>
+                    <option value="1">1 min antes</option>
+                    <option value="5">5 min antes</option>
+                    <option value="15">15 min antes</option>
+                </select>
+            </div>
+            <div class="config-card">
+                <label class="config-label">⚡ Comportamento:</label>
+                <select id="tipoNotificacao" onchange="salvarPreferencias()">
+                    <option value="aviso">Apenas Aviso</option>
+                    <option value="fixo">Fixar Alerta</option>
+                </select>
+            </div>
+            <button id="btnConectar" onclick="solicitarNotificacao()" style="width:100%; padding:14px; background:#007bff; color:white; border:none; border-radius:25px; font-weight:bold; cursor:pointer;">CONECTAR CELULAR</button>
         </div>
 
         <div id="conteudoCategorias" class="escondido">
-            <h4 style="margin:0 0 15px 0;">Gerenciar Pastas</h4>
-            <input type="text" id="novoNomeCat" placeholder="Nome da Pasta">
-            <input type="color" id="novaCorCat" value="#007bff" style="width:100%; height:40px; border:none; cursor:pointer;">
-            <button onclick="adicionarNovaCategoriaVisual()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; margin:10px 0;">+ CRIAR PASTA</button>
+            <h4 style="margin: 0 0 15px 0; color: #333;">Gerenciar Pastas</h4>
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
+                <input type="text" id="novoNomeCat" placeholder="Nome da Pasta">
+                <input type="color" id="novaCorCat" value="#007bff" style="width:100%; height:35px; border:none; cursor:pointer; margin-bottom:10px;">
+                <button onclick="adicionarNovaCategoriaVisual()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">+ CRIAR PASTA</button>
+            </div>
             <div id="listaGerenciarCats"></div>
         </div>
     </div>
@@ -126,6 +152,7 @@
     let filtroDataTipo = "hoje";
 
     signInAnonymously(auth).then(async () => {
+        carregarPreferencias();
         await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
     });
@@ -149,16 +176,23 @@
             const c = d.data();
             container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
             if(listaMngt) {
-                listaMngt.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid #eee;"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')" style="color:red; background:none; border:none; cursor:pointer;">✕</button></div>`;
+                listaMngt.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:15px; height:15px; border-radius:50%; background:${c.cor}"></div>
+                            <span>${c.nome}</span>
+                        </div>
+                        <button onclick="excluirCategoria('${d.id}')" style="color:#ff4d4d; background:none; border:none; cursor:pointer; font-size:1.1rem;">✕</button>
+                    </div>`;
             }
         });
-        container.innerHTML += `<button class="btn-add-cat-circle" onclick="abrirConfig(); mudarAba('categorias');">+</button>`;
+        container.innerHTML += `<button style="width:35px; height:35px; border-radius:50%; border:2px solid #007bff; color:#007bff; font-weight:bold; cursor:pointer; background:none;" onclick="abrirConfig(); mudarAba('categorias');">+</button>`;
     };
 
     window.selecionarCat = (nome, cor, el) => {
         categoriaFiltroAtiva = nome;
-        document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; });
-        el.style.backgroundColor = cor; el.style.color = 'white';
+        document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; b.style.borderColor = '#ddd'; });
+        el.style.backgroundColor = cor; el.style.color = 'white'; el.style.borderColor = cor;
         document.getElementById('categoriaSelecionada').value = nome;
         document.getElementById('corSelecionada').value = cor;
         carregarTarefas();
@@ -206,17 +240,17 @@
                     <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
                         <div class="dia-badge">${dItem.getDate()}<span>${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][dItem.getDay()]}</span></div>
                         <div class="tarefa-info">
-                            <div style="font-size:0.6rem; font-weight:700;">${t.categoria}</div>
+                            <div style="font-size:0.6rem; font-weight:700; color:#888;">${t.categoria}</div>
                             <strong>${t.hora || 'Sem Hora'}</strong> - ${t.descricao}
                         </div>
                         ${htmlFoto}
                         <button class="btn-excluir-task" onclick="excluirTask('${d.id}')">✕</button>
                     </div>`;
             });
-            if(!lista.innerHTML) lista.innerHTML = "<p style='text-align:center; color:#999;'>Nada agendado.</p>";
+            if(!lista.innerHTML) lista.innerHTML = "<p style='text-align:center; color:#999; padding:20px;'>Nada agendado para este filtro.</p>";
         } catch (e) { 
             console.error(e); 
-            lista.innerHTML = "<p style='color:orange; font-size:0.8rem; text-align:center;'>Filtro indisponível. Verifique os índices no Console do Firebase.</p>";
+            lista.innerHTML = "<p style='color:orange; font-size:0.8rem; text-align:center; padding:10px;'>⚠️ Filtro indisponível. Verifique o console do Firebase.</p>";
         }
     };
 
@@ -232,7 +266,7 @@
                 categoria: document.getElementById('categoriaSelecionada').value,
                 corCategoria: document.getElementById('corSelecionada').value,
                 foto: fotoBase64, alarmeAtivo: document.getElementById('horaTask').value !== "",
-                criadoEm: new Date()
+                alertaDisparado: false, criadoEm: new Date()
             });
             document.getElementById('descTask').value = ""; document.getElementById('fotoTask').value = ""; carregarTarefas();
         };
@@ -244,6 +278,23 @@
         } else { await salvarNoFirebase(""); }
     };
 
+    window.salvarPreferencias = async () => {
+        const config = { min: document.getElementById('minutosAlerta').value, tipo: document.getElementById('tipoNotificacao').value, som: document.getElementById('somAlarme').value };
+        localStorage.setItem('agenda_config', JSON.stringify(config));
+        await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { tipoNotificacao: config.tipo, minutosAntecedencia: config.min, somSelecionado: config.som, atualizadoEm: new Date() }, { merge: true });
+    };
+
+    window.carregarPreferencias = () => {
+        const data = localStorage.getItem('agenda_config');
+        if(data) {
+            const config = JSON.parse(data);
+            document.getElementById('minutosAlerta').value = config.min || 0;
+            document.getElementById('tipoNotificacao').value = config.tipo || 'aviso';
+            document.getElementById('somAlarme').value = config.som || "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
+        }
+    };
+
+    window.testarSom = () => new Audio(document.getElementById('somAlarme').value).play();
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
     window.excluirCategoria = async (id) => { if(confirm("Apagar pasta?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategorias(); } };
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
@@ -251,8 +302,8 @@
     window.mudarAba = (aba) => {
         document.getElementById('conteudoAlarme').classList.toggle('escondido', aba !== 'alarme');
         document.getElementById('conteudoCategorias').classList.toggle('escondido', aba !== 'categorias');
-        document.getElementById('tabAlarme').style.opacity = aba === 'alarme' ? "1" : "0.3";
-        document.getElementById('tabCat').style.opacity = aba === 'categorias' ? "1" : "0.3";
+        document.getElementById('tabAlarme').classList.toggle('ativo', aba === 'alarme');
+        document.getElementById('tabCat').classList.toggle('ativo', aba === 'categorias');
     };
 </script>
 </body>
