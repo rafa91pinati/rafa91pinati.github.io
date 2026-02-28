@@ -102,24 +102,24 @@
 <div id="abaAlarme" class="tabcontent" style="display: block;">
       
       <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
-      <select id="tempoAntecedencia" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+      <select id="tempoAntecedencia" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
         <option value="0">Na hora exata (0 minutos)</option>
         <option value="5">5 minutos antes</option>
-        <option value="10" selected>10 minutos antes</option>
+        <option value="10">10 minutos antes</option>
         <option value="15">15 minutos antes</option>
         <option value="30">30 minutos antes</option>
         <option value="60">1 hora antes</option>
       </select>
       
       <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Comportamento da Notificação:</label>
-      <select id="tipoNotificacao" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+      <select id="tipoNotificacao" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
         <option value="normal">Push Normal (Some sozinha da tela)</option>
         <option value="fixa">Push Fixo (Fica na tela até eu fechar)</option>
       </select>
 
       <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme (Internet):</label>
       <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-        <select id="somAlarmeSelecionado" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+        <select id="somAlarmeSelecionado" onchange="atualizarPreferenciasNuvem()" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
           <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Relógio Digital</option>
           <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Bip Curto</option>
           <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Corneta</option>
@@ -128,21 +128,7 @@
       </div>
 
       <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
-	  </div>
-
-    <div id="abaCategorias" class="tabcontent" style="display: none;">
-      <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
-      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px;">
-        <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
-        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1;">
-        <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
-      </div>
-      <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-      <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
-      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
     </div>
-  </div>
-</div>
 
 <div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
     <img id="imgGrande" src="">
@@ -173,21 +159,20 @@
     let dataInicioSemana = '';
     let dataFimSemana = '';
     // Nova função que busca os dados quando o app abre
-    window.carregarPreferenciasNuvem = async () => {
-        const docRef = doc(db, "tokens_dispositivos", "meu_celular");
-        const docSnap = await getDoc(docRef);
-        
+window.carregarPreferenciasNuvem = async () => {
+        const docSnap = await getDoc(doc(db, "tokens_dispositivos", "meu_celular"));
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // Preenche os campos com o que está salvo
-            if(data.minutosAntecedencia) document.getElementById('tempoAntecedencia').value = data.minutosAntecedencia;
+            
+            // Só preenche se o dado existir no banco. Se não, usa o padrão do HTML.
+            if(data.minutosAntecedencia !== undefined) document.getElementById('tempoAntecedencia').value = String(data.minutosAntecedencia);
             if(data.tipoNotificacao) document.getElementById('tipoNotificacao').value = data.tipoNotificacao;
             if(data.somSelecionado) document.getElementById('somAlarmeSelecionado').value = data.somSelecionado;
             
-            // Muda o botão para mostrar que já está conectado
+            // Já muda o botão para verde logo de cara!
             const btn = document.getElementById('btnConectarNuvem');
             btn.innerHTML = "✅ Conectado à Nuvem";
-            btn.style.background = "#28a745"; // Cor verde
+            btn.style.background = "#28a745";
         }
     };
 
@@ -197,38 +182,44 @@
         setarData('hoje', document.getElementById('btnHoje'));
         carregarPreferenciasNuvem(); // <-- ADICIONE ESTA LINHA AQUI
     });
-
+// Auto-save: Salva na nuvem toda vez que você altera um seletor
+    window.atualizarPreferenciasNuvem = async () => {
+        const btn = document.getElementById('btnConectarNuvem');
+        if (btn.innerText.includes("Conectado")) {
+            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
+                minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
+                tipoNotificacao: document.getElementById('tipoNotificacao').value,
+                somSelecionado: document.getElementById('somAlarmeSelecionado').value
+            }, { merge: true }); // Merge garante que não vai apagar o Token!
+            console.log("Preferências atualizadas na nuvem com sucesso.");
+        }
+    };
+	
     // Função de conectar atualizada para mudar o botão na hora
-    window.solicitarPermissaoNotificacao = () => {
+   window.solicitarPermissaoNotificacao = () => {
         Notification.requestPermission().then((permission) => {
             if (permission === 'granted') {
                 const btn = document.getElementById('btnConectarNuvem');
-                btn.innerHTML = "⏳ Conectando..."; // Feedback de espera
+                btn.innerHTML = "⏳ Conectando..."; 
                 
                 getToken(messaging, { vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8' })
                 .then(async (currentToken) => {
                     if (currentToken) {
-                        const antecedencia = document.getElementById('tempoAntecedencia').value;
-                        const tipo = document.getElementById('tipoNotificacao').value;
-                        const som = document.getElementById('somAlarmeSelecionado').value;
-
                         await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
                             token: currentToken,
-                            minutosAntecedencia: antecedencia,
-                            tipoNotificacao: tipo,
-                            somSelecionado: som
-                        });
+                            minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
+                            tipoNotificacao: document.getElementById('tipoNotificacao').value,
+                            somSelecionado: document.getElementById('somAlarmeSelecionado').value
+                        }, { merge: true });
                         
                         btn.innerHTML = "✅ Conectado à Nuvem";
                         btn.style.background = "#28a745";
                     }
-                }).catch((err) => {
-                    alert("Erro ao ativar notificações: " + err);
+                }).catch(err => {
+                    alert("Erro ao ativar: " + err);
                     btn.innerHTML = "🔔 Conectar na Nuvem";
                 });
-            } else {
-                alert("Permissão negada.");
-            }
+            } else alert("Permissão negada.");
         });
     };
 	
@@ -253,33 +244,7 @@
     };
 
     // --- SISTEMA DE ALARME LOCAL (Monitora enquanto a aba existe) ---
-window.solicitarPermissaoNotificacao = () => {
-        Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-                getToken(messaging, { vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8' })
-                .then(async (currentToken) => {
-                    if (currentToken) {
-                        // Pega os valores escolhidos no modal
-                        const antecedencia = document.getElementById('tempoAntecedencia').value;
-                        const tipo = document.getElementById('tipoNotificacao').value;
-                        const som = document.getElementById('somAlarmeSelecionado').value;
 
-                        // Salva tudo no banco para o servidor (Cloud Function) ler
-                        await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
-                            token: currentToken,
-                            minutosAntecedencia: antecedencia,
-                            tipoNotificacao: tipo,
-                            somSelecionado: som
-                        });
-                        
-                        alert("Notificações conectadas com a Nuvem!");
-                    }
-                }).catch((err) => alert("Erro ao ativar notificações: " + err));
-            } else {
-                alert("Permissão negada.");
-            }
-        });
-    };
 
     window.testarAlarme = () => {
         const somUrl = document.getElementById('somAlarmeSelecionado').value;
