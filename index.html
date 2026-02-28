@@ -4,139 +4,95 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.3.0</title>
+    <title>Minha Agenda - Minimalista</title>
     <style>
-        /* MANTENDO SEU ESTILO ORIGINAL PARA O CORPO E CONTAINER */
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .timeline-header { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; justify-content: space-between; }
-        .btn-date { flex: 1; padding: 10px 0; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.7rem; font-weight: bold; height: 42px; display: flex; align-items: center; justify-content: center; }
-        .btn-date.ativo { background: #2196F3; color: white; border-color: #2196F3; }
-        #dataSeletor { flex: 2; padding: 0 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.85rem; height: 42px; box-sizing: border-box; }
-        .header-secao { border-left: 5px solid #2196F3; padding-left: 10px; margin: 20px 0 10px; color: #2196F3; font-size: 1rem; font-weight: bold; text-transform: uppercase; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; padding: 10px; margin: 0; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         
-        /* 🎨 --- NOVO ESTILO PARA CATEGORIAS (PILLS) --- */
-        .category-pill-container {
+        .timeline-header { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
+        .btn-date { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+        .btn-date.ativo { background: #333; color: white; border-color: #333; }
+        #dataSeletor { flex: 1.5; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.85rem; }
+
+        /* 📋 --- CATEGORIAS SIMPLES --- */
+        .category-list {
             display: flex;
             gap: 10px;
-            overflow-x: auto; /* Scroll horizontal */
-            padding: 5px 5px 15px 5px; /* Espaço para o "brilho" */
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            scrollbar-width: none; /* Esconde scrollbar no Firefox */
+            overflow-x: auto;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            scrollbar-width: none;
         }
-        .category-pill-container::-webkit-scrollbar { display: none; } /* Esconde scrollbar no Chrome/Safari */
-
-        .category-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 30px; /* Formato de pílula [cite: 2026-02-28] */
-            border: 2px solid #ddd;
-            background: #f9f9f9;
+        .category-item {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            background: #fff;
             cursor: pointer;
-            white-space: nowrap; /* Não quebra linha */
-            font-size: 0.85em;
-            font-weight: bold;
-            transition: all 0.3s ease; /* Transição suave */
-            color: #555;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s;
         }
-
-        /* 🌟 ESTADO ATIVO (COM BRILHO [cite: 2026-02-28]) */
-        .category-pill.ativo {
+        .category-item.ativo {
             color: white;
-            border-color: currentColor; /* Usa a cor definida no JS */
-            background-color: currentColor; /* Usa a cor definida no JS */
-            box-shadow: 0 4px 15px currentColor; /* O "Brilho" colorido */
+            border-color: transparent;
         }
 
-        .category-icon { font-size: 1.2em; } /* Tamanho do ícone */
-
-        /* Botão de Adicionar (+) Estilizado */
-        .btn-add-cat {
-            background: none;
-            border: 2px dashed #2196F3;
-            color: #2196F3;
-            padding: 10px 15px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 1.2em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        .btn-add-cat:hover { background: #e3f2fd; }
-
-        /* MANTENDO ESTILO DE TAREFAS E MODAL */
-        .secao-card { background: #fafafa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; }
-        input[type="text"], input[type="time"], input[type="number"] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        #btnSalvar { background: #4CAF50; color: white; border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
-        .tarefa-item { background: #fff; margin-bottom: 12px; padding: 15px; border-radius: 12px; border-left: 6px solid #2196F3; box-shadow: 0 3px 6px rgba(0,0,0,0.08); position: relative; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .header-secao { font-size: 0.9rem; font-weight: bold; margin: 20px 0 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .secao-card { background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; }
+        input[type="text"], input[type="time"] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        
+        #btnSalvar { background: #28a745; color: white; border: none; padding: 14px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        
+        .tarefa-item { background: #fff; margin-bottom: 12px; padding: 15px; border-radius: 8px; border-left: 4px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.03); position: relative; }
+        .btn-excluir { position: absolute; right: 10px; top: 10px; background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 12px; position: relative; }
         .escondido { display: none !important; }
-        .modal-content { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; position: relative; max-height: 80vh; overflow-y: auto; }
-        .modal-tabs { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #eee; }
-        .tab-btn { background: none; border: none; padding: 10px; cursor: pointer; opacity: 0.5; font-size: 1.5em; }
-        .tab-btn.ativo { opacity: 1; border-bottom: 3px solid #2196F3; }
-        .btn-excluir-task { border: none; color: #ff4d4d; cursor: pointer; position: absolute; right: 10px; top: 10px; background: none; font-size: 1.2em; }
-        .cat-excluir-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .tarefa-cat-label { font-size: 0.75em; font-weight: bold; color: #777; margin-top: 5px; display: block;}
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="timeline-header">
-        <button class="btn-date" id="btnHoje" onclick="window.setarData('hoje', this)">Hoje</button>
-        <button class="btn-date" id="btnAmanha" onclick="window.setarData('amanha', this)">Amanhã</button>
-        <input type="date" id="dataSeletor" onchange="window.setarData('custom', this)">
-        <button onclick="window.abrirConfig()" style="background:none; border:none; font-size:1.5em; cursor:pointer;">⚙️</button>
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#999;">⚙️</button>
     </div>
 
-    <div class="category-pill-container" id="listaBotoesCat">Sincronizando...</div>
+    <div class="category-list" id="listaCategorias">Carregando...</div>
 
-    <div class="header-secao">📝 Nova Tarefa</div>
+    <div class="header-secao">Nova Tarefa</div>
     <div class="secao-card">
         <input type="text" id="descTask" placeholder="O que vamos fazer?">
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="display: flex; gap: 10px;">
             <input type="time" id="horaTask" style="flex: 1;">
-            <input type="file" id="fotoTask" accept="image/*" style="flex: 1.5; font-size: 0.7em;">
+            <input type="file" id="fotoTask" accept="image/*" style="flex: 1; font-size: 0.7rem; align-self: center;">
         </div>
         <input type="hidden" id="categoriaSelecionada" value="Geral">
-        <input type="hidden" id="corSelecionada" value="#4CAF50">
-        <button id="btnSalvar">Salvar na Agenda</button>
+        <input type="hidden" id="corSelecionada" value="#333">
+        <button id="btnSalvar">Salvar Agenda</button>
     </div>
 
-    <div class="header-secao">📅 Minhas Atividades</div>
-    <div id="listaTarefas">Carregando tarefas...</div>
+    <div class="header-secao">Atividades</div>
+    <div id="listaTarefas">Sincronizando...</div>
 </div>
 
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
-        <button onclick="window.fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2em; cursor:pointer;">✕</button>
-        <div class="modal-tabs">
-            <button class="tab-btn ativo" id="tabAlarme" onclick="window.mudarAba('alarme')">🔔</button>
-            <button class="tab-btn" id="tabCat" onclick="window.mudarAba('categorias')">📂</button>
-        </div>
-        
-        <div id="conteudoAlarme">
-            <h4>Alertas Noturnos</h4>
-            <p style="font-size: 0.8em; color: #666;">Receber push mesmo com app fechado.</p>
-            <button id="btnAtivarNotificacao" onclick="window.solicitarNotificacao()" style="width:100%; padding:12px; background:#2196F3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin: 10px 0;">CONECTAR CELULAR</button>
-            <button onclick="window.testarSom()" style="width:100%; padding:10px; background:#FF9800; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">TESTAR SOM</button>
-        </div>
-
-        <div id="conteudoCategorias" class="escondido">
-            <h4>Gerenciar Categorias</h4>
-            <div id="listaExcluirCat"></div>
-        </div>
+        <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2rem; cursor:pointer;">✕</button>
+        <h3 style="margin-top:0;">Configurações</h3>
+        <button onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; margin-bottom:10px;">CONECTAR DISPOSITIVO</button>
+        <button onclick="location.reload()" style="width:100%; padding:10px; background:#f0f0f0; border:none; border-radius:6px; cursor:pointer;">RECARREGAR</button>
     </div>
 </div>
 
 <script type="module">
-    // MANTENDO TODA A SUA LÓGICA DO FIREBASE E O VIGIA [cite: 2026-02-28]
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
@@ -158,16 +114,9 @@
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
-    // MANTENDO LOGIN E O INÍCIO DO VIGIA
     signInAnonymously(auth).then(async () => {
-        console.log("🚀 Sistema Pronto com Novo Design!");
-        await window.carregarCategorias(); 
-        
-        const btnHoje = document.getElementById('btnHoje');
-        if(btnHoje) window.setarData('hoje', btnHoje);
-        
-        // Inicia o Vigia de 1 em 1 minuto (Necessário plano Blaze) [cite: 2026-02-28]
-        setInterval(verificarAlarmes, 60000);
+        await carregarCategorias(); 
+        setarData('hoje', document.getElementById('btnHoje'));
     });
 
     onMessage(messaging, (payload) => {
@@ -176,96 +125,37 @@
         }
     });
 
-    async function verificarAlarmes() {
-        console.log("🔍 Vigia checando horários...");
-        const agora = new Date();
-        const dataHoje = agora.toLocaleDateString('en-CA');
-        const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
-
-        try {
-            const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje), where("alertaDisparado", "==", false));
-            const snap = await getDocs(q);
-            
-            const tokenDoc = await getDocs(collection(db, "tokens_dispositivos"));
-            if (tokenDoc.empty || snap.empty) return null;
-            
-            // Pega o primeiro token disponível (simplificado) [cite: 2026-02-28]
-            const token = tokenDoc.docs[0].data().token;
-
-            snap.forEach(async (d) => {
-                const t = d.data();
-                if (t.hora <= horaAtual) {
-                    // O alarme tocou! Avisa o Service Worker
-                    await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
-                    console.log(`⏰ Alarme disparado localmente para: ${t.descricao}`);
-                    // Nota: O som e balão são gerenciados pelo Service Worker via Push [cite: 2026-02-27]
-                }
-            });
-        } catch (e) { console.error("Erro no Vigia:", e); }
-    }
-
-    // 🎨 --- MUDADO: MAPEAMENTO DE ÍCONES PARA CATEGORIAS ---
-    // Você pode mudar os emojis aqui [cite: 2026-02-28]
-    const iconesPadrao = {
-        'Geral': '📅',
-        'Metatech': '💻',
-        'Gás': '🛢️',
-        'Pessoal': '🏠',
-        'Trabalho': '💼'
-    };
-
-    // 🎨 --- MUDADO: JavaScript para o Novo Design de Categorias ---
     window.carregarCategorias = async () => {
-        const container = document.getElementById('listaBotoesCat');
-        const listaExcluir = document.getElementById('listaExcluirCat');
+        const container = document.getElementById('listaCategorias');
         const snap = await getDocs(collection(db, "categorias"));
-        
-        // 1. Botão "Geral" fixo
-        container.innerHTML = `
-            <div class="category-pill ativo" style="color: #4CAF50;" onclick="window.selecionarCat('Geral', '#4CAF50', this)">
-                <span class="category-icon">${iconesPadrao['Geral']}</span>
-                <span class="category-name">Geral</span>
-            </div>
-        `;
-        listaExcluir.innerHTML = "";
-
-        // 2. Carrega categorias do Firebase
+        container.innerHTML = `<div class="category-item ativo" style="background-color: #333; color: white;" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
         snap.forEach(d => {
             const c = d.data();
-            const emoji = iconesPadrao[c.nome] || '📝'; // Usa emoji padrão se não houver mapeamento
-
-            // Define a cor como propriedade CSS 'color' para o efeito ativo usar currentColor [cite: 2026-02-28]
-            container.innerHTML += `
-                <div class="category-pill" style="color: ${c.cor};" onclick="window.selecionarCat('${c.nome}', '${c.cor}', this)">
-                    <span class="category-icon">${emoji}</span>
-                    <span class="category-name">${c.nome}</span>
-                </div>
-            `;
-
-            // Mantém a lista de exclusão no modal
-            listaExcluir.innerHTML += `
-                <div class="cat-excluir-item">
-                    <span>${emoji} ${c.nome}</span>
-                    <button onclick="window.excluirCategoria('${d.id}')" style="border:none; background:none; color:red; cursor:pointer;">✕</button>
-                </div>`;
+            container.innerHTML += `<div class="category-item" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
         });
-
-        // 3. Botão de adicionar (+) estilizado
-        container.innerHTML += `<button class="btn-add-cat" onclick="window.promptNovaCat()">+</button>`;
+        container.innerHTML += `<div onclick="promptNovaCat()" style="cursor:pointer; padding:8px; color:#007bff; font-weight:bold;">+</div>`;
     };
 
     window.selecionarCat = (nome, cor, el) => {
-        // Remove 'ativo' de todas as pílulas
-        document.querySelectorAll('.category-pill').forEach(b => b.classList.remove('ativo'));
-        // Adiciona 'ativo' na clicada
+        document.querySelectorAll('.category-item').forEach(b => {
+            b.classList.remove('ativo');
+            b.style.backgroundColor = "white";
+            b.style.color = "#333";
+        });
         el.classList.add('ativo');
-        
-        // Mantém a lógica dos campos escondidos [cite: 2026-02-28]
+        el.style.backgroundColor = cor;
+        el.style.color = "white";
         document.getElementById('categoriaSelecionada').value = nome;
         document.getElementById('corSelecionada').value = cor;
     };
 
-    // MANTENDO O RESTANTE DAS SUAS FUNÇÕES GLOBAIS
+    window.promptNovaCat = async () => {
+        const nome = prompt("Nome:"); if (!nome) return;
+        const cor = prompt("Cor (Hex):", "#333");
+        await addDoc(collection(db, "categorias"), { nome, cor });
+        carregarCategorias();
+    };
+
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor');
         document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
@@ -276,7 +166,7 @@
             const am = new Date(); am.setDate(am.getDate()+1);
             input.value = am.toLocaleDateString('en-CA');
         }
-        window.carregarTarefas();
+        carregarTarefas();
     };
 
     window.carregarTarefas = async () => {
@@ -286,50 +176,17 @@
         lista.innerHTML = "";
         snap.forEach(d => {
             const t = d.data();
-            const emoji = iconesPadrao[t.categoria] || '📝';
-            // Aplica a cor da categoria na borda esquerda [cite: 2026-02-28]
             lista.innerHTML += `
-                <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}">
-                    <button class="btn-excluir-task" onclick="window.excluirTask('${d.id}')">🗑️</button>
+                <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#ddd'}">
+                    <button class="btn-excluir" onclick="excluirTask('${d.id}')">✕</button>
+                    <span style="font-size: 0.8rem; color: #999;">${t.categoria}</span><br>
                     <strong>${t.hora}</strong> - ${t.descricao}
-                    <span class="tarefa-cat-label">${emoji} ${t.categoria || 'Geral'}</span>
-                    ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px; display:block;">` : ""}
+                    ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:6px; margin-top:10px; display:block;">` : ""}
                 </div>`;
         });
-        if(lista.innerHTML === "") lista.innerHTML = "Sem tarefas para este dia.";
+        if(lista.innerHTML === "") lista.innerHTML = "<p style='color:#ccc; text-align:center;'>Nenhuma tarefa.</p>";
     };
 
-    window.solicitarNotificacao = async () => {
-        if (Notification.permission !== "granted") {
-            const permission = await Notification.requestPermission();
-            if (permission !== "granted") return alert("Permissão negada!");
-        }
-        const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-        if (token) {
-            await addDoc(collection(db, "tokens_dispositivos"), { token, atualizadoEm: new Date() });
-            alert("Celular Sincronizado!");
-        }
-    };
-
-    // MANTENDO AS FUNÇÕES AUXILIARES
-    window.excluirCategoria = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "categorias", id)); window.carregarCategorias(); } };
-    window.promptNovaCat = async () => {
-        const nome = prompt("Nome da Categoria:"); if (!nome) return;
-        const cor = prompt("Cor Hex (ex: #FF5722):", "#2196F3");
-        await addDoc(collection(db, "categorias"), { nome, cor });
-        window.carregarCategorias();
-    };
-    window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); window.carregarTarefas(); } };
-    window.testarSom = () => new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
-    window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
-    window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
-    window.mudarAba = (aba) => {
-        if(aba==='alarme'){document.getElementById('conteudoAlarme').classList.remove('escondido');document.getElementById('conteudoCategorias').classList.add('escondido');document.getElementById('tabAlarme').classList.add('ativo');document.getElementById('tabCat').classList.remove('ativo');}
-        else{document.getElementById('conteudoCategorias').classList.remove('escondido');document.getElementById('conteudoAlarme').classList.add('escondido');document.getElementById('tabCat').classList.add('ativo');document.getElementById('tabAlarme').classList.remove('ativo');}
-    };
-
-    // Salvar Tarefa com FOTO e mapeamento de cor
     document.getElementById('btnSalvar').onclick = async () => {
         const fileInput = document.getElementById('fotoTask');
         let base64 = "";
@@ -344,13 +201,26 @@
             descricao: document.getElementById('descTask').value,
             hora: document.getElementById('horaTask').value,
             dataString: document.getElementById('dataSeletor').value,
-            // Pega os valores da categoria selecionada [cite: 2026-02-28]
             categoria: document.getElementById('categoriaSelecionada').value,
             corCategoria: document.getElementById('corSelecionada').value,
             fotoUrl: base64, alertaDisparado: false, criadoEm: new Date()
         });
-        document.getElementById('descTask').value = ""; window.carregarTarefas();
+        document.getElementById('descTask').value = ""; carregarTarefas();
     };
+
+    window.solicitarNotificacao = async () => {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+            const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+            if (token) await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() });
+            alert("Conectado!");
+        }
+    };
+
+    window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
+    window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
 </script>
 </body>
 </html>
