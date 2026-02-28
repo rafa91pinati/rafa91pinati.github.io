@@ -4,125 +4,84 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.0 (Final)</title>
+    <title>Minha Agenda Inteligente - v1.9.9.8</title>
     <style>
-        /* ESTILIZAÇÃO: Definições visuais de botões, containers e itens da lista */
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
-        .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .btn-date { flex: 1; padding: 10px 2px; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; min-width: 0; }
-        .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
-        #dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.8rem; text-align: center; font-weight: 600; }
-        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; }
-        .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
-        .header-secao { display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #007bff; padding: 8px 12px; margin: 20px 0 10px; color: #007bff; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; cursor: pointer; background: #f8f9fa; border-radius: 0 8px 8px 0; }
-        textarea, input[type="text"], input[type="time"], select, input[type="number"], input[type="color"] { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; resize: none; }
-        .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .dia-badge { font-size: 1.5rem; font-weight: 900; color: #333; min-width: 45px; text-align: center; }
-        .dia-badge span { display: block; font-size: 0.6rem; text-transform: uppercase; color: #888; }
-        .img-tarefa { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
+        /* ESTILO BASEADO NA SUA IMAGEM */
+        :root { --primary: #5D6D9E; --bg: #f0f2f5; --text: #1c1e21; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; }
+        .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+
+        /* BARRA DE BUSCA E PERFIL (Topo da Imagem) */
+        .top-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .search-container { flex: 1; position: relative; }
+        .search-container input { width: 100%; padding: 8px 35px; border-radius: 20px; border: 1px solid #ddd; background: #f8f9fa; }
+        .user-pic { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+
+        /* BOTÕES DE DATA E CATEGORIAS */
+        .timeline-header { display: flex; gap: 6px; margin-bottom: 15px; overflow-x: auto; padding: 5px 0; }
+        .btn-date { padding: 10px 15px; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.7rem; font-weight: 800; white-space: nowrap; }
+        .btn-date.ativo { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* CARDS DE TAREFA E EDIÇÃO INLINE */
+        .tarefa-item { background: #fff; margin-bottom: 12px; padding: 15px; border-radius: 18px; border-left: 6px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative; }
+        .tarefa-content { display: flex; gap: 12px; align-items: flex-start; }
+        .dia-badge { background: #eef1f6; padding: 8px; border-radius: 50%; min-width: 45px; height: 45px; text-align: center; font-weight: 900; font-size: 1.2rem; }
+        .dia-badge span { display: block; font-size: 0.55rem; color: #666; }
+
+        /* GESTÃO DE FOTOS */
+        .container-fotos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .foto-wrapper { position: relative; display: inline-block; }
+        .img-tarefa { width: 65px; height: 65px; border-radius: 10px; object-fit: cover; border: 1px solid #eee; }
+        .btn-remover-foto { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-weight: bold; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+
         .escondido { display: none !important; }
-        .tablink.active { border-bottom: 3px solid #007bff; color: #007bff; }
+        .grid-50 { display: flex; gap: 10px; }
+        textarea { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; resize: none; font-family: inherit; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div class="top-bar">
+        <span>💰</span>
+        <div class="search-container">
+            <input type="text" placeholder="Buscar tarefas...">
+        </div>
+        <img src="https://i.pravatar.cc/150?u=rafa" class="user-pic">
+    </div>
+
     <div class="timeline-header">
-        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">HOJE</button>
+        <button class="btn-date" onclick="setarData('amanha', this)">AMANHÃ</button>
+        <button class="btn-date" onclick="setarData('semana', this)">SEMANA</button>
         <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">⚙️</button>
     </div>
 
-    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
+    <div class="category-tabs" id="listaCategorias"></div>
 
-    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
-        <span>📝 ADD Tarefa</span>
-        <span id="setaAdd" class="seta-secao">▼</span>
+    <div class="header-secao" onclick="toggleSecao('secaoAdd')">
+        <span>📝 ADD TAREFA</span>
     </div>
-    <div id="secaoAdd" class="secao-card escondido">
-        <input type="text" id="descTask" placeholder="O que agendar hoje?">
+    <div id="secaoAdd" class="escondido">
+        <textarea id="descTask" placeholder="O que agendar hoje?"></textarea>
         <div id="previewFotosNovas" class="container-fotos"></div>
         <div class="grid-50">
             <input type="time" id="horaTask">
-            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
+            <button onclick="document.getElementById('fotoTask').click()" style="flex:1; border-radius:10px; border:1px dashed var(--primary); color:var(--primary); cursor:pointer;">📷 ARQUIVO</button>
             <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
         </div>
-        <button id="btnSalvar" onclick="salvarNovaTarefa()" style="background:#28a745; color:white; border:none; padding:15px; width:100%; border-radius:25px; font-weight:bold; margin-top:10px;">Salvar na Nuvem</button>
+        <button onclick="salvarNovaTarefa()" style="background:#28a745; color:white; border:none; padding:15px; width:100%; border-radius:25px; font-weight:bold; margin-top:10px; cursor:pointer;">☁️ Salvar na Nuvem</button>
     </div>
 
-    <div class="header-secao" onclick="toggleSecao('listaTarefas', 'setaLista')">
-        <span id="headerMes">📅 Atividades</span>
-        <span id="setaLista" class="seta-secao seta-expandida">▼</span>
-    </div>
-    <div id="listaTarefas">Carregando atividades...</div>
-</div>
-
-<div id="modalConfiguracoes" class="modal" style="display: none;">
-  <div class="modal-content">
-    <span class="close-btn" onclick="fecharModalConfig()" style="float: right; font-size: 24px; cursor: pointer;">&times;</span>
-    <h2>Configurações</h2>
-    
-    <div class="category-tabs" style="margin-bottom: 15px;">
-      <button class="category-tab active tablink" onclick="abrirAba(event, 'abaAlarme')">🔔 Alarmes</button>
-      <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')">📂 Categorias</button>
-    </div>
-
-    <div id="abaAlarme" class="tabcontent" style="display: block;">
-      <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
-      <select id="tempoAntecedencia" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
-        <option value="0">Na hora exata (0 minutos)</option>
-        <option value="5">5 minutos antes</option>
-        <option value="10">10 minutos antes</option>
-        <option value="15">15 minutos antes</option>
-        <option value="30">30 minutos antes</option>
-        <option value="60">1 hora antes</option>
-      </select>
-      
-      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Comportamento da Notificação:</label>
-      <select id="tipoNotificacao" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
-        <option value="normal">Push Normal (Some sozinha da tela)</option>
-        <option value="fixa">Push Fixo (Fica na tela até eu fechar)</option>
-      </select>
-
-      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme (Internet):</label>
-      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-        <select id="somAlarmeSelecionado" onchange="atualizarPreferenciasNuvem()" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-          <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Relógio Digital</option>
-          <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Bip Curto</option>
-          <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Corneta</option>
-        </select>
-        <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
-      </div>
-      <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
-    </div>
-
-    <div id="abaCategorias" class="tabcontent" style="display: none;">
-      <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
-      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px;">
-        <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
-        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1; margin: 0;">
-        <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
-      </div>
-      <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-    </div>
-  </div>
-</div>
-
-<div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
-    <img id="imgGrande" src="">
+    <div id="listaTarefas" style="margin-top:20px;"></div>
 </div>
 
 <script type="module">
-    // FIREBASE: Importação de bibliotecas para Banco de Dados, Autenticação e Mensageria
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
@@ -138,189 +97,162 @@
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
-    // VARIÁVEIS DE ESTADO: Controle interno de filtros e fotos
+    // ESTADO DA APLICAÇÃO
     let idEmEdicao = null;
-    let fotosTemporarias = []; 
-    let fotosNovasArray = [];  
-    let categoriaFiltroAtiva = "Geral";
-    let tipoFiltroTempo = 'dia'; 
-    let dataInicioSemana = '';
-    let dataFimSemana = '';
+    let fotosTemporarias = []; // Buffer para fotos de uma tarefa sendo editada
+    let fotosNovasArray = [];  // Buffer para fotos de uma nova tarefa
+    let categoriaAtiva = "Geral";
     window.tarefasMonitoramento = [];
 
-    // SERVICE WORKER: Registro para garantir que notificações funcionem com app fechado
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('firebase-messaging-sw.js')
-        .then(reg => console.log('Service Worker Registrado:', reg.scope))
-        .catch(err => console.log('Erro no Service Worker:', err));
-    }
+    // --- LÓGICA DE EDIÇÃO (O que estava faltando!) ---
 
-    // --- BLOCO: PREFERÊNCIAS E NUVEM ---
-
-    // Carrega as configurações de alarme salvas no Firestore para a interface
-    window.carregarPreferenciasNuvem = async () => {
-        const docSnap = await getDoc(doc(db, "tokens_dispositivos", "meu_celular"));
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            if(data.minutosAntecedencia !== undefined) document.getElementById('tempoAntecedencia').value = String(data.minutosAntecedencia);
-            if(data.tipoNotificacao) document.getElementById('tipoNotificacao').value = data.tipoNotificacao;
-            if(data.somSelecionado) document.getElementById('somAlarmeSelecionado').value = data.somSelecionado;
-            const btn = document.getElementById('btnConectarNuvem');
-            btn.innerHTML = "✅ Conectado à Nuvem";
-            btn.style.background = "#28a745";
-        }
-    };
-
-    // Salva automaticamente as preferências no banco ao alterar um select
-    window.atualizarPreferenciasNuvem = async () => {
-        const btn = document.getElementById('btnConectarNuvem');
-        if (btn.innerText.includes("Conectado")) {
-            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
-                minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
-                tipoNotificacao: document.getElementById('tipoNotificacao').value,
-                somSelecionado: document.getElementById('somAlarmeSelecionado').value
-            }, { merge: true });
-        }
-    };
-
-    // Solicita permissão de Push e salva o Token do dispositivo na lista unificada
-    window.solicitarPermissaoNotificacao = () => {
-        Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-                const btn = document.getElementById('btnConectarNuvem');
-                const textoOriginal = btn.innerHTML;
-                btn.innerHTML = "⏳ Conectando..."; 
-                navigator.serviceWorker.ready.then((registration) => {
-                    getToken(messaging, { 
-                        vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8',
-                        serviceWorkerRegistration: registration 
-                    })
-                    .then(async (currentToken) => {
-                        if (currentToken) {
-                            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
-                                tokens: arrayUnion(currentToken),
-                                minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
-                                tipoNotificacao: document.getElementById('tipoNotificacao').value,
-                                somSelecionado: document.getElementById('somAlarmeSelecionado').value
-                            }, { merge: true });
-                            btn.innerHTML = "✅ Conectado à Nuvem";
-                            btn.style.background = "#28a745";
-                            alert("Aparelho sincronizado!");
-                        }
-                    }).catch(err => {
-                        alert("Erro de conexão.");
-                        btn.innerHTML = textoOriginal;
-                        console.error(err);
-                    });
-                });
-            } else alert("Permissão negada.");
-        });
-    };
-
-    // --- BLOCO: INICIALIZAÇÃO ---
-
-    signInAnonymously(auth).then(async () => {
-        await carregarCategorias(); 
-        setarData('hoje', document.getElementById('btnHoje'));
-        carregarPreferenciasNuvem(); 
-    });
-
-    // --- BLOCO: TAREFAS E CATEGORIAS ---
-
-    // Adiciona uma nova categoria no banco
-    window.adicionarCategoria = async () => {
-        const nome = document.getElementById('novaCategoria').value;
-        const cor = document.getElementById('corNovaCategoria').value;
-        if(!nome) return alert("Digite um nome!");
-        await addDoc(collection(db, "categorias"), { nome: nome, cor: cor });
-        document.getElementById('novaCategoria').value = ""; carregarCategoriasModal(); carregarCategorias(); 
-    };
-
-    // Salva nova tarefa com suporte a fotos (Base64) e fuso para nuvem
-    window.salvarNovaTarefa = async () => {
-        const desc = document.getElementById('descTask').value;
-        if(!desc) return alert("Digite a descrição!");
-        await addDoc(collection(db, "tarefas"), { 
-            descricao: desc, 
-            hora: document.getElementById('horaTask').value, 
-            dataString: document.getElementById('dataSeletor').value, 
-            categoria: categoriaFiltroAtiva, 
-            fotos: fotosNovasArray, 
-            criadoEm: new Date(),
-            alarmeAtivo: true,     // Flag para monitoramento do Node.js
-            alertaDisparado: false // Flag para controle de disparos
-        });
-        document.getElementById('descTask').value = ""; 
-        fotosNovasArray = []; 
-        renderizarPreviewFotosNovas(); 
+    /** * Ativa o modo de edição no card. 
+     * Transforma o texto em textarea e mostra botões de gerenciar fotos.
+     */
+    window.ativarEdicao = (id, fotosExistentes) => {
+        idEmEdicao = (idEmEdicao === id) ? null : id; // Toggle de edição
+        fotosTemporarias = [...fotosExistentes];      // Clona as fotos para o buffer
         carregarTarefas();
     };
 
-    // Carrega tarefas do Firestore aplicando filtros de Data e Categoria
+    /** Remove uma foto apenas do buffer temporário antes de salvar no banco. */
+    window.removerFotoEdicao = (idx) => {
+        fotosTemporarias.splice(idx, 1);
+        renderizarFotosEdicao();
+    };
+
+    /** Renderiza as miniaturas dentro do card que está sendo editado. */
+    window.renderizarFotosEdicao = () => {
+        const container = document.getElementById(`edit-fotos-container-${idEmEdicao}`);
+        if(container) {
+            container.innerHTML = fotosTemporarias.map((img, idx) => `
+                <div class="foto-wrapper">
+                    <img src="${img}" class="img-tarefa">
+                    <button class="btn-remover-foto" onclick="event.stopPropagation(); removerFotoEdicao(${idx})">×</button>
+                </div>
+            `).join('');
+        }
+    };
+
+    /** Salva as alterações (Texto, Hora e Fotos) de volta no Firestore. */
+    window.salvarAlteracoes = async (id) => {
+        const novaDesc = document.getElementById(`edit-desc-${id}`).value;
+        const novaHora = document.getElementById(`edit-hora-${id}`).value;
+        
+        await updateDoc(doc(db, "tarefas", id), {
+            descricao: novaDesc,
+            hora: novaHora,
+            fotos: fotosTemporarias,
+            alarmeAtivo: true,     // Reinicia o monitoramento se mudou a hora
+            alertaDisparado: false 
+        });
+        
+        idEmEdicao = null;
+        carregarTarefas();
+    };
+
+    // --- LÓGICA DE NOTIFICAÇÕES (Multi-dispositivo) ---
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(e => console.log(e));
+    }
+
+    window.solicitarPermissaoNotificacao = () => {
+        Notification.requestPermission().then(perm => {
+            if (perm === 'granted') {
+                navigator.serviceWorker.ready.then(reg => {
+                    getToken(messaging, { 
+                        vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8',
+                        serviceWorkerRegistration: reg 
+                    }).then(async token => {
+                        // Sincronização de múltiplos tokens
+                        await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
+                            tokens: arrayUnion(token),
+                            minutosAntecedencia: "0" // Padrão
+                        }, { merge: true });
+                        alert("Sincronizado!");
+                    });
+                });
+            }
+        });
+    };
+
+    // --- ALARME LOCAL (Monitoramento em tempo real) ---
+    setInterval(() => {
+        if (Notification.permission !== "granted") return;
+        const agora = new Date();
+        const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+        const dataHoje = agora.toLocaleDateString('en-CA');
+
+        window.tarefasMonitoramento.forEach(t => {
+            if (t.dataString === dataHoje && t.hora === horaAtual && !t.alertaDisparado) {
+                new Notification("Lembrete", { body: t.descricao, requireInteraction: true });
+                new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
+                // Opcional: Marcar no banco como disparado para não repetir
+            }
+        });
+    }, 30000); // Checa a cada 30 segundos
+
+    // --- RENDERIZAÇÃO E INICIALIZAÇÃO ---
+
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas');
-        const dataFiltro = document.getElementById('dataSeletor').value;
-        let q;
-        if (tipoFiltroTempo === 'semana') q = query(collection(db, "tarefas"), where("dataString", ">=", dataInicioSemana), where("dataString", "<=", dataFimSemana), orderBy("dataString", "asc"));
-        else q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
-
+        const data = document.getElementById('dataSeletor').value;
+        const q = query(collection(db, "tarefas"), where("dataString", "==", data), orderBy("hora", "asc"));
         const snap = await getDocs(q);
+        
         lista.innerHTML = "";
         let tarefas = [];
         snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
         window.tarefasMonitoramento = tarefas;
-        if (tipoFiltroTempo === 'semana') tarefas.sort((a, b) => a.dataString.localeCompare(b.dataString));
-        if (categoriaFiltroAtiva !== "Geral") tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
 
         tarefas.forEach(t => {
-            const isEditando = idEmEdicao === t.id;
-            const dataObj = new Date(t.dataString + 'T00:00:00');
-            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+            const editando = idEmEdicao === t.id;
+            const dt = new Date(t.dataString + 'T00:00:00');
+            const dias = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+
             lista.innerHTML += `
                 <div class="tarefa-item">
                     <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${JSON.stringify(t.fotos || []).replace(/"/g, '&quot;')})">
-                        <div class="dia-badge">${dataObj.getDate()}<span>${diasSemana[dataObj.getDay()]}</span></div>
-                        <div class="tarefa-info">
-                            ${isEditando ? `
-                                <textarea id="edit-desc-${t.id}">${t.descricao}</textarea>
-                                <button onclick="salvarAlteracoes('${t.id}')">SALVAR</button>
+                        <div class="dia-badge"><b>${dt.getDate()}</b><span>${dias[dt.getDay()]}</span></div>
+                        <div style="flex:1">
+                            ${editando ? `
+                                <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
+                                <div id="edit-fotos-container-${t.id}" class="container-fotos"></div>
+                                <div class="grid-50" onclick="event.stopPropagation()">
+                                    <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}">
+                                    <button onclick="salvarAlteracoes('${t.id}')" style="background:var(--primary); color:white; border-radius:8px; border:none; cursor:pointer;">SALVAR</button>
+                                </div>
                             ` : `
-                                <div style="font-weight:bold;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
-                                <div class="container-fotos">${(t.fotos || []).map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}</div>
-                                <button class="btn-excluir-task" onclick="event.stopPropagation(); excluirTask('${t.id}')">✕</button>
+                                <div style="font-weight:700;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
+                                <div class="container-fotos">${(t.fotos || []).map(img => `<img src="${img}" class="img-tarefa">`).join('')}</div>
                             `}
                         </div>
+                        <button onclick="event.stopPropagation(); excluirTask('${t.id}')" style="background:none; border:none; color:red; cursor:pointer;">✕</button>
                     </div>
                 </div>`;
+            if(editando) renderizarFotosEdicao();
         });
-        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center;'>Nenhuma atividade encontrada.</p>";
     };
 
-    // --- BLOCO: AUXILIARES INTERFACE ---
-    window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
-    window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
-    window.abrirAba = (evt, nomeAba) => {
-        let i, tabcontent = document.getElementsByClassName("tabcontent"), tablinks = document.getElementsByClassName("tablink");
-        for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
-        for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
-        document.getElementById(nomeAba).style.display = "block";
-        evt.currentTarget.classList.add("active");
-    };
+    signInAnonymously(auth).then(() => {
+        setarData('hoje', document.getElementById('btnHoje'));
+    });
+
+    // AUXILIARES
     window.setarData = (tipo, el) => {
-        const input = document.getElementById('dataSeletor'); const hoje = new Date();
+        const input = document.getElementById('dataSeletor');
+        const hoje = new Date();
         if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
-        else if (tipo === 'amanha') { const am = new Date(); am.setDate(hoje.getDate() + 1); input.value = am.toLocaleDateString('en-CA'); }
-        else if (tipo === 'semana') { 
-            tipoFiltroTempo = 'semana'; const p = new Date(hoje); p.setDate(hoje.getDate() - hoje.getDay()); 
-            dataInicioSemana = p.toLocaleDateString('en-CA'); 
-            const u = new Date(p); u.setDate(p.getDate() + 6); dataFimSemana = u.toLocaleDateString('en-CA'); 
-            input.value = dataInicioSemana; 
-        }
-        if(el) { document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); el.classList.add('ativo'); }
+        else if (tipo === 'amanha') { const am = new Date(); am.setDate(hoje.getDate()+1); input.value = am.toLocaleDateString('en-CA'); }
+        document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
+        el.classList.add('ativo');
         carregarTarefas();
     };
-    window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
+
+    window.toggleSecao = (id) => document.getElementById(id).classList.toggle('escondido');
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); document.getElementById('previewFotosNovas').innerHTML += `<img src="${r.result}" class="img-tarefa">`; }; r.readAsDataURL(f); }); };
 </script>
 </body>
 </html>
