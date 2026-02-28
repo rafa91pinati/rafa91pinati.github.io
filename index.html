@@ -127,8 +127,8 @@
         <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
       </div>
 
-      <button onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
-    </div>
+      <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
+	  </div>
 
     <div id="abaCategorias" class="tabcontent" style="display: none;">
       <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
@@ -150,7 +150,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 	import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -172,7 +172,66 @@
     let tipoFiltroTempo = 'dia'; 
     let dataInicioSemana = '';
     let dataFimSemana = '';
-    
+    // Nova função que busca os dados quando o app abre
+    window.carregarPreferenciasNuvem = async () => {
+        const docRef = doc(db, "tokens_dispositivos", "meu_celular");
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            // Preenche os campos com o que está salvo
+            if(data.minutosAntecedencia) document.getElementById('tempoAntecedencia').value = data.minutosAntecedencia;
+            if(data.tipoNotificacao) document.getElementById('tipoNotificacao').value = data.tipoNotificacao;
+            if(data.somSelecionado) document.getElementById('somAlarmeSelecionado').value = data.somSelecionado;
+            
+            // Muda o botão para mostrar que já está conectado
+            const btn = document.getElementById('btnConectarNuvem');
+            btn.innerHTML = "✅ Conectado à Nuvem";
+            btn.style.background = "#28a745"; // Cor verde
+        }
+    };
+
+    // Chame a função logo após o login anônimo
+    signInAnonymously(auth).then(async () => {
+        await carregarCategorias(); 
+        setarData('hoje', document.getElementById('btnHoje'));
+        carregarPreferenciasNuvem(); // <-- ADICIONE ESTA LINHA AQUI
+    });
+
+    // Função de conectar atualizada para mudar o botão na hora
+    window.solicitarPermissaoNotificacao = () => {
+        Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+                const btn = document.getElementById('btnConectarNuvem');
+                btn.innerHTML = "⏳ Conectando..."; // Feedback de espera
+                
+                getToken(messaging, { vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8' })
+                .then(async (currentToken) => {
+                    if (currentToken) {
+                        const antecedencia = document.getElementById('tempoAntecedencia').value;
+                        const tipo = document.getElementById('tipoNotificacao').value;
+                        const som = document.getElementById('somAlarmeSelecionado').value;
+
+                        await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
+                            token: currentToken,
+                            minutosAntecedencia: antecedencia,
+                            tipoNotificacao: tipo,
+                            somSelecionado: som
+                        });
+                        
+                        btn.innerHTML = "✅ Conectado à Nuvem";
+                        btn.style.background = "#28a745";
+                    }
+                }).catch((err) => {
+                    alert("Erro ao ativar notificações: " + err);
+                    btn.innerHTML = "🔔 Conectar na Nuvem";
+                });
+            } else {
+                alert("Permissão negada.");
+            }
+        });
+    };
+	
     // Variável global para armazenar todas as tarefas ativas do dia
     window.tarefasMonitoramento = [];
 
