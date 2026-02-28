@@ -445,32 +445,24 @@ window.salvarNovaTarefa = async () => {
 };
 
     window.subirArquivoFixo = async () => {
-    const file = document.getElementById('inputArquivoFixo').files[0];
-    const nome = document.getElementById('nomeArquivoFixo').value;
-    if(!file || !nome || !window.usuarioLogado) return alert("Preencha tudo!");
-
-    const btn = document.getElementById('btnSubirFixo');
-    btn.innerHTML = "⏳ Enviando...";
-    btn.disabled = true;
-
-    try {
-        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
-        const snapshot = await uploadBytes(sRef, file);
-        const url = await getDownloadURL(snapshot.ref);
-
-        await addDoc(collection(db, "arquivos_fixos"), {
-            uid: window.usuarioLogado.uid,
-            Nomearquivo: nome,
-            categoria: document.getElementById('catArquivoFixo').value,
-            link: url,
-            dataUpload: new Date()
-        });
-
-        alert("Arquivo fixo salvo!");
-        carregarArquivosFixos();
-    } catch (e) { alert("Erro no upload."); }
-    finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
-};
+        const file = document.getElementById('inputArquivoFixo').files[0];
+        const nome = document.getElementById('nomeArquivoFixo').value;
+        if(!file || !nome) return alert("Preencha tudo!");
+        const btn = document.getElementById('btnSubirFixo');
+        btn.innerHTML = "⏳ Enviando..."; btn.disabled = true;
+        try {
+            const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
+            const snap = await uploadBytes(sRef, file);
+            const url = await getDownloadURL(snap.ref);
+            await addDoc(collection(db, "arquivos_fixos"), {
+                uid: window.usuarioLogado.uid, Nomearquivo: nome,
+                categoria: document.getElementById('catArquivoFixo').value,
+                link: url, dataUpload: new Date()
+            });
+            alert("Sucesso!"); carregarArquivosFixos();
+        } catch (e) { alert("Erro no upload."); }
+        finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
+    };
 	
 	
     window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); }; r.readAsDataURL(f); }); input.value = ""; };
