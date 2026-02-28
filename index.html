@@ -181,11 +181,12 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
-    
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+	
 	const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
@@ -199,6 +200,7 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
     const messaging = getMessaging(app);
+	const storage = getStorage(app); // [CORREÇÃO: STORAGE INICIALIZADO]
 
     let idEmEdicao = null;
     let fotosTemporarias = []; 
@@ -207,12 +209,43 @@
     let tipoFiltroTempo = 'dia'; 
     let dataInicioSemana = '';
     let dataFimSemana = '';
+	window.usuarioLogado = null;
     window.tarefasMonitoramento = [];
 
-    // --- SERVICE WORKER ---
+   // SERVICE WORKER (CORREÇÃO: SEM BARRA INICIAL)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
+        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log(err));
     }
+
+    // MONITOR DE LOGIN
+    onAuthStateChanged(auth, (user) => {
+        const tela = document.getElementById('telaLogin');
+        if (user) {
+            window.usuarioLogado = user;
+            if(tela) tela.classList.add('escondido');
+            carregarCategorias(); 
+            setarData('hoje', document.getElementById('btnHoje'));
+            carregarArquivosFixos();
+        } else {
+            window.usuarioLogado = null;
+            if(tela) tela.classList.remove('escondido');
+        }
+    });
+
+    window.fazerLogin = () => {
+        const email = document.getElementById('emailLogin').value;
+        const senha = document.getElementById('senhaLogin').value;
+        signInWithEmailAndPassword(auth, email, senha).catch(err => alert("Erro: " + err.code));
+    };
+
+    window.criarConta = () => {
+        const email = document.getElementById('emailLogin').value;
+        const senha = document.getElementById('senhaLogin').value;
+        if(senha.length < 6) return alert("Mínimo 6 dígitos!");
+        createUserWithEmailAndPassword(auth, email, senha).then(() => alert("Conta criada!")).catch(err => alert("Erro: " + err.code));
+    };
+
+    window.fazerLogout = () => { if(confirm("Sair?")) signOut(auth); };
 
     // --- CARREGAR PREFERÊNCIAS E AUTO-SAVE ---
     window.carregarPreferenciasNuvem = async () => {
@@ -277,40 +310,7 @@
             } else alert("Você bloqueou as permissões neste navegador.");
         });
     };
-// Monitor de Usuário (Versão 2)
-    onAuthStateChanged(auth, (user) => {
-        const tela = document.getElementById('telaLogin');
-        if (user) {
-            if(tela) tela.classList.add('escondido');
-            console.log("Logado:", user.email);
-            // Inicia o app
-            if (typeof carregarCategorias === "function") carregarCategorias();
-            setarData('hoje', document.getElementById('btnHoje'));
-        } else {
-            if(tela) tela.classList.remove('escondido');
-        }
-    });
 
-    // PENDURANDO AS FUNÇÕES NO WINDOW (Essencial para os botões HTML funcionarem)
-    window.fazerLogin = () => {
-        const email = document.getElementById('emailLogin').value;
-        const senha = document.getElementById('senhaLogin').value;
-        signInWithEmailAndPassword(auth, email, senha)
-            .then(() => alert("Bem-vindo de volta!"))
-            .catch(err => alert("Erro ao entrar: " + err.code));
-    };
-
-    window.criarConta = () => {
-        const email = document.getElementById('emailLogin').value;
-        const senha = document.getElementById('senhaLogin').value;
-        if(senha.length < 6) return alert("A senha precisa de 6 dígitos!");
-        
-        createUserWithEmailAndPassword(auth, email, senha)
-            .then(() => alert("Conta criada com sucesso!"))
-            .catch(err => alert("Erro ao criar: " + err.code));
-    };
-
-    window.fazerLogout = () => { if(confirm("Sair?")) signOut(auth); };
 // [V2] FUNÇÃO: SUBIR ARQUIVO PARA O STORAGE E SALVAR LINK NO BANCO
     window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
