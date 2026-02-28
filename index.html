@@ -56,6 +56,16 @@
 </head>
 <body>
 
+<div id="telaLogin" class="modal">
+    <div class="modal-content">
+        <h2 style="text-align:center;">Agenda v2.0</h2>
+        <input type="email" id="emailLogin" placeholder="Seu e-mail">
+        <input type="password" id="senhaLogin" placeholder="Sua senha">
+        <button onclick="fazerLogin()" style="background:#007bff; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">Entrar</button>
+        <button onclick="criarConta()" style="background:none; color:#007bff; border:none; width:100%; margin-top:10px; cursor:pointer;">Criar nova conta</button>
+    </div>
+</div>
+
 <div class="container">
     <div class="timeline-header">
         <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
@@ -151,9 +161,10 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
-
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+	
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
@@ -167,6 +178,7 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
     const messaging = getMessaging(app);
+	const storage = getStorage(app);
 
     let idEmEdicao = null;
     let fotosTemporarias = []; 
@@ -175,12 +187,9 @@
     let tipoFiltroTempo = 'dia'; 
     let dataInicioSemana = '';
     let dataFimSemana = '';
+	window.usuarioLogado = null;
     window.tarefasMonitoramento = [];
 
-    // --- SERVICE WORKER ---
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
-    }
 
     // --- CARREGAR PREFERÊNCIAS E AUTO-SAVE ---
     window.carregarPreferenciasNuvem = async () => {
@@ -246,12 +255,45 @@
         });
     };
 
-    signInAnonymously(auth).then(async () => {
-        await carregarCategorias(); 
-        setarData('hoje', document.getElementById('btnHoje'));
-        carregarPreferenciasNuvem(); 
+    
+
+
+if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log(err));
+    }
+
+    // --- MONITOR DE LOGIN ---
+    onAuthStateChanged(auth, (user) => {
+        const tela = document.getElementById('telaLogin');
+        if (user) {
+            window.usuarioLogado = user;
+            if(tela) tela.classList.add('escondido');
+            carregarCategorias(); 
+            setarData('hoje', document.getElementById('btnHoje'));
+            carregarArquivosFixos();
+            carregarPreferenciasNuvem();
+        } else {
+            window.usuarioLogado = null;
+            if(tela) tela.classList.remove('escondido');
+        }
     });
 
+    window.fazerLogin = () => {
+        const e = document.getElementById('emailLogin').value;
+        const s = document.getElementById('senhaLogin').value;
+        signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.code));
+    };
+
+    window.criarConta = () => {
+        const e = document.getElementById('emailLogin').value;
+        const s = document.getElementById('senhaLogin').value;
+        if(s.length < 6) return alert("Senha curta!");
+        createUserWithEmailAndPassword(auth, e, s).then(() => alert("Conta criada!")).catch(err => alert("Erro: " + err.code));
+    };
+
+    window.fazerLogout = () => { if(confirm("Sair?")) signOut(auth); };
+	
+	
     window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
     window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
     window.abrirAba = (evt, nomeAba) => {
@@ -338,26 +380,57 @@
     window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
-    window.salvarNovaTarefa = async () => {
+window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
-        if(!desc) return alert("Digite a descrição!");
-        
-        await addDoc(collection(db, "tarefas"), { 
-            descricao: desc, 
-            hora: document.getElementById('horaTask').value, 
-            dataString: document.getElementById('dataSeletor').value, 
-            categoria: categoriaFiltroAtiva, 
-            fotos: fotosNovasArray, 
-            criadoEm: new Date(),
-            alarmeAtivo: true,
-            alertaDisparado: false 
-        });
-        
-        document.getElementById('descTask').value = ""; 
-        fotosNovasArray = []; 
-        renderizarPreviewFotosNovas(); 
-        carregarTarefas();
+        if(!desc) return alert("Dê um nome!");
+        const btn = document.getElementById('btnSalvar');
+        btn.innerHTML = "⏳ Subindo arquivos..."; btn.disabled = true;
+
+        let linksFotos = [];
+        try {
+            for (let base64 of fotosNovasArray) {
+                const blob = await (await fetch(base64)).blob();
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${Math.random().toString(36).substr(2,5)}.jpg`);
+                const snap = await uploadBytes(sRef, blob);
+                linksFotos.push(await getDownloadURL(snap.ref));
+            }
+            await addDoc(collection(db, "tarefas"), { 
+                uid: window.usuarioLogado.uid,
+                descricao: desc, 
+                hora: document.getElementById('horaTask').value, 
+                dataString: document.getElementById('dataSeletor').value, 
+                categoria: categoriaFiltroAtiva, 
+                fotos: linksFotos, 
+                criadoEm: new Date(),
+                alarmeAtivo: true, alertaDisparado: false 
+            });
+            fotosNovasArray = []; document.getElementById('descTask').value = "";
+            document.getElementById('previewFotosNovas').innerHTML = ""; carregarTarefas();
+        } catch (e) { alert("Erro ao salvar."); }
+        finally { btn.innerHTML = "Salvar na Nuvem"; btn.disabled = false; }
     };
+
+    window.subirArquivoFixo = async () => {
+        const file = document.getElementById('inputArquivoFixo').files[0];
+        const nome = document.getElementById('nomeArquivoFixo').value;
+        if(!file || !nome) return alert("Preencha tudo!");
+        const btn = document.getElementById('btnSubirFixo');
+        btn.innerHTML = "⏳ Enviando..."; btn.disabled = true;
+        try {
+            const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
+            const snap = await uploadBytes(sRef, file);
+            const url = await getDownloadURL(snap.ref);
+            await addDoc(collection(db, "arquivos_fixos"), {
+                uid: window.usuarioLogado.uid, Nomearquivo: nome,
+                categoria: document.getElementById('catArquivoFixo').value,
+                link: url, dataUpload: new Date()
+            });
+            alert("Sucesso!"); carregarArquivosFixos();
+        } catch (e) { alert("Erro no upload."); }
+        finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
+    };
+	
+	
     window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); }; r.readAsDataURL(f); }); input.value = ""; };
     const renderizarPreviewFotosNovas = () => { document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); };
     window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
@@ -424,6 +497,19 @@
         });
         
         if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px;'>Nenhuma atividade encontrada.</p>";
+    };
+	
+	window.carregarArquivosFixos = async () => {
+        const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
+        const snap = await getDocs(q);
+        const lista = document.getElementById('listaArquivosFixos'); lista.innerHTML = "";
+        snap.forEach(d => {
+            const a = d.data();
+            lista.innerHTML += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between;">
+                <span><b>[${a.categoria}]</b> ${a.Nomearquivo}</span>
+                <a href="${a.link}" target="_blank" style="color:#007bff; font-weight:bold;">ABRIR</a>
+            </div>`;
+        });
     };
 
     window.carregarCategorias = async () => { const c = document.getElementById('listaCategorias'); const s = await getDocs(collection(db, "categorias")); c.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`; s.forEach(d => c.innerHTML += `<div class="category-tab" onclick="selecionarCat('${d.data().nome}', '${d.data().cor}', this)">${d.data().nome}</div>`); };
