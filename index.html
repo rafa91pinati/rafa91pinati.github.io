@@ -1,278 +1,182 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <link rel="manifest" href="manifest.json">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.9.9.6</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
-        .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        /* CABEÇALHO DINÂMICO */
-        .timeline-header { display: flex; gap: 4px; margin-bottom: 20px; align-items: center; width: 100%; box-sizing: border-box; }
-        .btn-date { flex: 1; padding: 10px 2px; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; min-width: 0; }
-        .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
-        #dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 25px; border: 1px solid #ddd; font-size: 0.8rem; text-align: center; font-weight: 600; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minha Agenda</title>
+  
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+    h1 { color: #333; text-align: center; }
+    
+    /* Botões e Filtros */
+    .controles { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    button { padding: 10px 15px; border: none; border-radius: 20px; background-color: #007bff; color: white; cursor: pointer; font-weight: bold; transition: 0.3s; }
+    button:hover { background-color: #0056b3; }
+    .btn-config { background-color: #6c757d; }
+    .btn-config:hover { background-color: #5a6268; }
 
-        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; }
-        .category-tab { padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+    /* Modal de Configurações */
+    .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+    .modal-content { background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close-btn:hover { color: black; }
 
-        .header-secao { display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #007bff; padding: 8px 12px; margin: 20px 0 10px; color: #007bff; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; cursor: pointer; background: #f8f9fa; border-radius: 0 8px 8px 0; }
-        .seta-secao { transition: transform 0.3s; font-size: 0.7rem; transform: rotate(-90deg); }
-        .seta-expandida { transform: rotate(0deg); }
+    /* Abas do Modal */
+    .tabs { display: flex; border-bottom: 2px solid #ccc; margin-bottom: 15px; }
+    .tablink { background-color: transparent; color: #333; border-radius: 0; width: 50%; padding: 10px; font-size: 16px; border-bottom: 3px solid transparent; }
+    .tablink:hover { background-color: #f1f1f1; }
+    .tablink.active { border-bottom: 3px solid #007bff; color: #007bff; }
+    .tabcontent { display: none; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
 
-        /* COMPONENTES 100% DINÂMICOS */
-        textarea, input[type="text"], input[type="time"], select { 
-            width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; resize: none; 
-        }
-        
-        .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .tarefa-content { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; position: relative; }
-        .dia-badge { font-size: 1.5rem; font-weight: 900; color: #333; min-width: 45px; text-align: center; }
-        .dia-badge span { display: block; font-size: 0.6rem; text-transform: uppercase; color: #888; }
-        
-        .container-fotos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-        .foto-wrapper { position: relative; display: inline-block; }
-        .img-tarefa { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
-        .btn-remover-foto { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; z-index: 10; border: 2px solid white; }
+    /* Inputs e Lista */
+    input[type="text"], input[type="number"], input[type="date"] { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    .lista-tarefas { list-style-type: none; padding: 0; }
+    .lista-tarefas li { background: #fff; margin: 5px 0; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; }
+  </style>
 
-        .btn-grupo-edicao-final { display: flex; gap: 10px; margin-top: 10px; width: 100%; }
-        .btn-acao-edit { flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.85rem; text-align: center; }
-        .btn-arquivo-azul { background: #f0f2f5; border: 1px dashed #007bff !important; color: #007bff; }
-        .btn-salvar-azul { background: #007bff; color: white; }
-
-        .btn-excluir-task { background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 1.2rem; position: absolute; right: 0; top: 0; }
-        .grid-50 { display: flex; gap: 10px; align-items: center; width: 100%; }
-        .grid-50 > * { flex: 1; }
-
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; position: relative; }
-        .escondido { display: none !important; }
-        .modal-foto { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; align-items: center; justify-content: center; }
-        .modal-foto img { max-width: 95%; max-height: 85%; border-radius: 10px; }
-    </style>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-<div class="container">
-    <div class="timeline-header">
-        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
-        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
-    </div>
+  <h1>Minha Agenda</h1>
 
-    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
+  <div class="controles">
+    <button onclick="carregarTarefas('hoje')">Hoje</button>
+    <button onclick="carregarTarefas('semana')">Esta Semana</button>
+    <button onclick="abrirModalConfig()" class="btn-config">⚙️ Configurações</button>
+  </div>
 
-    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
-        <span>📝 ADD Tarefa</span>
-        <span id="setaAdd" class="seta-secao">▼</span>
-    </div>
-    <div id="secaoAdd" class="secao-card escondido">
-        <input type="text" id="descTask" placeholder="O que agendar hoje?">
-        <div id="previewFotosNovas" class="container-fotos"></div>
-        <div class="grid-50">
-            <input type="time" id="horaTask">
-            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
-            <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
-        </div>
-        <button id="btnSalvar" onclick="salvarNovaTarefa()" style="background:#28a745; color:white; border:none; padding:15px; width:100%; border-radius:25px; font-weight:bold; margin-top:10px;">Salvar na Nuvem</button>
-    </div>
+  <ul id="listaTarefas" class="lista-tarefas">
+    </ul>
 
-    <div class="header-secao" onclick="toggleSecao('listaTarefas', 'setaLista')">
-        <span id="headerMes">📅 Atividades</span>
-        <span id="setaLista" class="seta-secao seta-expandida">▼</span>
-    </div>
-    <div id="listaTarefas">Carregando atividades...</div>
-</div>
-
-<div id="modalConfig" class="modal escondido">
+  <div id="modalConfiguracoes" class="modal">
     <div class="modal-content">
-        <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.5rem; cursor:pointer;">✕</button>
-        <h4 style="margin: 0 0 15px 0;">Pastas</h4>
-        <div style="background: #f8f9fa; padding: 12px; border-radius: 10px;">
-            <div class="grid-50" style="margin-bottom:10px;">
-                <input type="text" id="novoNomeCat" placeholder="Nome">
-                <input type="color" id="novaCorCat" value="#007bff">
-            </div>
-            <button onclick="adicionarNovaCategoriaFirebase()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; font-weight:bold;">+ CRIAR PASTA</button>
-        </div>
-        <div id="listaGerenciarCats" style="max-height: 180px; overflow-y: auto; margin-top: 10px;"></div>
+      <span class="close-btn" onclick="fecharModalConfig()">&times;</span>
+      <h2>Configurações</h2>
+      
+      <div class="tabs">
+        <button class="tablink active" onclick="abrirAba(event, 'abaAlarme')">🔔 Alarmes</button>
+        <button class="tablink" onclick="abrirAba(event, 'abaCategorias')">📂 Categorias</button>
+      </div>
+
+      <div id="abaAlarme" class="tabcontent" style="display: block;">
+        <label for="tempoAntecedencia">Avisar com antecedência (minutos):</label>
+        <input type="number" id="tempoAntecedencia" value="10">
+        <br><br>
+        <button onclick="solicitarPermissaoNotificacao()">Ativar Notificações Push</button>
+      </div>
+
+      <div id="abaCategorias" class="tabcontent">
+        <label for="novaCategoria">Nova Categoria:</label>
+        <input type="text" id="novaCategoria" placeholder="Ex: Trabalho, Pessoal...">
+        <button onclick="adicionarCategoria()">Adicionar</button>
+        <ul id="listaCategoriasModal" class="lista-tarefas"></ul>
+      </div>
     </div>
-</div>
+  </div>
 
-<div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
-    <img id="imgGrande" src="">
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-
+  <script>
+    // 1. INICIALIZAÇÃO DO FIREBASE (Coloque suas credenciais aqui!)
     const firebaseConfig = {
-        apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
-        authDomain: "agenda-4efa7.firebaseapp.com",
-        projectId: "agenda-4efa7",
-        storageBucket: "agenda-4efa7.appspot.com",
-        messagingSenderId: "299659202964",
-        appId: "1:299659202964:web:e358210feb4d7784f63f81"
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_PROJETO.firebaseapp.com",
+      projectId: "SEU_PROJETO",
+      storageBucket: "SEU_PROJETO.appspot.com",
+      messagingSenderId: "SEU_SENDER_ID",
+      appId: "SEU_APP_ID"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const messaging = firebase.messaging();
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    // 2. LÓGICA DO MENU DE CONFIGURAÇÕES (Abas e Modal)
+    function abrirModalConfig() {
+      document.getElementById('modalConfiguracoes').style.display = 'block';
+    }
 
-    let idEmEdicao = null;
-    let fotosTemporarias = []; 
-    let fotosNovasArray = [];  
-    let categoriaFiltroAtiva = "Geral";
+    function fecharModalConfig() {
+      document.getElementById('modalConfiguracoes').style.display = 'none';
+    }
 
-    signInAnonymously(auth).then(async () => {
-        await carregarCategorias(); 
-        setarData('hoje', document.getElementById('btnHoje'));
-    });
+    // Fechar clicando fora do modal
+    window.onclick = function(event) {
+      const modal = document.getElementById('modalConfiguracoes');
+      if (event.target == modal) { modal.style.display = "none"; }
+    }
 
-    // --- EDIÇÃO (CORREÇÃO: ARQUIVO E SALVAR) ---
-    window.ativarEdicao = (id, fotos) => {
-        if(idEmEdicao === id) idEmEdicao = null; 
-        else { idEmEdicao = id; fotosTemporarias = [...fotos]; }
-        carregarTarefas();
-    };
+    function abrirAba(evt, nomeAba) {
+      let i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+      
+      tablinks = document.getElementsByClassName("tablink");
+      for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+      
+      document.getElementById(nomeAba).style.display = "block";
+      evt.currentTarget.className += " active";
+    }
 
-    window.removerFotoTemporaria = (idx) => {
-        fotosTemporarias.splice(idx, 1);
-        renderizarFotosEdicao();
-    };
+    // 3. LÓGICA DO FILTRO DA SEMANA CORRIGIDO
+    function filtrarTarefasPorSemana(tarefas) {
+      const hoje = new Date();
+      
+      // Domingo, 00:00:00
+      const primeiroDia = new Date(hoje);
+      primeiroDia.setDate(hoje.getDate() - hoje.getDay());
+      primeiroDia.setHours(0, 0, 0, 0);
+      
+      // Sábado, 23:59:59
+      const ultimoDia = new Date(primeiroDia);
+      ultimoDia.setDate(primeiroDia.getDate() + 6);
+      ultimoDia.setHours(23, 59, 59, 999);
 
-    window.renderizarFotosEdicao = () => {
-        const container = document.getElementById(`container-fotos-edit-${idEmEdicao}`);
-        if(!container) return;
-        container.innerHTML = fotosTemporarias.map((img, idx) => `
-            <div class="foto-wrapper">
-                <img src="${img}" class="img-tarefa">
-                <button class="btn-remover-foto" onclick="event.stopPropagation(); removerFotoTemporaria(${idx});">×</button>
-            </div>`).join('');
-    };
+      return tarefas.filter(tarefa => {
+        // Assume que tarefa.data está num formato válido, ex: "2026-02-28T14:30:00"
+        const dataTarefa = new Date(tarefa.data); 
+        return dataTarefa >= primeiroDia && dataTarefa <= ultimoDia;
+      });
+    }
 
-    window.adicionarFotosEdicao = (input) => {
-        Array.from(input.files).forEach(file => {
-            if (fotosTemporarias.length >= 4) return;
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                fotosTemporarias.push(reader.result);
-                renderizarFotosEdicao();
-            };
-            reader.readAsDataURL(file);
-        });
-        input.value = "";
-    };
+    // Exemplo de uso para carregar tarefas (Simulação)
+    function carregarTarefas(filtro) {
+      // Aqui entraria sua chamada db.collection('tarefas').get()...
+      console.log("Carregando tarefas com o filtro:", filtro);
+      if(filtro === 'semana') {
+        // const tarefasDaSemana = filtrarTarefasPorSemana(tarefasDoBanco);
+        // renderizar(tarefasDaSemana);
+      }
+    }
 
-    window.salvarAlteracoes = async (id) => {
-        const novaDesc = document.getElementById(`edit-desc-${id}`).value;
-        const novaHora = document.getElementById(`edit-hora-${id}`).value;
-        await updateDoc(doc(db, "tarefas", id), { descricao: novaDesc, hora: novaHora, fotos: fotosTemporarias });
-        idEmEdicao = null; carregarTarefas();
-    };
+    // 4. REGISTRO DO SERVICE WORKER (Para Notificações com app fechado)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+      .then(function(registration) {
+        console.log('Service Worker registrado com sucesso:', registration);
+      }).catch(function(err) {
+        console.log('Erro ao registrar Service Worker:', err);
+      });
+    }
 
-    // --- NOVA TAREFA ---
-    window.salvarNovaTarefa = async () => {
-        const desc = document.getElementById('descTask').value;
-        if(!desc) return alert("Digite a descrição!");
-        await addDoc(collection(db, "tarefas"), {
-            descricao: desc, hora: document.getElementById('horaTask').value,
-            dataString: document.getElementById('dataSeletor').value,
-            categoria: categoriaFiltroAtiva, fotos: fotosNovasArray, criadoEm: new Date()
-        });
-        document.getElementById('descTask').value = ""; fotosNovasArray = []; renderizarPreviewFotosNovas(); carregarTarefas();
-    };
-
-    window.prepararFotosNovas = (input) => {
-        Array.from(input.files).forEach(f => {
-            if (fotosNovasArray.length >= 4) return;
-            const r = new FileReader();
-            r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); };
-            r.readAsDataURL(f);
-        });
-        input.value = "";
-    };
-
-    const renderizarPreviewFotosNovas = () => {
-        document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join('');
-    };
-    window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
-
-    // --- LISTAGEM ---
-    window.carregarTarefas = async () => {
-        const lista = document.getElementById('listaTarefas');
-        const dataFiltro = document.getElementById('dataSeletor').value;
-        let q = (categoriaFiltroAtiva === "Geral") ? 
-            query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc")) :
-            query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), where("categoria", "==", categoriaFiltroAtiva), orderBy("hora", "asc"));
-
-        const snap = await getDocs(q);
-        lista.innerHTML = "";
-        snap.forEach(d => {
-            const t = d.data();
-            const isEditando = idEmEdicao === d.id;
-            const listaFotos = t.fotos || [];
-
-            lista.innerHTML += `
-                <div class="tarefa-item">
-                    <div class="tarefa-content" onclick="ativarEdicao('${d.id}', ${JSON.stringify(listaFotos).replace(/"/g, '&quot;')})">
-                        <div class="dia-badge">${new Date(t.dataString + 'T00:00:00').getDate()}<span>SÁB</span></div>
-                        <div class="tarefa-info">
-                            ${isEditando ? `
-                                <textarea id="edit-desc-${d.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
-                                <div id="container-fotos-edit-${d.id}" class="container-fotos"></div>
-                                <div class="area-edicao" onclick="event.stopPropagation()">
-                                    <input type="time" id="edit-hora-${d.id}" value="${t.hora || ''}">
-                                    <div class="btn-grupo-edicao-final">
-                                        <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('edit-foto-${d.id}').click()">📷 ARQUIVO</button>
-                                        <button class="btn-acao-edit btn-salvar-azul" onclick="salvarAlteracoes('${d.id}')">SALVAR</button>
-                                    </div>
-                                    <input type="file" id="edit-foto-${d.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
-                                </div>
-                            ` : `
-                                <div style="font-weight:bold;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
-                                <div class="container-fotos">${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}</div>
-                                <button class="btn-excluir-task" onclick="event.stopPropagation(); excluirTask('${d.id}')">✕</button>
-                            `}
-                        </div>
-                    </div>
-                </div>`;
-            if(isEditando) renderizarFotosEdicao();
-        });
-    };
-
-    // --- AUXILIARES ---
-    window.carregarCategorias = async () => {
-        const container = document.getElementById('listaCategorias');
-        const snap = await getDocs(collection(db, "categorias"));
-        container.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
-        snap.forEach(d => container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${d.data().nome}', '${d.data().cor}', this)">${d.data().nome}</div>`);
-    };
-    window.setarData = (tipo, el) => {
-        const input = document.getElementById('dataSeletor');
-        if (tipo === 'hoje') input.value = new Date().toLocaleDateString('en-CA');
-        else if (tipo === 'amanha') { const am = new Date(); am.setDate(new Date().getDate()+1); input.value = am.toLocaleDateString('en-CA'); }
-        if(el) { document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); el.classList.add('ativo'); }
-        carregarTarefas();
-    };
-    window.selecionarCat = (nome, cor, el) => {
-        categoriaFiltroAtiva = nome;
-        document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; });
-        if(el) { el.style.backgroundColor = cor; el.style.color = 'white'; }
-        carregarTarefas();
-    };
-    window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
-    window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
-    window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
-    window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
-    window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
-    window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
-</script>
+    function solicitarPermissaoNotificacao() {
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          console.log('Permissão concedida.');
+          // Obter o token para enviar as notificações
+          messaging.getToken({ vapidKey: 'SUA_CHAVE_VAPID_AQUI_SE_TIVER' }).then((currentToken) => {
+            if (currentToken) {
+              console.log('Token gerado:', currentToken);
+              // Salvar este token no Firestore atrelado ao usuário
+            }
+          });
+        } else {
+          console.log('Permissão negada.');
+        }
+      });
+    }
+  </script>
 </body>
 </html>
