@@ -180,12 +180,12 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
-	
+    
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
@@ -199,7 +199,7 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
     const messaging = getMessaging(app);
-	const storage = getStorage(app);
+    const storage = getStorage(app);
 
     let idEmEdicao = null;
     let fotosTemporarias = []; 
@@ -208,16 +208,20 @@
     let tipoFiltroTempo = 'dia'; 
     let dataInicioSemana = '';
     let dataFimSemana = '';
-	window.usuarioLogado = null;
+    window.usuarioLogado = null;
     window.tarefasMonitoramento = [];
 
+    // --- SERVICE WORKER ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log('Erro SW:', err));
+    }
 
     // --- CARREGAR PREFERÊNCIAS E AUTO-SAVE ---
     window.carregarPreferenciasNuvem = async () => {
-        const docSnap = await getDoc(doc(db, "tokens_dispositivos", "meu_celular"));
+        if(!window.usuarioLogado) return;
+        const docSnap = await getDoc(doc(db, "tokens_dispositivos", window.usuarioLogado.uid));
         if (docSnap.exists()) {
             const data = docSnap.data();
-            
             if(data.minutosAntecedencia !== undefined) document.getElementById('tempoAntecedencia').value = String(data.minutosAntecedencia);
             if(data.tipoNotificacao) document.getElementById('tipoNotificacao').value = data.tipoNotificacao;
             if(data.somSelecionado) document.getElementById('somAlarmeSelecionado').value = data.somSelecionado;
@@ -230,19 +234,18 @@
 
     window.atualizarPreferenciasNuvem = async () => {
         const btn = document.getElementById('btnConectarNuvem');
-        if (btn.innerText.includes("Conectado")) {
-            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
+        if (btn.innerText.includes("Conectado") && window.usuarioLogado) {
+            await setDoc(doc(db, "tokens_dispositivos", window.usuarioLogado.uid), {
                 minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
                 tipoNotificacao: document.getElementById('tipoNotificacao').value,
                 somSelecionado: document.getElementById('somAlarmeSelecionado').value
-            }, { merge: true }); // Salva sem apagar a lista de tokens!
+            }, { merge: true });
         }
     };
 
-    // --- ATIVAR NOTIFICAÇÕES PARA MÚLTIPLOS APARELHOS ---
     window.solicitarPermissaoNotificacao = () => {
         Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
+            if (permission === 'granted' && window.usuarioLogado) {
                 const btn = document.getElementById('btnConectarNuvem');
                 const textoOriginal = btn.innerHTML;
                 btn.innerHTML = "⏳ Conectando..."; 
@@ -251,120 +254,98 @@
                     getToken(messaging, { 
                         vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8',
                         serviceWorkerRegistration: registration 
-                    })
-                    .then(async (currentToken) => {
+                    }).then(async (currentToken) => {
                         if (currentToken) {
-                            // Salva na lista usando arrayUnion para não apagar outros aparelhos
-                            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
+                            await setDoc(doc(db, "tokens_dispositivos", window.usuarioLogado.uid), {
                                 tokens: arrayUnion(currentToken),
                                 minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
                                 tipoNotificacao: document.getElementById('tipoNotificacao').value,
                                 somSelecionado: document.getElementById('somAlarmeSelecionado').value
                             }, { merge: true });
-                            
                             btn.innerHTML = "✅ Conectado à Nuvem";
                             btn.style.background = "#28a745";
                             alert("Aparelho sincronizado na Nuvem!");
                         }
                     }).catch(err => {
-                        alert("Erro de conexão. O firebase-messaging-sw.js precisa estar na raiz.");
+                        alert("Erro de conexão.");
                         btn.innerHTML = textoOriginal;
-                        console.error(err);
                     });
                 });
-            } else alert("Você bloqueou as permissões neste navegador.");
+            } else alert("Você precisa logar e permitir notificações.");
         });
     };
 
-    
-
-
-if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log(err));
-    }
-
-    // --- MONITOR DE LOGIN ---
-// Substitua o bloco do signInAnonymously por este:
-onAuthStateChanged(auth, (user) => {
-    const tela = document.getElementById('telaLogin');
-    if (user && !user.isAnonymous) { // Se logou com e-mail
-        window.usuarioLogado = user;
-        if(tela) tela.classList.add('escondido');
-        carregarCategorias(); 
-        setarData('hoje', document.getElementById('btnHoje'));
-        carregarArquivosFixos();
-    } else {
-        window.usuarioLogado = null;
-        if(tela) tela.classList.remove('escondido');
-    }
-});
+    // --- O CADEADO DE LOGIN CORRIGIDO ---
+    onAuthStateChanged(auth, (user) => {
+        const tela = document.getElementById('telaLogin');
+        if (user) {
+            window.usuarioLogado = user;
+            if(tela) tela.classList.add('escondido'); // Esconde login
+            carregarCategorias(); 
+            setarData('hoje', document.getElementById('btnHoje'));
+            carregarArquivosFixos();
+            carregarPreferenciasNuvem();
+        } else {
+            window.usuarioLogado = null;
+            if(tela) tela.classList.remove('escondido'); // Mostra login
+        }
+    });
 
     window.fazerLogin = () => {
         const e = document.getElementById('emailLogin').value;
         const s = document.getElementById('senhaLogin').value;
-        signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro: " + err.code));
+        if(!e || !s) return alert("Preencha tudo!");
+        signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro ao entrar: " + err.code));
     };
 
     window.criarConta = () => {
         const e = document.getElementById('emailLogin').value;
         const s = document.getElementById('senhaLogin').value;
-        if(s.length < 6) return alert("Senha curta!");
-        createUserWithEmailAndPassword(auth, e, s).then(() => alert("Conta criada!")).catch(err => alert("Erro: " + err.code));
+        if(s.length < 6) return alert("A senha deve ter 6 números/letras!");
+        createUserWithEmailAndPassword(auth, e, s).then(() => alert("Conta criada e logada!")).catch(err => alert("Erro ao criar: " + err.code));
     };
 
-    window.fazerLogout = () => { if(confirm("Sair?")) signOut(auth); };
-	
-	
+    window.fazerLogout = () => { if(confirm("Deseja sair da agenda?")) signOut(auth); };
+    
+    // --- FUNÇÕES DE UI E ALARME ---
     window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
     window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
     window.abrirAba = (evt, nomeAba) => {
         let i, tabcontent, tablinks;
         tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+        for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
         tablinks = document.getElementsByClassName("tablink");
-        for (i = 0; i < tablinks.length; i++) { tablinks[i].classList.remove("active"); }
+        for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
         document.getElementById(nomeAba).style.display = "block";
         evt.currentTarget.classList.add("active");
     };
 
     window.testarAlarme = () => {
         const somUrl = document.getElementById('somAlarmeSelecionado').value;
-        const audio = new Audio(somUrl);
-        audio.play().catch(e => alert("Erro ao reproduzir o som."));
-        if(Notification.permission === 'granted') {
-            new Notification("Teste de Alarme", { body: "Notificação funcionando!" });
-        }
+        new Audio(somUrl).play().catch(e => alert("Erro no som."));
+        if(Notification.permission === 'granted') new Notification("Teste de Alarme", { body: "Notificação funcionando!" });
     };
 
-    // ALARME LOCAL PARA QUANDO A ABA ESTÁ ABERTA
     setInterval(() => {
         if (Notification.permission !== "granted") return; 
-        
         const agora = new Date();
         const dataHojeStr = agora.toLocaleDateString('en-CA');
         const horaAtualMinutos = agora.getHours() * 60 + agora.getMinutes();
-        
         const antecedencia = parseInt(document.getElementById('tempoAntecedencia').value) || 0;
         const somUrl = document.getElementById('somAlarmeSelecionado').value;
 
         window.tarefasMonitoramento.forEach(t => {
             if (t.dataString === dataHojeStr && t.hora && !t.alertaDisparado) {
                 const [h, m] = t.hora.split(':').map(Number);
-                const horaTarefaMinutos = (h * 60) + m;
-                
-                if (horaTarefaMinutos - antecedencia === horaAtualMinutos) {
-                    new Notification("Lembrete da Agenda", {
-                        body: `Sua tarefa "${t.descricao}" começa às ${t.hora}!`,
-                        requireInteraction: true
-                    });
-                    const audio = new Audio(somUrl);
-                    audio.play().catch(console.error);
+                if (((h * 60) + m) - antecedencia === horaAtualMinutos) {
+                    new Notification("Lembrete da Agenda", { body: `Sua tarefa "${t.descricao}" começa às ${t.hora}!`, requireInteraction: true });
+                    new Audio(somUrl).play().catch(console.error);
                 }
             }
         });
     }, 60000); 
 
-    // --- GERENCIADOR DE CATEGORIAS ---
+    // --- CATEGORIAS ---
     window.adicionarCategoria = async () => {
         const nome = document.getElementById('novaCategoria').value;
         const cor = document.getElementById('corNovaCategoria').value;
@@ -390,7 +371,7 @@ onAuthStateChanged(auth, (user) => {
     window.atualizarCorCategoria = async (id) => { await updateDoc(doc(db, "categorias", id), { cor: document.getElementById(`cor-edit-${id}`).value }); carregarCategorias(); };
     window.excluirCategoria = async (id) => { if(confirm("Apagar categoria?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategoriasModal(); carregarCategorias(); } };
 
-    // --- EDIÇÃO E SALVAMENTO ---
+    // --- EDIÇÃO DE FOTOS TEMPORÁRIAS ---
     window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
     window.removerFotoTemporaria = (idx) => { fotosTemporarias.splice(idx, 1); renderizarFotosEdicao(); };
     window.renderizarFotosEdicao = () => {
@@ -401,24 +382,23 @@ onAuthStateChanged(auth, (user) => {
     window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
-window.salvarNovaTarefa = async () => {
+    // --- FUNÇÕES DE UPLOAD (V2 CORRIGIDA PARA STORAGE) ---
+    window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
-        if(!desc) return alert("Dê um nome!");
+        if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
         const btn = document.getElementById('btnSalvar');
         btn.innerHTML = "⏳ Subindo arquivos..."; btn.disabled = true;
 
         let linksFotos = [];
         try {
             for (let base64 of fotosNovasArray) {
-               // Dentro do loop de fotos da função salvarNovaTarefa:
-               const blob = await (await fetch(base64)).blob(); // Converte texto em arquivo real
-               const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}.jpg`);
-               const snap = await uploadBytes(sRef, blob);
-               const url = await getDownloadURL(snap.ref);
-               linksFotos.push(url);
+                const blob = await (await fetch(base64)).blob(); 
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${Math.random().toString(36).substr(2,5)}.jpg`);
+                const snap = await uploadBytes(sRef, blob);
+                linksFotos.push(await getDownloadURL(snap.ref));
             }
             await addDoc(collection(db, "tarefas"), { 
-                uid: window.usuarioLogado.uid,
+                uid: window.usuarioLogado.uid, // Vinculado ao Usuário Logado
                 descricao: desc, 
                 hora: document.getElementById('horaTask').value, 
                 dataString: document.getElementById('dataSeletor').value, 
@@ -429,14 +409,15 @@ window.salvarNovaTarefa = async () => {
             });
             fotosNovasArray = []; document.getElementById('descTask').value = "";
             document.getElementById('previewFotosNovas').innerHTML = ""; carregarTarefas();
-        } catch (e) { alert("Erro ao salvar."); }
+            alert("Tarefa salva com sucesso na nuvem!");
+        } catch (e) { alert("Erro ao salvar."); console.error(e); }
         finally { btn.innerHTML = "Salvar na Nuvem"; btn.disabled = false; }
     };
 
     window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
         const nome = document.getElementById('nomeArquivoFixo').value;
-        if(!file || !nome) return alert("Preencha tudo!");
+        if(!file || !nome || !window.usuarioLogado) return alert("Preencha tudo!");
         const btn = document.getElementById('btnSubirFixo');
         btn.innerHTML = "⏳ Enviando..."; btn.disabled = true;
         try {
@@ -444,21 +425,22 @@ window.salvarNovaTarefa = async () => {
             const snap = await uploadBytes(sRef, file);
             const url = await getDownloadURL(snap.ref);
             await addDoc(collection(db, "arquivos_fixos"), {
-                uid: window.usuarioLogado.uid, Nomearquivo: nome,
+                uid: window.usuarioLogado.uid, 
+                Nomearquivo: nome,
                 categoria: document.getElementById('catArquivoFixo').value,
                 link: url, dataUpload: new Date()
             });
-            alert("Sucesso!"); carregarArquivosFixos();
-        } catch (e) { alert("Erro no upload."); }
+            alert("Arquivo Fixo salvo com sucesso!"); carregarArquivosFixos();
+            document.getElementById('nomeArquivoFixo').value = "";
+        } catch (e) { alert("Erro no upload do arquivo."); }
         finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
     };
-	
-	
+    
     window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); }; r.readAsDataURL(f); }); input.value = ""; };
     const renderizarPreviewFotosNovas = () => { document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); };
     window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
-    // --- FILTROS DE TEMPO E LISTAGEM ---
+    // --- FILTROS DE TEMPO E BUSCA COM PROTEÇÃO DE USUÁRIO ---
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor'); const hoje = new Date(); tipoFiltroTempo = 'dia'; 
         if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
@@ -470,16 +452,19 @@ window.salvarNovaTarefa = async () => {
     };
 
     window.carregarTarefas = async () => {
+        if (!window.usuarioLogado) return; // Trava de segurança
         const lista = document.getElementById('listaTarefas');
         const dataFiltro = document.getElementById('dataSeletor').value;
         let q;
 
-        if (tipoFiltroTempo === 'semana') q = query(collection(db, "tarefas"), where("dataString", ">=", dataInicioSemana), where("dataString", "<=", dataFimSemana), orderBy("dataString", "asc"));
-        else q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
+        if (tipoFiltroTempo === 'semana') {
+            q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", ">=", dataInicioSemana), where("dataString", "<=", dataFimSemana), orderBy("dataString", "asc"));
+        } else {
+            q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
+        }
 
         const snap = await getDocs(q);
         lista.innerHTML = "";
-        
         let tarefas = [];
         snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
 
@@ -521,16 +506,17 @@ window.salvarNovaTarefa = async () => {
         
         if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px;'>Nenhuma atividade encontrada.</p>";
     };
-	
-	window.carregarArquivosFixos = async () => {
-        constq = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
-		const snap = await getDocs(q);
+    
+    window.carregarArquivosFixos = async () => {
+        if (!window.usuarioLogado) return; // Trava de segurança
+        const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
+        const snap = await getDocs(q);
         const lista = document.getElementById('listaArquivosFixos'); lista.innerHTML = "";
         snap.forEach(d => {
             const a = d.data();
-            lista.innerHTML += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between;">
-                <span><b>[${a.categoria}]</b> ${a.Nomearquivo}</span>
-                <a href="${a.link}" target="_blank" style="color:#007bff; font-weight:bold;">ABRIR</a>
+            lista.innerHTML += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items: center;">
+                <span style="font-size:0.9rem;"><b>[${a.categoria}]</b> ${a.Nomearquivo}</span>
+                <a href="${a.link}" target="_blank" style="color:white; background:#007bff; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-weight:bold; font-size: 0.8rem;">ABRIR</a>
             </div>`;
         });
     };
@@ -540,7 +526,6 @@ window.salvarNovaTarefa = async () => {
     window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
-    window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
-</script>
+    window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };</script>
 </body>
 </html>
