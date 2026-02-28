@@ -4,61 +4,44 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda - v1.3.2</title>
+    <title>Minha Agenda - v1.3.3</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         
-        /* HEADER SIMPLES */
+        /* HEADER E DATAS */
         .timeline-header { display: flex; gap: 6px; margin-bottom: 15px; align-items: center; }
-        .btn-date { flex: 1; padding: 12px 0; border-radius: 4px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .btn-date { flex: 1; padding: 12px 0; border-radius: 4px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
         .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
         #dataSeletor { flex: 1.5; padding: 10px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.9rem; }
 
-        /* 📋 CATEGORIAS TIPO "TABS" (LIMPAS) */
-        .category-tabs {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 12px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-            scrollbar-width: none;
-        }
-        .category-tab {
-            padding: 8px 18px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            background: #f8f9fa;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            white-space: nowrap;
-            color: #444;
-            transition: 0.2s;
-        }
-        .category-tab.ativo {
-            background: #333;
-            color: white;
-            border-color: #333;
-        }
+        /* 📋 CATEGORIAS TIPO TABS PROFISSIONAIS */
+        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; scrollbar-width: none; }
+        .category-tab { padding: 8px 18px; border-radius: 4px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-size: 0.85rem; font-weight: 600; white-space: nowrap; color: #444; }
+        .category-tab.ativo { background: #333; color: white; border-color: #333; }
 
         .header-secao { font-size: 0.8rem; font-weight: 800; margin: 15px 0 8px; color: #8d949e; text-transform: uppercase; }
         
-        /* CARD DE ENTRADA */
+        /* FORMULÁRIO */
         .secao-card { background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 15px; }
         input[type="text"], input[type="time"] { width: 100%; padding: 12px; margin: 6px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
-        
-        #btnSalvar { background: #28a745; color: white; border: none; padding: 14px; border-radius: 4px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        #btnSalvar { background: #28a745; color: white; border: none; padding: 14px; border-radius: 4px; width: 100%; font-weight: bold; cursor: pointer; }
         
         /* LISTA DE TAREFAS */
         .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 6px; border-left: 5px solid #007bff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
-        .btn-excluir { position: absolute; right: 8px; top: 8px; background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.1rem; opacity: 0.6; }
+        .btn-excluir-task { position: absolute; right: 8px; top: 8px; background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.1rem; opacity: 0.6; }
         .tarefa-meta { font-size: 0.75rem; color: #65676b; margin-bottom: 4px; font-weight: bold; }
         
+        /* ⚙️ MODAL RESTAURADO COM ABAS */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; width: 85%; max-width: 350px; padding: 20px; border-radius: 8px; position: relative; }
+        .modal-content { background: white; width: 85%; max-width: 380px; padding: 20px; border-radius: 8px; position: relative; max-height: 80vh; overflow-y: auto; }
+        .modal-tabs { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #eee; }
+        .tab-btn { background: none; border: none; padding: 10px; cursor: pointer; opacity: 0.4; font-size: 1.5rem; transition: 0.3s; }
+        .tab-btn.ativo { opacity: 1; border-bottom: 3px solid #007bff; }
         .escondido { display: none !important; }
+        
+        .cat-manage-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+        .btn-del-cat { color: red; background: none; border: 1px solid #ffcccc; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -71,7 +54,7 @@
         <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
     </div>
 
-    <div class="category-tabs" id="listaCategorias">Carregando...</div>
+    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
 
     <div class="header-secao">Nova Atividade</div>
     <div class="secao-card">
@@ -86,15 +69,30 @@
     </div>
 
     <div class="header-secao">Tarefas do Dia</div>
-    <div id="listaTarefas">Sincronizando...</div>
+    <div id="listaTarefas">Aguardando banco...</div>
 </div>
 
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
         <button onclick="fecharConfig()" style="position: absolute; right: 10px; top: 10px; border:none; background:none; font-size:1.2rem; cursor:pointer;">✕</button>
-        <h4 style="margin: 0 0 15px 0;">Ajustes</h4>
-        <button onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#007bff; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; margin-bottom:10px;">CONECTAR CELULAR</button>
-        <button onclick="location.reload()" style="width:100%; padding:10px; background:#f0f2f5; border:none; border-radius:4px; cursor:pointer;">ATUALIZAR APP</button>
+        
+        <div class="modal-tabs">
+            <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
+            <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
+        </div>
+        
+        <div id="conteudoAlarme">
+            <h4 style="margin: 0 0 10px 0;">Dispositivo</h4>
+            <button id="btnConectar" onclick="solicitarNotificacao()" style="width:100%; padding:14px; background:#007bff; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">CONECTAR DISPOSITIVO</button>
+            <p style="font-size: 0.7rem; color: #999; margin-top: 10px;">Ative para receber alertas com o app fechado.</p>
+            <button onclick="location.reload()" style="width:100%; padding:10px; background:#f0f2f5; border:none; border-radius:4px; cursor:pointer; margin-top:10px;">RECARREGAR</button>
+        </div>
+
+        <div id="conteudoCategorias" class="escondido">
+            <h4 style="margin: 0 0 10px 0;">Pastas</h4>
+            <div id="listaGerenciarCats"></div>
+            <button onclick="promptNovaCat()" style="width:100%; margin-top:15px; padding:10px; border: 1px dashed #007bff; color: #007bff; background: none; border-radius: 4px; font-weight: bold; cursor: pointer;">+ Nova Pasta</button>
+        </div>
     </div>
 </div>
 
@@ -131,16 +129,24 @@
         }
     });
 
-    // CATEGORIAS LIMPAS - APENAS TEXTO
+    // CATEGORIAS: SINCRONIZA TELA E MODAL
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaCategorias');
+        const listaMngt = document.getElementById('listaGerenciarCats');
         const snap = await getDocs(collection(db, "categorias"));
+        
         container.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
+        listaMngt.innerHTML = "";
+
         snap.forEach(d => {
             const c = d.data();
             container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</div>`;
+            listaMngt.innerHTML += `
+                <div class="cat-manage-item">
+                    <span>${c.nome}</span>
+                    <button class="btn-del-cat" onclick="excluirCategoria('${d.id}')">✕</button>
+                </div>`;
         });
-        container.innerHTML += `<div onclick="promptNovaCat()" style="padding: 8px 12px; color: #007bff; font-weight: bold; cursor: pointer;">+ Novo</div>`;
     };
 
     window.selecionarCat = (nome, cor, el) => {
@@ -150,8 +156,15 @@
         document.getElementById('corSelecionada').value = cor;
     };
 
+    window.excluirCategoria = async (id) => {
+        if(confirm("Deseja apagar esta pasta?")) {
+            await deleteDoc(doc(db, "categorias", id));
+            carregarCategorias();
+        }
+    };
+
     window.promptNovaCat = async () => {
-        const nome = prompt("Nome da Categoria:"); if (!nome) return;
+        const nome = prompt("Nome da Pasta:"); if (!nome) return;
         const cor = prompt("Cor Hex (ex: #007bff):", "#333");
         await addDoc(collection(db, "categorias"), { nome, cor });
         carregarCategorias();
@@ -179,13 +192,13 @@
             const t = d.data();
             lista.innerHTML += `
                 <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
-                    <button class="btn-excluir" onclick="excluirTask('${d.id}')">✕</button>
+                    <button class="btn-excluir-task" onclick="excluirTask('${d.id}')">✕</button>
                     <div class="tarefa-meta">${t.categoria}</div>
                     <strong>${t.hora}</strong> - ${t.descricao}
                     ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:4px; margin-top:10px; display:block;">` : ""}
                 </div>`;
         });
-        if(lista.innerHTML === "") lista.innerHTML = "<p style='color:#999; text-align:center; font-size:0.9rem;'>Nada para hoje.</p>";
+        if(lista.innerHTML === "") lista.innerHTML = "<p style='color:#999; text-align:center;'>Nenhuma atividade.</p>";
     };
 
     document.getElementById('btnSalvar').onclick = async () => {
@@ -214,12 +227,23 @@
         if (permission === "granted") {
             const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
             const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-            if (token) await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() });
-            alert("Conectado com Sucesso!");
+            if (token) {
+                await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() });
+                document.getElementById('btnConectar').innerText = "CONEXÃO ATIVA ✅";
+                document.getElementById('btnConectar').style.background = "#28a745";
+            }
         }
     };
 
-    window.excluirTask = async (id) => { if(confirm("Remover esta atividade?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+    // FUNÇÕES DE INTERFACE
+    window.mudarAba = (aba) => {
+        const cA = document.getElementById('conteudoAlarme'), cC = document.getElementById('conteudoCategorias');
+        const tA = document.getElementById('tabAlarme'), tC = document.getElementById('tabCat');
+        if(aba==='alarme'){cA.classList.remove('escondido');cC.classList.add('escondido');tA.classList.add('ativo');tC.classList.remove('ativo');}
+        else{cC.classList.remove('escondido');cA.classList.add('escondido');tC.classList.add('ativo');tA.classList.remove('ativo');}
+    };
+
+    window.excluirTask = async (id) => { if(confirm("Remover atividade?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
     window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
 </script>
