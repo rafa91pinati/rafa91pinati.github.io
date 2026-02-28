@@ -56,16 +56,6 @@
 </head>
 <body>
 
-<div id="telaLogin" class="modal">
-    <div class="modal-content">
-        <h2 style="text-align:center;">Agenda v2.0</h2>
-        <input type="email" id="emailLogin" placeholder="Seu e-mail">
-        <input type="password" id="senhaLogin" placeholder="Sua senha">
-        <button onclick="fazerLogin()" style="background:#007bff; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">Entrar</button>
-        <button onclick="criarConta()" style="background:none; color:#007bff; border:none; width:100%; margin-top:10px; cursor:pointer;">Criar nova conta</button>
-    </div>
-</div>
-
 <div class="container">
     <div class="timeline-header">
         <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
@@ -91,28 +81,6 @@
         </div>
         <button id="btnSalvar" onclick="salvarNovaTarefa()" style="background:#28a745; color:white; border:none; padding:15px; width:100%; border-radius:25px; font-weight:bold; margin-top:10px;">Salvar na Nuvem</button>
     </div>
-
-
-<div class="header-secao" onclick="toggleSecao('secaoArquivos', 'setaArq')">
-    <span>📂 ARQUIVOS FIXOS</span>
-    <span id="setaArq" class="seta-secao">▼</span>
-</div>
-<div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 10px;">
-    <div class="grid-50">
-        <input type="text" id="nomeArquivoFixo" placeholder="Nome do arquivo (ex: Manual Gás)">
-        <select id="catArquivoFixo">
-            <option value="Geral">Geral</option>
-            <option value="Metatech">Metatech</option>
-            <option value="Trabalho">Trabalho</option>
-        </select>
-    </div>
-    <input type="file" id="inputArquivoFixo" style="margin-top:10px;">
-    <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background:#007bff; color:white; border:none; padding:12px; width:100%; border-radius:8px; margin-top:10px; font-weight:bold; cursor:pointer;">📤 Subir Arquivo Fixo</button>
-    
-    <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid #eee; pt: 10px;">
-        </div>
-</div>
-
 
     <div class="header-secao" onclick="toggleSecao('listaTarefas', 'setaLista')">
         <span id="headerMes">📅 Atividades</span>
@@ -183,10 +151,10 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
-    
-	const firebaseConfig = {
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
+
+    const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
         projectId: "agenda-4efa7",
@@ -211,7 +179,7 @@
 
     // --- SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
+        navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
     }
 
     // --- CARREGAR PREFERÊNCIAS E AUTO-SAVE ---
@@ -277,109 +245,12 @@
             } else alert("Você bloqueou as permissões neste navegador.");
         });
     };
-// Monitor de Usuário (Versão 2)
-    onAuthStateChanged(auth, (user) => {
-        const tela = document.getElementById('telaLogin');
-        if (user) {
-            if(tela) tela.classList.add('escondido');
-            console.log("Logado:", user.email);
-            // Inicia o app
-            if (typeof carregarCategorias === "function") carregarCategorias();
-            setarData('hoje', document.getElementById('btnHoje'));
-        } else {
-            if(tela) tela.classList.remove('escondido');
-        }
+
+    signInAnonymously(auth).then(async () => {
+        await carregarCategorias(); 
+        setarData('hoje', document.getElementById('btnHoje'));
+        carregarPreferenciasNuvem(); 
     });
-
-    // PENDURANDO AS FUNÇÕES NO WINDOW (Essencial para os botões HTML funcionarem)
-    window.fazerLogin = () => {
-        const email = document.getElementById('emailLogin').value;
-        const senha = document.getElementById('senhaLogin').value;
-        signInWithEmailAndPassword(auth, email, senha)
-            .then(() => alert("Bem-vindo de volta!"))
-            .catch(err => alert("Erro ao entrar: " + err.code));
-    };
-
-    window.criarConta = () => {
-        const email = document.getElementById('emailLogin').value;
-        const senha = document.getElementById('senhaLogin').value;
-        if(senha.length < 6) return alert("A senha precisa de 6 dígitos!");
-        
-        createUserWithEmailAndPassword(auth, email, senha)
-            .then(() => alert("Conta criada com sucesso!"))
-            .catch(err => alert("Erro ao criar: " + err.code));
-    };
-
-    window.fazerLogout = () => { if(confirm("Sair?")) signOut(auth); };
-// [V2] FUNÇÃO: SUBIR ARQUIVO PARA O STORAGE E SALVAR LINK NO BANCO
-    window.subirArquivoFixo = async () => {
-        const file = document.getElementById('inputArquivoFixo').files[0];
-        const nome = document.getElementById('nomeArquivoFixo').value;
-        const cat = document.getElementById('catArquivoFixo').value;
-
-        if(!file || !nome) return alert("Preencha o nome e selecione um arquivo!");
-
-        const btn = document.getElementById('btnSubirFixo');
-        btn.innerHTML = "⏳ Enviando...";
-        btn.disabled = true;
-
-        try {
-            // 1. Cria a referência no Storage
-            const storageRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
-            
-            // 2. Faz o upload
-            const snapshot = await uploadBytes(storageRef, file);
-            const urlDescarga = await getDownloadURL(snapshot.ref);
-
-            // 3. Salva no Firestore usando seus nomes de campos indexados
-            await addDoc(collection(db, "arquivos_fixos"), {
-                uid: window.usuarioLogado.uid,
-                Nomearquivo: nome,
-                categoria: cat,
-                link: urlDescarga,
-                dataUpload: new Date()
-            });
-
-            alert("Arquivo fixo salvo com sucesso!");
-            document.getElementById('nomeArquivoFixo').value = "";
-            document.getElementById('inputArquivoFixo').value = "";
-            carregarArquivosFixos();
-        } catch (error) {
-            console.error("Erro no Storage:", error);
-            alert("Erro ao subir. Verifique se você está logado.");
-        } finally {
-            btn.innerHTML = "📤 Subir Arquivo Fixo";
-            btn.disabled = false;
-        }
-    };
-
-    // [V2] FUNÇÃO: LISTAR OS ARQUIVOS FIXOS DO USUÁRIO
-    window.carregarArquivosFixos = async () => {
-        const lista = document.getElementById('listaArquivosFixos');
-        if(!window.usuarioLogado) return;
-
-        const q = query(collection(db, "arquivos_fixos"), 
-                  where("uid", "==", window.usuarioLogado.uid),
-                  orderBy("Nomearquivo", "asc")); // Usa o índice que você criou
-        
-        const snap = await getDocs(q);
-        lista.innerHTML = "";
-        
-        snap.forEach(d => {
-            const arq = d.data();
-            lista.innerHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:8px; border-left: 4px solid #007bff;">
-                    <span style="font-size:0.9rem;"><b>[${arq.categoria}]</b> ${arq.Nomearquivo}</span>
-                    <a href="${arq.link}" target="_blank" style="text-decoration:none; background:#007bff; color:white; padding:5px 10px; border-radius:5px; font-size:0.8rem; font-weight:bold;">ABRIR</a>
-                </div>`;
-        });
-    };
-	
-	
-
-    // Função para entrar com e-mail cadastrado
-
-	
 
     window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
     window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
@@ -467,56 +338,20 @@
     window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
-    // [V2] FUNÇÃO: SALVAR TAREFA COM UPLOAD REAL
     window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
-        if(!desc) return alert("O que vamos agendar?");
+        if(!desc) return alert("Digite a descrição!");
         
-        const btn = document.getElementById('btnSalvar');
-        btn.innerHTML = "⏳ Subindo arquivos...";
-        btn.disabled = true;
-
-        let linksDasFotos = [];
-
-        try {
-            // 1. Sobe cada foto para o Storage e pega o link
-            for (let fotoBase64 of fotosNovasArray) {
-                const nomeArquivo = `tarefas/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
-                const storageRef = ref(storage, nomeArquivo);
-                
-                // Converte Base64 para Blob (formato de arquivo que o Storage entende)
-                const response = await fetch(fotoBase64);
-                const blob = await response.blob();
-                
-                const snapshot = await uploadBytes(storageRef, blob);
-                const url = await getDownloadURL(snapshot.ref);
-                linksDasFotos.push(url);
-            }
-
-            // 2. Salva a tarefa no Firestore com os LINKS das fotos
-            await addDoc(collection(db, "tarefas"), { 
-                uid: window.usuarioLogado.uid, // Proteção por usuário
-                descricao: desc, 
-                hora: document.getElementById('horaTask').value, 
-                dataString: document.getElementById('dataSeletor').value, 
-                categoria: categoriaFiltroAtiva, 
-                fotos: linksDasFotos, // Agora são URLs curtas, não textos gigantes!
-                criadoEm: new Date(),
-                alarmeAtivo: true,
-                alertaDisparado: false 
-            });
-
-            btn.innerHTML = "Salvar na Nuvem";
-            btn.disabled = false;
-            limparFormulario();
-            carregarTarefas();
-            alert("Tarefa salva com arquivos no Storage!");
-        } catch (error) {
-            console.error("Erro no processo V2:", error);
-            alert("Erro ao salvar. Verifique se publicou as regras no Storage.");
-            btn.disabled = false;
-        }
-    };
+        await addDoc(collection(db, "tarefas"), { 
+            descricao: desc, 
+            hora: document.getElementById('horaTask').value, 
+            dataString: document.getElementById('dataSeletor').value, 
+            categoria: categoriaFiltroAtiva, 
+            fotos: fotosNovasArray, 
+            criadoEm: new Date(),
+            alarmeAtivo: true,
+            alertaDisparado: false 
+        });
         
         document.getElementById('descTask').value = ""; 
         fotosNovasArray = []; 
@@ -599,4 +434,4 @@
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
 </script>
 </body>
-</html> Acho que tem alguma coisa errada com meu código .
+</html>                         Eu achei a lógica é essa aí . Agora , salve ela como a versão Sempre que eu estou lhe pedir para você , a versão um , você pega e ela como base
