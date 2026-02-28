@@ -238,6 +238,22 @@
         } catch (e) { console.error("Erro ao atualizar cor:", e); }
     };
 
+    // --- NOVA FUNÇÃO AUXILIAR PARA DATAS ---
+    const formatarDataExibicao = (dataString) => {
+        if (!dataString) return "";
+        // Cria um objeto Date interpretando no fuso horário local e evitando erros comuns de fuso horário.
+        const dataObj = new Date(dataString + 'T00:00:00');
+        
+        // Formata no padrão pt-BR (ex: 28/02/2026)
+        const diaBR = dataObj.toLocaleDateString('pt-BR'); 
+        
+        // Obtém o dia da semana abreviado (ex: Sáb)
+        const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const diaSemana = diasSemana[dataObj.getDay()]; 
+        
+        return `${diaBR} (${diaSemana})`;
+    };
+
     // --- TAREFAS E DATA ---
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor');
@@ -259,11 +275,16 @@
         lista.innerHTML = "";
         snap.forEach(d => {
             const t = d.data();
+            const dataFormatada = formatarDataExibicao(t.dataString); // Chamada da função
+            
             lista.innerHTML += `
                 <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#007bff'}">
                     <button class="btn-excluir-task" onclick="excluirTask('${d.id}')">✕</button>
                     <div style="font-size:0.75rem; color:#888; font-weight:700;">${t.categoria}</div>
-                    <strong>${t.hora}</strong> - ${t.descricao}
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>${t.hora}</strong> - ${t.descricao}</span>
+                        <span style="font-size:0.75rem; color:#888; text-align:right;">${dataFormatada}</span>
+                    </div>
                 </div>`;
         });
         if(lista.innerHTML === "") lista.innerHTML = "<p style='color:#999; text-align:center;'>Sem atividades.</p>";
