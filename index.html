@@ -377,20 +377,56 @@
     window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
+    // [V2] FUNÇÃO: SALVAR TAREFA COM UPLOAD REAL
     window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
-        if(!desc) return alert("Digite a descrição!");
+        if(!desc) return alert("O que vamos agendar?");
         
-        await addDoc(collection(db, "tarefas"), { 
-            descricao: desc, 
-            hora: document.getElementById('horaTask').value, 
-            dataString: document.getElementById('dataSeletor').value, 
-            categoria: categoriaFiltroAtiva, 
-            fotos: fotosNovasArray, 
-            criadoEm: new Date(),
-            alarmeAtivo: true,
-            alertaDisparado: false 
-        });
+        const btn = document.getElementById('btnSalvar');
+        btn.innerHTML = "⏳ Subindo arquivos...";
+        btn.disabled = true;
+
+        let linksDasFotos = [];
+
+        try {
+            // 1. Sobe cada foto para o Storage e pega o link
+            for (let fotoBase64 of fotosNovasArray) {
+                const nomeArquivo = `tarefas/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+                const storageRef = ref(storage, nomeArquivo);
+                
+                // Converte Base64 para Blob (formato de arquivo que o Storage entende)
+                const response = await fetch(fotoBase64);
+                const blob = await response.blob();
+                
+                const snapshot = await uploadBytes(storageRef, blob);
+                const url = await getDownloadURL(snapshot.ref);
+                linksDasFotos.push(url);
+            }
+
+            // 2. Salva a tarefa no Firestore com os LINKS das fotos
+            await addDoc(collection(db, "tarefas"), { 
+                uid: window.usuarioLogado.uid, // Proteção por usuário
+                descricao: desc, 
+                hora: document.getElementById('horaTask').value, 
+                dataString: document.getElementById('dataSeletor').value, 
+                categoria: categoriaFiltroAtiva, 
+                fotos: linksDasFotos, // Agora são URLs curtas, não textos gigantes!
+                criadoEm: new Date(),
+                alarmeAtivo: true,
+                alertaDisparado: false 
+            });
+
+            btn.innerHTML = "Salvar na Nuvem";
+            btn.disabled = false;
+            limparFormulario();
+            carregarTarefas();
+            alert("Tarefa salva com arquivos no Storage!");
+        } catch (error) {
+            console.error("Erro no processo V2:", error);
+            alert("Erro ao salvar. Verifique se publicou as regras no Storage.");
+            btn.disabled = false;
+        }
+    };
         
         document.getElementById('descTask').value = ""; 
         fotosNovasArray = []; 
