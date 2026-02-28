@@ -96,9 +96,19 @@
         </div>
 
         <div id="conteudoCategorias" class="escondido">
-            <h4 style="margin: 0 0 15px 0; color: #333;">Pastas</h4>
-            <div id="listaGerenciarCats"></div>
+    <h4 style="margin: 0 0 15px 0; color: #333;">Gerenciar Pastas</h4>
+    
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <input type="text" id="novoNomeCat" placeholder="Nome da Pasta" style="padding: 10px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <label style="font-size: 0.8rem; font-weight: bold;">Cor:</label>
+            <input type="color" id="novaCorCat" value="#007bff" style="width: 50px; height: 40px; padding: 2px; border: none;">
         </div>
+        <button onclick="adicionarNovaCategoriaVisual()" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">+ CRIAR PASTA</button>
+    </div>
+
+    <div id="listaGerenciarCats"></div>
+</div>
     </div>
 </div>
 
@@ -186,6 +196,28 @@ window.salvarPreferencias = async () => {
         });
         container.innerHTML += `<button class="btn-add-cat-circle" onclick="promptNovaCat()">+</button>`;
     };
+	
+	window.adicionarNovaCategoriaVisual = async () => {
+    const nome = document.getElementById('novoNomeCat').value;
+    const cor = document.getElementById('novaCorCat').value;
+    
+    if (!nome) {
+        alert("Digite um nome para a pasta");
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "categorias"), { 
+            nome: nome, 
+            cor: cor 
+        });
+        document.getElementById('novoNomeCat').value = ""; // Limpa o campo
+        carregarCategorias();
+        alert("Pasta criada com sucesso!");
+    } catch (e) {
+        console.error("Erro ao criar categoria:", e);
+    }
+};
 
     window.selecionarCat = (nome, cor, el) => {
         document.querySelectorAll('.category-tab').forEach(b => b.classList.remove('ativo'));
