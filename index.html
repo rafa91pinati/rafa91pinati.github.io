@@ -89,15 +89,13 @@
 
     // Login Anônimo para segurança no SSD novo
 // Localize esse bloco no final do seu script:
-signInAnonymously(auth).then(() => {
-    console.log("Logado no Firebase!");
+signInAnonymously(auth).then(async () => {
+    console.log("Logado com sucesso!");
     
-    // --- ADICIONE ESTAS DUAS LINHAS ABAIXO ---
-    carregarCategorias(); 
-    setarData('hoje', document.getElementById('btnHoje'));
-    // -----------------------------------------
-
+    // Garante que o app não trave se o banco estiver vazio
+    await carregarCategorias(); 
     carregarTarefas();
+    setarData('hoje', document.getElementById('btnHoje'));
 }).catch(e => console.error("Erro no Login:", e));
 
     // Função Crítica: Captura e Salva o Token do Celular [cite: 2026-02-27]
