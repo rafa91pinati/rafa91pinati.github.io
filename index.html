@@ -177,9 +177,11 @@
     let dataFimSemana = '';
     window.tarefasMonitoramento = [];
 
-    // --- SERVICE WORKER ---
+// --- SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
+        navigator.serviceWorker.register('firebase-messaging-sw.js')
+        .then(reg => console.log('Service Worker Registrado com sucesso no escopo:', reg.scope))
+        .catch(err => console.log('Erro no Service Worker:', err));
     }
 
     // --- CARREGAR PREFERÊNCIAS E AUTO-SAVE ---
