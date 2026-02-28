@@ -371,7 +371,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
     window.atualizarCorCategoria = async (id) => { await updateDoc(doc(db, "categorias", id), { cor: document.getElementById(`cor-edit-${id}`).value }); carregarCategorias(); };
     window.excluirCategoria = async (id) => { if(confirm("Apagar categoria?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategoriasModal(); carregarCategorias(); } };
 
-    // --- EDIÇÃO DE FOTOS TEMPORÁRIAS ---
+// --- EDIÇÃO E SALVAMENTO ---
     window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
     window.removerFotoTemporaria = (idx) => { fotosTemporarias.splice(idx, 1); renderizarFotosEdicao(); };
     window.renderizarFotosEdicao = () => {
@@ -382,7 +382,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
     window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
-    // --- FUNÇÕES DE UPLOAD (V2 CORRIGIDA PARA STORAGE) ---
+    // --- UPLOAD DE FOTOS E ARQUIVOS (STORAGE V2) ---
     window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
         if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
@@ -390,11 +390,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
         btn.innerHTML = "⏳ Subindo arquivos..."; btn.disabled = true;
 
         let linksFotos = [];
-		try {
+        try {
             for (let base64 of fotosNovasArray) {
+                const blob = await (await fetch(base64)).blob();
                 const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${Math.random().toString(36).substr(2,5)}.jpg`);
-                // Correção definitiva para o erro 400
-                const snap = await uploadString(sRef, base64, 'data_url');
+                const snap = await uploadBytes(sRef, blob);
                 linksFotos.push(await getDownloadURL(snap.ref));
             }
             await addDoc(collection(db, "tarefas"), { 
@@ -407,7 +407,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
             fotosNovasArray = []; document.getElementById('descTask').value = "";
             document.getElementById('previewFotosNovas').innerHTML = ""; carregarTarefas();
             alert("Tarefa salva com sucesso!");
-        } catch (e) { console.error("Erro no Storage:", e); alert("Erro ao salvar a foto."); }
+        } catch (e) { alert("Erro ao salvar."); console.error(e); }
+        finally { btn.innerHTML = "Salvar na Nuvem"; btn.disabled = false; }
+    };
 
     window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
@@ -417,17 +419,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
         btn.innerHTML = "⏳ Enviando..."; btn.disabled = true;
         try {
             const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
-            // Garanta que você está usando uploadBytes (e não uploadString) para o arquivo (PDF/Doc)
-            // Garanta que você está usando uploadBytes (e não uploadString) para o arquivo (PDF/Doc)
             const snap = await uploadBytes(sRef, file);
             const url = await getDownloadURL(snap.ref);
             await addDoc(collection(db, "arquivos_fixos"), {
-                uid: window.usuarioLogado.uid, 
-                Nomearquivo: nome,
+                uid: window.usuarioLogado.uid, Nomearquivo: nome,
                 categoria: document.getElementById('catArquivoFixo').value,
                 link: url, dataUpload: new Date()
             });
-            alert("Arquivo Fixo salvo com sucesso!"); carregarArquivosFixos();
+            alert("Arquivo Fixo salvo!"); carregarArquivosFixos();
             document.getElementById('nomeArquivoFixo').value = "";
         } catch (e) { alert("Erro no upload do arquivo."); }
         finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
@@ -437,7 +436,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
     const renderizarPreviewFotosNovas = () => { document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); };
     window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
-    // --- FILTROS DE TEMPO E BUSCA COM PROTEÇÃO DE USUÁRIO ---
+    // --- FILTROS, BUSCA E UI GERAL ---
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor'); const hoje = new Date(); tipoFiltroTempo = 'dia'; 
         if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
@@ -449,7 +448,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
     };
 
     window.carregarTarefas = async () => {
-        if (!window.usuarioLogado) return; // Trava de segurança
+        if (!window.usuarioLogado) return; 
         const lista = document.getElementById('listaTarefas');
         const dataFiltro = document.getElementById('dataSeletor').value;
         let q;
@@ -505,7 +504,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
     };
     
     window.carregarArquivosFixos = async () => {
-        if (!window.usuarioLogado) return; // Trava de segurança
+        if (!window.usuarioLogado) return; 
         const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
         const snap = await getDocs(q);
         const lista = document.getElementById('listaArquivosFixos'); lista.innerHTML = "";
@@ -524,9 +523,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
-	window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); document.getElementById('previewFotosNovas').innerHTML += `<img src="${r.result}" class="img-tarefa">`; }; r.readAsDataURL(f); }); };
     window.abrirConfig = () => document.getElementById('modalConfiguracoes').style.display = 'flex';
     window.fecharModalConfig = () => document.getElementById('modalConfiguracoes').style.display = 'none';
+
+
 </script>
 </body>
 </html>
