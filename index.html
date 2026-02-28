@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.9.6 Final</title>
+    <title>Minha Agenda Inteligente - v1.9.7 Final</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -31,17 +31,15 @@
         .tarefa-content { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; position: relative; }
         .dia-badge { font-size: 1.5rem; font-weight: 900; color: #333; min-width: 45px; text-align: center; line-height: 1; }
         .dia-badge span { display: block; font-size: 0.6rem; text-transform: uppercase; color: #888; }
-        .tarefa-info { flex: 1; }
         
-        /* FOTOS */
+        /* FOTOS E EXCLUSÃO */
         .container-fotos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
         .foto-wrapper { position: relative; display: inline-block; }
         .img-tarefa { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: zoom-in; }
         .btn-remover-foto { position: absolute; top: -5px; right: -5px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; z-index: 10; border: 2px solid white; }
 
-        /* EDIÇÃO 50/50 */
-        .area-edicao { margin-top: 10px; }
-        .edit-row-flex { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        /* EDIÇÃO */
+        .btn-grupo-edicao-final { display: flex; gap: 10px; margin-top: 10px; }
         .btn-acao-edit { flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.85rem; text-align: center; }
         .btn-arquivo-azul { background: #f0f2f5; border: 1px dashed #007bff !important; color: #007bff; }
         .btn-salvar-azul { background: #007bff; color: white; }
@@ -78,10 +76,6 @@
         <button id="btnSalvar">Salvar na Nuvem</button>
     </div>
 
-    <div class="header-secao" onclick="toggleSecao('listaTarefas', 'setaLista')">
-        <span id="headerMes">📅 Atividades</span>
-        <span id="setaLista" class="seta-secao seta-expandida">▼</span>
-    </div>
     <div id="listaTarefas">Sincronizando atividades...</div>
 </div>
 
@@ -142,34 +136,30 @@
             </div>`).join('');
     };
 
-    window.removerFotoNova = (index) => {
-        fotosNovasArray.splice(index, 1);
-        renderizarPreviewFotosNovas();
-    };
+    window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
     document.getElementById('btnSalvar').onclick = async () => {
         const desc = document.getElementById('descTask').value;
         if(!desc) return alert("Digite a descrição!");
         await addDoc(collection(db, "tarefas"), {
-            descricao: desc,
-            hora: document.getElementById('horaTask').value,
+            descricao: desc, hora: document.getElementById('horaTask').value,
             dataString: document.getElementById('dataSeletor').value,
-            categoria: categoriaFiltroAtiva,
-            fotos: fotosNovasArray,
-            criadoEm: new Date()
+            categoria: categoriaFiltroAtiva, fotos: fotosNovasArray, criadoEm: new Date()
         });
-        document.getElementById('descTask').value = "";
-        fotosNovasArray = [];
-        renderizarPreviewFotosNovas();
-        carregarTarefas();
+        document.getElementById('descTask').value = ""; fotosNovasArray = []; renderizarPreviewFotosNovas(); carregarTarefas();
     };
 
-    // --- EDIÇÃO ---
+    // --- EDIÇÃO (CORREÇÃO: EXCLUIR FOTO) ---
     window.ativarEdicao = (id, fotosAtuais) => {
         if(idEmEdicao === id) return;
         idEmEdicao = id;
         fotosTemporarias = [...fotosAtuais];
         carregarTarefas();
+    };
+
+    window.removerFotoTemporaria = (idx) => {
+        fotosTemporarias.splice(idx, 1);
+        renderizarFotosEdicao();
     };
 
     window.renderizarFotosEdicao = () => {
@@ -178,7 +168,7 @@
         container.innerHTML = fotosTemporarias.map((img, idx) => `
             <div class="foto-wrapper">
                 <img src="${img}" class="img-tarefa">
-                <button class="btn-remover-foto" onclick="event.stopPropagation(); fotosTemporarias.splice(${idx}, 1); renderizarFotosEdicao();">×</button>
+                <button class="btn-remover-foto" onclick="event.stopPropagation(); removerFotoTemporaria(${idx});">×</button>
             </div>`).join('');
     };
 
@@ -190,17 +180,17 @@
             reader.onloadend = () => { fotosTemporarias.push(reader.result); renderizarFotosEdicao(); };
             reader.readAsDataURL(file);
         });
+        input.value = "";
     };
 
     window.salvarAlteracoes = async (id) => {
         const novaDesc = document.getElementById(`edit-desc-${id}`).value;
         const novaHora = document.getElementById(`edit-hora-${id}`).value;
         await updateDoc(doc(db, "tarefas", id), { descricao: novaDesc, hora: novaHora, fotos: fotosTemporarias });
-        idEmEdicao = null;
-        carregarTarefas();
+        idEmEdicao = null; carregarTarefas();
     };
 
-    // --- LISTAGEM E FILTROS ---
+    // --- LISTAGEM E FILTROS (CORREÇÃO: FILTRO SEMANA) ---
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas');
         const dataFiltro = document.getElementById('dataSeletor').value;
@@ -208,8 +198,13 @@
         
         let q;
         if (filtroDataTipo === 'semana') {
-            const dataFim = new Date(dataObj); dataFim.setDate(dataObj.getDate() + 6);
-            q = query(collection(db, "tarefas"), where("dataString", ">=", dataFiltro), where("dataString", "<=", dataFim.toLocaleDateString('en-CA')), orderBy("dataString", "asc"), orderBy("hora", "asc"));
+            const dataFim = new Date(dataObj);
+            dataFim.setDate(dataObj.getDate() + 6);
+            const dataFimStr = dataFim.toLocaleDateString('en-CA');
+            
+            q = (categoriaFiltroAtiva === "Geral") ? 
+                query(collection(db, "tarefas"), where("dataString", ">=", dataFiltro), where("dataString", "<=", dataFimStr), orderBy("dataString", "asc"), orderBy("hora", "asc")) :
+                query(collection(db, "tarefas"), where("categoria", "==", categoriaFiltroAtiva), where("dataString", ">=", dataFiltro), where("dataString", "<=", dataFimStr), orderBy("dataString", "asc"), orderBy("hora", "asc"));
         } else {
             q = (categoriaFiltroAtiva === "Geral") ? 
                 query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc")) :
@@ -238,7 +233,7 @@
                                         <button class="btn-acao-edit btn-arquivo-azul" onclick="event.stopPropagation(); document.getElementById('edit-foto-${d.id}').click()">📷 ARQUIVO</button>
                                     </div>
                                     <input type="file" id="edit-foto-${d.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
-                                    <button class="btn-acao-edit btn-salvar-azul" style="width:100%;" onclick="event.stopPropagation(); salvarAlteracoes('${d.id}')">SALVAR VERSÃO FINAL</button>
+                                    <button class="btn-acao-edit btn-salvar-azul" style="width:100%;" onclick="event.stopPropagation(); salvarAlteracoes('${d.id}')">SALVAR</button>
                                 </div>
                             ` : `
                                 <div style="font-size:0.6rem; color:gray;">${t.categoria}</div>
@@ -255,6 +250,7 @@
         });
     };
 
+    // --- CATEGORIAS ---
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaCategorias');
         const snap = await getDocs(collection(db, "categorias"));
