@@ -130,6 +130,20 @@
       <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
     </div>
 
+    <div id="abaCategorias" class="tabcontent" style="display: none;">
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px;">
+        <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
+        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1;">
+        <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
+      </div>
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
+      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+    </div>
+  </div>
+</div>
+
 <div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
     <img id="imgGrande" src="">
 </div>
@@ -137,19 +151,22 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-	import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
         projectId: "agenda-4efa7",
         storageBucket: "agenda-4efa7.appspot.com",
+        messagingSenderId: "299659202964",
         appId: "1:299659202964:web:e358210feb4d7784f63f81"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const messaging = getMessaging(app);
 
     let idEmEdicao = null;
     let fotosTemporarias = []; 
@@ -158,15 +175,20 @@
     let tipoFiltroTempo = 'dia'; 
     let dataInicioSemana = '';
     let dataFimSemana = '';
-    // Nova função que busca os dados quando o app abre
-// Gera um ID único para este aparelho, evitando que o PC apague o token do Celular
+
+    // --- SERVICE WORKER ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
+    }
+
+    // Gera um ID único para este aparelho, evitando que o PC apague o token do Celular
     const getDeviceId = () => {
         if (!auth.currentUser) return "dispositivo_desconhecido";
         return auth.currentUser.uid; 
     };
 
     window.carregarPreferenciasNuvem = async () => {
-        const docSnap = await getDoc(doc(db, "tokens_dispositivos", getDeviceId()));
+        const docSnap = await getDoc(doc(db, "tokens_dispositivos", "meu_celular"));
         if (docSnap.exists()) {
             const data = docSnap.data();
             
@@ -183,7 +205,7 @@
     window.atualizarPreferenciasNuvem = async () => {
         const btn = document.getElementById('btnConectarNuvem');
         if (btn.innerText.includes("Conectado")) {
-            await setDoc(doc(db, "tokens_dispositivos", getDeviceId()), {
+            await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), {
                 minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
                 tipoNotificacao: document.getElementById('tipoNotificacao').value,
                 somSelecionado: document.getElementById('somAlarmeSelecionado').value
@@ -192,7 +214,7 @@
         }
     };
 
-window.solicitarPermissaoNotificacao = () => {
+    window.solicitarPermissaoNotificacao = () => {
         Notification.requestPermission().then((permission) => {
             if (permission === 'granted') {
                 const btn = document.getElementById('btnConectarNuvem');
@@ -230,47 +252,14 @@ window.solicitarPermissaoNotificacao = () => {
             }
         });
     };
-
-        Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-                btn.innerHTML = "⏳ Conectando..."; 
-                
-                // Força o Firebase a usar o arquivo em segundo plano, evitando travamentos
-                navigator.serviceWorker.ready.then((registration) => {
-                    getToken(messaging, { 
-                        vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8',
-                        serviceWorkerRegistration: registration 
-                    })
-                    .then(async (currentToken) => {
-                        if (currentToken) {
-                            await setDoc(doc(db, "tokens_dispositivos", getDeviceId()), {
-                                token: currentToken,
-                                minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
-                                tipoNotificacao: document.getElementById('tipoNotificacao').value,
-                                somSelecionado: document.getElementById('somAlarmeSelecionado').value
-                            }, { merge: true });
-                            
-                            btn.innerHTML = "✅ Conectado à Nuvem";
-                            btn.style.background = "#28a745";
-                        }
-                    }).catch(err => {
-                        alert("Erro de conexão. Verifique se o firebase-messaging-sw.js está na raiz do servidor.");
-                        btn.innerHTML = "🔔 Conectar na Nuvem";
-                        console.error(err);
-                    });
-                });
-            } else {
-                alert("Você bloqueou as permissões de notificação neste navegador.");
-            }
-        });
-    };
-	
+    
     // Variável global para armazenar todas as tarefas ativas do dia
     window.tarefasMonitoramento = [];
 
     signInAnonymously(auth).then(async () => {
         await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
+        carregarPreferenciasNuvem();
     });
 
     window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
@@ -285,9 +274,6 @@ window.solicitarPermissaoNotificacao = () => {
         evt.currentTarget.classList.add("active");
     };
 
-    // --- SISTEMA DE ALARME LOCAL (Monitora enquanto a aba existe) ---
-
-
     window.testarAlarme = () => {
         const somUrl = document.getElementById('somAlarmeSelecionado').value;
         const audio = new Audio(somUrl);
@@ -297,9 +283,9 @@ window.solicitarPermissaoNotificacao = () => {
         }
     };
 
-    // O "Motor" que checa as tarefas a cada 60 segundos
+    // O "Motor" que checa as tarefas a cada 60 segundos (Backup local)
     setInterval(() => {
-        if (Notification.permission !== "granted") return; // Só roda se tiver permissão
+        if (Notification.permission !== "granted") return; 
         
         const agora = new Date();
         const dataHojeStr = agora.toLocaleDateString('en-CA');
@@ -309,11 +295,10 @@ window.solicitarPermissaoNotificacao = () => {
         const somUrl = document.getElementById('somAlarmeSelecionado').value;
 
         window.tarefasMonitoramento.forEach(t => {
-            if (t.dataString === dataHojeStr && t.hora) {
+            if (t.dataString === dataHojeStr && t.hora && !t.alertaDisparado) {
                 const [h, m] = t.hora.split(':').map(Number);
                 const horaTarefaMinutos = (h * 60) + m;
                 
-                // Se faltam exatos 'antecedencia' minutos para a tarefa:
                 if (horaTarefaMinutos - antecedencia === horaAtualMinutos) {
                     new Notification("Lembrete da Agenda", {
                         body: `Sua tarefa "${t.descricao}" começa às ${t.hora}!`,
@@ -324,7 +309,7 @@ window.solicitarPermissaoNotificacao = () => {
                 }
             }
         });
-    }, 60000); // 60000 ms = 1 minuto
+    }, 60000); 
 
     // --- GERENCIADOR DE CATEGORIAS ---
     window.adicionarCategoria = async () => {
@@ -375,7 +360,6 @@ window.solicitarPermissaoNotificacao = () => {
             categoria: categoriaFiltroAtiva, 
             fotos: fotosNovasArray, 
             criadoEm: new Date(),
-            // NOVOS CAMPOS PARA A CLOUD FUNCTION:
             alarmeAtivo: true,
             alertaDisparado: false 
         });
@@ -415,7 +399,6 @@ window.solicitarPermissaoNotificacao = () => {
         let tarefas = [];
         snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
 
-        // Atualiza a variável global do motor de alarmes com TODAS as tarefas carregadas antes de filtrar por categoria
         window.tarefasMonitoramento = tarefas;
 
         if (tipoFiltroTempo === 'semana') tarefas.sort((a, b) => { if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); return a.dataString.localeCompare(b.dataString); });
