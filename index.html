@@ -386,17 +386,16 @@
         const email = document.getElementById('emailLogin').value;
         const senha = document.getElementById('senhaLogin').value;
         
-        if(!email || !senha) return alert("Preencha o e-mail e a senha, Rafael!");
+        if(!email || !senha) return alert("Preencha e-mail e senha!");
 
         signInWithEmailAndPassword(auth, email, senha)
-            .then(() => {
-                console.log("Login de sucesso!");
+            .then((userCredential) => {
+                alert("Login realizado!");
             })
             .catch((error) => {
-                // Aqui o app te avisa o que deu errado
-                if (error.code === 'auth/invalid-credential') alert("E-mail ou senha incorretos.");
-                else if (error.code === 'auth/user-not-found') alert("Usuário não encontrado.");
-                else alert("Erro: " + error.message);
+                // EXIBE O ERRO NA TELA PARA DIAGNÓSTICO
+                console.error("Erro no login:", error.code);
+                alert("ERRO NO LOGIN: " + error.code); 
             });
     };
 
@@ -405,14 +404,17 @@
         const email = document.getElementById('emailLogin').value;
         const senha = document.getElementById('senhaLogin').value;
         
-        if(!email || !senha) return alert("Coloque os dados para criar a conta!");
-        if(senha.length < 6) return alert("A senha precisa de pelo menos 6 números/letras.");
+        if(!email || !senha) return alert("Preencha os campos!");
+        if(senha.length < 6) return alert("A senha precisa de 6 dígitos.");
 
         createUserWithEmailAndPassword(auth, email, senha)
-            .then(() => alert("Conta criada! A agenda vai abrir agora."))
+            .then((userCredential) => {
+                alert("CONTA CRIADA COM SUCESSO!");
+                // Após criar, ele deve aparecer na lista
+            })
             .catch((error) => {
-                if (error.code === 'auth/email-already-in-use') alert("Este e-mail já está cadastrado.");
-                else alert("Erro ao criar: " + error.message);
+                console.error("Erro no cadastro:", error.code);
+                alert("ERRO NO CADASTRO: " + error.code);
             });
     };
 	
