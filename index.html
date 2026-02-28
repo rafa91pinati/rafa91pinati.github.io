@@ -361,22 +361,53 @@
     });
 
     // Função para entrar com e-mail cadastrado
+// [V2] FUNÇÃO PARA ENTRAR
     window.fazerLogin = () => {
         const email = document.getElementById('emailLogin').value;
         const senha = document.getElementById('senhaLogin').value;
-        if(!email || !senha) return alert("Preencha tudo!");
-        signInWithEmailAndPassword(auth, email, senha).catch(err => alert("Erro: " + err.message));
+        
+        if(!email || !senha) return alert("Por favor, preencha o e-mail e a senha.");
+
+        signInWithEmailAndPassword(auth, email, senha)
+            .then(() => {
+                console.log("Login realizado!");
+            })
+            .catch((error) => {
+                // Traduzindo os erros do Firebase para você
+                if (error.code === 'auth/user-not-found') alert("Usuário não cadastrado.");
+                else if (error.code === 'auth/wrong-password') alert("Senha incorreta.");
+                else if (error.code === 'auth/invalid-email') alert("E-mail inválido.");
+                else alert("Erro ao entrar: " + error.message);
+            });
     };
 
-    // Função para criar um novo usuário no seu Firebase
+    // [V2] FUNÇÃO PARA CRIAR CONTA
     window.criarConta = () => {
         const email = document.getElementById('emailLogin').value;
         const senha = document.getElementById('senhaLogin').value;
-        if(!email || !senha) return alert("Preencha tudo!");
+        
+        if(!email || !senha) return alert("Preencha os campos para criar sua conta.");
+        if(senha.length < 6) return alert("A senha deve ter pelo menos 6 dígitos.");
+
         createUserWithEmailAndPassword(auth, email, senha)
-            .then(() => alert("Conta criada!"))
-            .catch(err => alert("Erro ao criar conta: " + err.message));
+            .then(async (userCredential) => {
+                const user = userCredential.user;
+                
+                // Opcional: Criar o perfil inicial na coleção 'usuarios' que você indexou
+                await setDoc(doc(db, "usuarios", user.uid), {
+                    Nome: email.split('@')[0], // Usa a primeira parte do e-mail como nome
+                    email: email,
+                    preferencias: { minutosAntecedencia: 0 }
+                });
+
+                alert("Conta criada com sucesso! Você já está logado.");
+            })
+            .catch((error) => {
+                if (error.code === 'auth/email-already-in-use') alert("Este e-mail já está sendo usado.");
+                else alert("Erro ao criar conta: " + error.message);
+            });
     };
+	
 
     window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
     window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
