@@ -92,6 +92,28 @@
         <button id="btnSalvar" onclick="salvarNovaTarefa()" style="background:#28a745; color:white; border:none; padding:15px; width:100%; border-radius:25px; font-weight:bold; margin-top:10px;">Salvar na Nuvem</button>
     </div>
 
+
+<div class="header-secao" onclick="toggleSecao('secaoArquivos', 'setaArq')">
+    <span>📂 ARQUIVOS FIXOS</span>
+    <span id="setaArq" class="seta-secao">▼</span>
+</div>
+<div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 10px;">
+    <div class="grid-50">
+        <input type="text" id="nomeArquivoFixo" placeholder="Nome do arquivo (ex: Manual Gás)">
+        <select id="catArquivoFixo">
+            <option value="Geral">Geral</option>
+            <option value="Metatech">Metatech</option>
+            <option value="Trabalho">Trabalho</option>
+        </select>
+    </div>
+    <input type="file" id="inputArquivoFixo" style="margin-top:10px;">
+    <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background:#007bff; color:white; border:none; padding:12px; width:100%; border-radius:8px; margin-top:10px; font-weight:bold; cursor:pointer;">📤 Subir Arquivo Fixo</button>
+    
+    <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid #eee; pt: 10px;">
+        </div>
+</div>
+
+
     <div class="header-secao" onclick="toggleSecao('listaTarefas', 'setaLista')">
         <span id="headerMes">📅 Atividades</span>
         <span id="setaLista" class="seta-secao seta-expandida">▼</span>
@@ -256,6 +278,71 @@
         });
     };
 
+// [V2] FUNÇÃO: SUBIR ARQUIVO PARA O STORAGE E SALVAR LINK NO BANCO
+    window.subirArquivoFixo = async () => {
+        const file = document.getElementById('inputArquivoFixo').files[0];
+        const nome = document.getElementById('nomeArquivoFixo').value;
+        const cat = document.getElementById('catArquivoFixo').value;
+
+        if(!file || !nome) return alert("Preencha o nome e selecione um arquivo!");
+
+        const btn = document.getElementById('btnSubirFixo');
+        btn.innerHTML = "⏳ Enviando...";
+        btn.disabled = true;
+
+        try {
+            // 1. Cria a referência no Storage
+            const storageRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
+            
+            // 2. Faz o upload
+            const snapshot = await uploadBytes(storageRef, file);
+            const urlDescarga = await getDownloadURL(snapshot.ref);
+
+            // 3. Salva no Firestore usando seus nomes de campos indexados
+            await addDoc(collection(db, "arquivos_fixos"), {
+                uid: window.usuarioLogado.uid,
+                Nomearquivo: nome,
+                categoria: cat,
+                link: urlDescarga,
+                dataUpload: new Date()
+            });
+
+            alert("Arquivo fixo salvo com sucesso!");
+            document.getElementById('nomeArquivoFixo').value = "";
+            document.getElementById('inputArquivoFixo').value = "";
+            carregarArquivosFixos();
+        } catch (error) {
+            console.error("Erro no Storage:", error);
+            alert("Erro ao subir. Verifique se você está logado.");
+        } finally {
+            btn.innerHTML = "📤 Subir Arquivo Fixo";
+            btn.disabled = false;
+        }
+    };
+
+    // [V2] FUNÇÃO: LISTAR OS ARQUIVOS FIXOS DO USUÁRIO
+    window.carregarArquivosFixos = async () => {
+        const lista = document.getElementById('listaArquivosFixos');
+        if(!window.usuarioLogado) return;
+
+        const q = query(collection(db, "arquivos_fixos"), 
+                  where("uid", "==", window.usuarioLogado.uid),
+                  orderBy("Nomearquivo", "asc")); // Usa o índice que você criou
+        
+        const snap = await getDocs(q);
+        lista.innerHTML = "";
+        
+        snap.forEach(d => {
+            const arq = d.data();
+            lista.innerHTML += `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:8px; border-left: 4px solid #007bff;">
+                    <span style="font-size:0.9rem;"><b>[${arq.categoria}]</b> ${arq.Nomearquivo}</span>
+                    <a href="${arq.link}" target="_blank" style="text-decoration:none; background:#007bff; color:white; padding:5px 10px; border-radius:5px; font-size:0.8rem; font-weight:bold;">ABRIR</a>
+                </div>`;
+        });
+    };
+	
+	
 // [V2] MONITOR DE USUÁRIO: O "Coração" da segurança
     onAuthStateChanged(auth, (user) => {
         if (user) {
