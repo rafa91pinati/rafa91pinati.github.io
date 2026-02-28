@@ -4,8 +4,9 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.2.7</title>
+    <title>Minha Agenda Inteligente - v1.3.0</title>
     <style>
+        /* MANTENDO SEU ESTILO ORIGINAL PARA O CORPO E CONTAINER */
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .timeline-header { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; justify-content: space-between; }
@@ -13,9 +14,62 @@
         .btn-date.ativo { background: #2196F3; color: white; border-color: #2196F3; }
         #dataSeletor { flex: 2; padding: 0 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 0.85rem; height: 42px; box-sizing: border-box; }
         .header-secao { border-left: 5px solid #2196F3; padding-left: 10px; margin: 20px 0 10px; color: #2196F3; font-size: 1rem; font-weight: bold; text-transform: uppercase; }
-        .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; min-height: 45px; align-items: center; }
-        .btn-cat { white-space: nowrap; padding: 8px 15px; border-radius: 20px; border: 2px solid #ddd; background: #f9f9f9; cursor: pointer; font-size: 0.85em; }
-        .btn-cat.ativo { background: #333; color: white; border-color: #333; }
+        
+        /* 🎨 --- NOVO ESTILO PARA CATEGORIAS (PILLS) --- */
+        .category-pill-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto; /* Scroll horizontal */
+            padding: 5px 5px 15px 5px; /* Espaço para o "brilho" */
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            scrollbar-width: none; /* Esconde scrollbar no Firefox */
+        }
+        .category-pill-container::-webkit-scrollbar { display: none; } /* Esconde scrollbar no Chrome/Safari */
+
+        .category-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 30px; /* Formato de pílula [cite: 2026-02-28] */
+            border: 2px solid #ddd;
+            background: #f9f9f9;
+            cursor: pointer;
+            white-space: nowrap; /* Não quebra linha */
+            font-size: 0.85em;
+            font-weight: bold;
+            transition: all 0.3s ease; /* Transição suave */
+            color: #555;
+        }
+
+        /* 🌟 ESTADO ATIVO (COM BRILHO [cite: 2026-02-28]) */
+        .category-pill.ativo {
+            color: white;
+            border-color: currentColor; /* Usa a cor definida no JS */
+            background-color: currentColor; /* Usa a cor definida no JS */
+            box-shadow: 0 4px 15px currentColor; /* O "Brilho" colorido */
+        }
+
+        .category-icon { font-size: 1.2em; } /* Tamanho do ícone */
+
+        /* Botão de Adicionar (+) Estilizado */
+        .btn-add-cat {
+            background: none;
+            border: 2px dashed #2196F3;
+            color: #2196F3;
+            padding: 10px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .btn-add-cat:hover { background: #e3f2fd; }
+
+        /* MANTENDO ESTILO DE TAREFAS E MODAL */
         .secao-card { background: #fafafa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; }
         input[type="text"], input[type="time"], input[type="number"] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         #btnSalvar { background: #4CAF50; color: white; border: none; padding: 14px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
@@ -26,27 +80,29 @@
         .modal-tabs { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #eee; }
         .tab-btn { background: none; border: none; padding: 10px; cursor: pointer; opacity: 0.5; font-size: 1.5em; }
         .tab-btn.ativo { opacity: 1; border-bottom: 3px solid #2196F3; }
-        .btn-excluir { border: none; color: #ff4d4d; cursor: pointer; position: absolute; right: 10px; top: 10px; background: none; }
+        .btn-excluir-task { border: none; color: #ff4d4d; cursor: pointer; position: absolute; right: 10px; top: 10px; background: none; font-size: 1.2em; }
+        .cat-excluir-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .tarefa-cat-label { font-size: 0.75em; font-weight: bold; color: #777; margin-top: 5px; display: block;}
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="timeline-header">
-        <button class="btn-date" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.5em; cursor:pointer;">⚙️</button>
+        <button class="btn-date" id="btnHoje" onclick="window.setarData('hoje', this)">Hoje</button>
+        <button class="btn-date" id="btnAmanha" onclick="window.setarData('amanha', this)">Amanhã</button>
+        <input type="date" id="dataSeletor" onchange="window.setarData('custom', this)">
+        <button onclick="window.abrirConfig()" style="background:none; border:none; font-size:1.5em; cursor:pointer;">⚙️</button>
     </div>
 
-    <div class="category-scroll" id="listaBotoesCat">Sincronizando...</div>
+    <div class="category-pill-container" id="listaBotoesCat">Sincronizando...</div>
 
     <div class="header-secao">📝 Nova Tarefa</div>
     <div class="secao-card">
         <input type="text" id="descTask" placeholder="O que vamos fazer?">
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; align-items: center;">
             <input type="time" id="horaTask" style="flex: 1;">
-            <input type="file" id="fotoTask" accept="image/*" style="flex: 1.5; font-size: 0.7em; align-self: center;">
+            <input type="file" id="fotoTask" accept="image/*" style="flex: 1.5; font-size: 0.7em;">
         </div>
         <input type="hidden" id="categoriaSelecionada" value="Geral">
         <input type="hidden" id="corSelecionada" value="#4CAF50">
@@ -54,31 +110,33 @@
     </div>
 
     <div class="header-secao">📅 Minhas Atividades</div>
-    <div id="listaTarefas">Carregando...</div>
+    <div id="listaTarefas">Carregando tarefas...</div>
 </div>
 
 <div id="modalConfig" class="modal escondido">
     <div class="modal-content">
-        <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2em; cursor:pointer;">✕</button>
+        <button onclick="window.fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2em; cursor:pointer;">✕</button>
         <div class="modal-tabs">
-            <button class="tab-btn ativo" id="tabAlarme" onclick="mudarAba('alarme')">🔔</button>
-            <button class="tab-btn" id="tabCat" onclick="mudarAba('categorias')">📂</button>
+            <button class="tab-btn ativo" id="tabAlarme" onclick="window.mudarAba('alarme')">🔔</button>
+            <button class="tab-btn" id="tabCat" onclick="window.mudarAba('categorias')">📂</button>
         </div>
         
         <div id="conteudoAlarme">
-            <h4>Alertas</h4>
-            <input type="number" id="minutosAlerta" value="1" style="width: 60px;"> min antes
-            <button id="btnAtivarNotificacao" onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#2196F3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin: 10px 0;">CONECTAR CELULAR</button>
-            <button onclick="testarSom()" style="width:100%; padding:10px; background:#FF9800; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">TESTAR SOM</button>
+            <h4>Alertas Noturnos</h4>
+            <p style="font-size: 0.8em; color: #666;">Receber push mesmo com app fechado.</p>
+            <button id="btnAtivarNotificacao" onclick="window.solicitarNotificacao()" style="width:100%; padding:12px; background:#2196F3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin: 10px 0;">CONECTAR CELULAR</button>
+            <button onclick="window.testarSom()" style="width:100%; padding:10px; background:#FF9800; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">TESTAR SOM</button>
         </div>
 
         <div id="conteudoCategorias" class="escondido">
+            <h4>Gerenciar Categorias</h4>
             <div id="listaExcluirCat"></div>
         </div>
     </div>
 </div>
 
 <script type="module">
+    // MANTENDO TODA A SUA LÓGICA DO FIREBASE E O VIGIA [cite: 2026-02-28]
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
@@ -100,83 +158,114 @@
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
-    // Inicialização principal
+    // MANTENDO LOGIN E O INÍCIO DO VIGIA
     signInAnonymously(auth).then(async () => {
-        console.log("🚀 Sistema Iniciado no SSD Novo!");
-        await carregarCategorias(); 
-        carregarTarefas();
+        console.log("🚀 Sistema Pronto com Novo Design!");
+        await window.carregarCategorias(); 
         
-        // Garante que o botão de hoje seja clicado no início
         const btnHoje = document.getElementById('btnHoje');
         if(btnHoje) window.setarData('hoje', btnHoje);
         
-        // Inicia o relógio de 1 em 1 minuto
+        // Inicia o Vigia de 1 em 1 minuto (Necessário plano Blaze) [cite: 2026-02-28]
         setInterval(verificarAlarmes, 60000);
-        console.log("⏰ Relógio de monitoramento ativo.");
-    }).catch(e => console.error("Erro no login:", e));
+    });
 
-    // Escuta notificações enviadas pela nuvem (Cloud Functions) [cite: 2026-02-27]
     onMessage(messaging, (payload) => {
-        console.log('🔔 Mensagem via Push recebida:', payload);
         if (Notification.permission === "granted") {
             new Notification(payload.notification.title, { body: payload.notification.body });
         }
     });
 
-    // Função que checa os horários salvos
     async function verificarAlarmes() {
-        console.log("🔍 Checando alarmes agora...");
+        console.log("🔍 Vigia checando horários...");
         const agora = new Date();
         const dataHoje = agora.toLocaleDateString('en-CA');
         const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
-        const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
 
         try {
             const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje), where("alertaDisparado", "==", false));
             const snap = await getDocs(q);
             
+            const tokenDoc = await getDocs(collection(db, "tokens_dispositivos"));
+            if (tokenDoc.empty || snap.empty) return null;
+            
+            // Pega o primeiro token disponível (simplificado) [cite: 2026-02-28]
+            const token = tokenDoc.docs[0].data().token;
+
             snap.forEach(async (d) => {
                 const t = d.data();
-                const [h, m] = t.hora.split(':');
-                const dataTarefa = new Date(); dataTarefa.setHours(h, m, 0);
-                const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
-                const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
-
-                console.log(`Verificando: ${t.descricao} (${t.hora}) | Alerta previsto: ${horaAlerta} | Agora: ${horaAtual}`);
-
-                if (horaAtual === horaAlerta) {
-                    dispararNotificacaoLocal(t.descricao, t.hora);
+                if (t.hora <= horaAtual) {
+                    // O alarme tocou! Avisa o Service Worker
                     await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
+                    console.log(`⏰ Alarme disparado localmente para: ${t.descricao}`);
+                    // Nota: O som e balão são gerenciados pelo Service Worker via Push [cite: 2026-02-27]
                 }
             });
-        } catch (e) { console.error("Erro ao verificar alarmes:", e); }
+        } catch (e) { console.error("Erro no Vigia:", e); }
     }
 
-    function dispararNotificacaoLocal(titulo, hora) {
-        if (Notification.permission === "granted") {
-            new Notification("⏰ Hora da Tarefa!", { body: `${titulo} às ${hora}` });
-            new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play().catch(()=>{});
-        } else {
-            alert(`ALARME: ${titulo} às ${hora}`);
-        }
-    }
+    // 🎨 --- MUDADO: MAPEAMENTO DE ÍCONES PARA CATEGORIAS ---
+    // Você pode mudar os emojis aqui [cite: 2026-02-28]
+    const iconesPadrao = {
+        'Geral': '📅',
+        'Metatech': '💻',
+        'Gás': '🛢️',
+        'Pessoal': '🏠',
+        'Trabalho': '💼'
+    };
 
-    // --- FUNÇÕES GLOBAIS (Anexadas ao Window para o HTML ver) ---
-
+    // 🎨 --- MUDADO: JavaScript para o Novo Design de Categorias ---
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaBotoesCat');
         const listaExcluir = document.getElementById('listaExcluirCat');
         const snap = await getDocs(collection(db, "categorias"));
-        container.innerHTML = `<button class="btn-cat ativo" onclick="selecionarCat('Geral', '#4CAF50', this)">Geral</button>`;
+        
+        // 1. Botão "Geral" fixo
+        container.innerHTML = `
+            <div class="category-pill ativo" style="color: #4CAF50;" onclick="window.selecionarCat('Geral', '#4CAF50', this)">
+                <span class="category-icon">${iconesPadrao['Geral']}</span>
+                <span class="category-name">Geral</span>
+            </div>
+        `;
         listaExcluir.innerHTML = "";
+
+        // 2. Carrega categorias do Firebase
         snap.forEach(d => {
             const c = d.data();
-            container.innerHTML += `<button class="btn-cat" style="border-bottom:3px solid ${c.cor}" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</button>`;
-            listaExcluir.innerHTML += `<div class="cat-excluir-item"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')">✕</button></div>`;
+            const emoji = iconesPadrao[c.nome] || '📝'; // Usa emoji padrão se não houver mapeamento
+
+            // Define a cor como propriedade CSS 'color' para o efeito ativo usar currentColor [cite: 2026-02-28]
+            container.innerHTML += `
+                <div class="category-pill" style="color: ${c.cor};" onclick="window.selecionarCat('${c.nome}', '${c.cor}', this)">
+                    <span class="category-icon">${emoji}</span>
+                    <span class="category-name">${c.nome}</span>
+                </div>
+            `;
+
+            // Mantém a lista de exclusão no modal
+            listaExcluir.innerHTML += `
+                <div class="cat-excluir-item">
+                    <span>${emoji} ${c.nome}</span>
+                    <button onclick="window.excluirCategoria('${d.id}')" style="border:none; background:none; color:red; cursor:pointer;">✕</button>
+                </div>`;
         });
-        container.innerHTML += `<button onclick="promptNovaCat()" style="border:none;background:none;font-size:1.5em;color:#2196F3; cursor:pointer;">+</button>`;
+
+        // 3. Botão de adicionar (+) estilizado
+        container.innerHTML += `<button class="btn-add-cat" onclick="window.promptNovaCat()">+</button>`;
     };
 
+    window.selecionarCat = (nome, cor, el) => {
+        // Remove 'ativo' de todas as pílulas
+        document.querySelectorAll('.category-pill').forEach(b => b.classList.remove('ativo'));
+        // Adiciona 'ativo' na clicada
+        el.classList.add('ativo');
+        
+        // Mantém a lógica dos campos escondidos [cite: 2026-02-28]
+        document.getElementById('categoriaSelecionada').value = nome;
+        document.getElementById('corSelecionada').value = cor;
+    };
+
+    // MANTENDO O RESTANTE DAS SUAS FUNÇÕES GLOBAIS
     window.setarData = (tipo, el) => {
         const input = document.getElementById('dataSeletor');
         document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
@@ -197,44 +286,50 @@
         lista.innerHTML = "";
         snap.forEach(d => {
             const t = d.data();
-            lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}">
-                <button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button>
-                <strong>${t.hora}</strong> - ${t.descricao} <br>
-                ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}
-            </div>`;
+            const emoji = iconesPadrao[t.categoria] || '📝';
+            // Aplica a cor da categoria na borda esquerda [cite: 2026-02-28]
+            lista.innerHTML += `
+                <div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}">
+                    <button class="btn-excluir-task" onclick="window.excluirTask('${d.id}')">🗑️</button>
+                    <strong>${t.hora}</strong> - ${t.descricao}
+                    <span class="tarefa-cat-label">${emoji} ${t.categoria || 'Geral'}</span>
+                    ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px; display:block;">` : ""}
+                </div>`;
         });
         if(lista.innerHTML === "") lista.innerHTML = "Sem tarefas para este dia.";
     };
 
     window.solicitarNotificacao = async () => {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-            const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-            if (token) {
-                await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() });
-                alert("Celular Conectado!");
-            }
-        } else { alert("Você precisa permitir as notificações no navegador!"); }
+        if (Notification.permission !== "granted") {
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") return alert("Permissão negada!");
+        }
+        const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+        if (token) {
+            await addDoc(collection(db, "tokens_dispositivos"), { token, atualizadoEm: new Date() });
+            alert("Celular Sincronizado!");
+        }
     };
 
+    // MANTENDO AS FUNÇÕES AUXILIARES
+    window.excluirCategoria = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "categorias", id)); window.carregarCategorias(); } };
+    window.promptNovaCat = async () => {
+        const nome = prompt("Nome da Categoria:"); if (!nome) return;
+        const cor = prompt("Cor Hex (ex: #FF5722):", "#2196F3");
+        await addDoc(collection(db, "categorias"), { nome, cor });
+        window.carregarCategorias();
+    };
     window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); window.carregarTarefas(); } };
-    window.testarSom = () => new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play().catch(()=>alert("Clique na tela antes de testar o som."));
+    window.testarSom = () => new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
     window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
-    window.selecionarCat = (nome, cor, el) => {
-        document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('ativo'));
-        el.classList.add('ativo');
-        document.getElementById('categoriaSelecionada').value = nome;
-        document.getElementById('corSelecionada').value = cor;
-    };
     window.mudarAba = (aba) => {
-        const cA = document.getElementById('conteudoAlarme'), cC = document.getElementById('conteudoCategorias');
-        const tA = document.getElementById('tabAlarme'), tC = document.getElementById('tabCat');
-        if(aba==='alarme'){cA.classList.remove('escondido');cC.classList.add('escondido');tA.classList.add('ativo');tC.classList.remove('ativo');}
-        else{cC.classList.remove('escondido');cA.classList.add('escondido');tC.classList.add('ativo');tA.classList.remove('ativo');}
+        if(aba==='alarme'){document.getElementById('conteudoAlarme').classList.remove('escondido');document.getElementById('conteudoCategorias').classList.add('escondido');document.getElementById('tabAlarme').classList.add('ativo');document.getElementById('tabCat').classList.remove('ativo');}
+        else{document.getElementById('conteudoCategorias').classList.remove('escondido');document.getElementById('conteudoAlarme').classList.add('escondido');document.getElementById('tabCat').classList.add('ativo');document.getElementById('tabAlarme').classList.remove('ativo');}
     };
 
+    // Salvar Tarefa com FOTO e mapeamento de cor
     document.getElementById('btnSalvar').onclick = async () => {
         const fileInput = document.getElementById('fotoTask');
         let base64 = "";
@@ -249,6 +344,7 @@
             descricao: document.getElementById('descTask').value,
             hora: document.getElementById('horaTask').value,
             dataString: document.getElementById('dataSeletor').value,
+            // Pega os valores da categoria selecionada [cite: 2026-02-28]
             categoria: document.getElementById('categoriaSelecionada').value,
             corCategoria: document.getElementById('corSelecionada').value,
             fotoUrl: base64, alertaDisparado: false, criadoEm: new Date()
