@@ -391,10 +391,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
 
         let linksFotos = [];
         try {
-            for (let base64 of fotosNovasArray) {
-                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${Math.random().toString(36).substr(2,5)}.jpg`);
-                // Envia a foto do jeito que o Firebase gosta
-                const snap = await uploadString(sRef, base64, 'data_url');
+            for (let file of fotosNovasArray) {
+                // Envia o arquivo de foto diretamente (Adeus Erro 400!)
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
+                const snap = await uploadBytes(sRef, file);
                 linksFotos.push(await getDownloadURL(snap.ref));
             }
             await addDoc(collection(db, "tarefas"), { 
@@ -432,9 +432,22 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
         finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
     };
     
-    window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); }; r.readAsDataURL(f); }); input.value = ""; };
-    const renderizarPreviewFotosNovas = () => { document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); };
-    window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
+window.prepararFotosNovas = (input) => { 
+        Array.from(input.files).forEach(f => { 
+            if (fotosNovasArray.length >= 4) return; 
+            fotosNovasArray.push(f); // Salva o ARQUIVO REAL em vez do texto
+            renderizarPreviewFotosNovas(); 
+        }); 
+        input.value = ""; 
+    };
+    const renderizarPreviewFotosNovas = () => { 
+        document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((file, idx) => `
+            <div class="foto-wrapper">
+                <img src="${URL.createObjectURL(file)}" class="img-tarefa">
+                <button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button>
+            </div>`).join(''); 
+    };
+	window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
     // --- FILTROS, BUSCA E UI GERAL ---
     window.setarData = (tipo, el) => {
