@@ -15,14 +15,17 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function(payload) {
   console.log('[firebase-messaging-sw.js] Notificação recebida em segundo plano: ', payload);
 
-  const notificationTitle = payload.data.title || 'Lembrete da Agenda';
-  // Lemos o payload para saber se o usuário marcou como 'fixa' no app
-  const ehFixa = payload.data.tipo === 'fixa'; 
+  // Agora ele lê do lugar exato que o Node.js envia (payload.notification)
+  const notificationTitle = payload.notification?.title || 'Lembrete da Agenda';
+  const notificationBody = payload.notification?.body || 'Você tem um compromisso!';
+
+  // Agora ele lê a variável certa do Node.js (comportamento)
+  const ehFixa = payload.data?.comportamento === 'fixa'; 
 
   const notificationOptions = {
-    body: payload.data.body || 'Você tem um compromisso agora!',
+    body: notificationBody,
     icon: 'https://cdn-icons-png.flaticon.com/512/2693/2693507.png',
-    requireInteraction: ehFixa // Faz a notificação travar na tela se for verdadeira
+    requireInteraction: ehFixa // Trava na tela se for fixa
   };
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
