@@ -186,11 +186,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebas
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
     import { getStorage, ref, uploadBytes, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 	
-    const firebaseConfig = {
+const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
         projectId: "agenda-4efa7",
-        storageBucket: "agenda-4efa7.appspot.com",
+        storageBucket: "agenda-4efa7.firebasestorage.app", // <--- AQUI ESTÁ A MÁGICA!
         appId: "1:299659202964:web:e358210feb4d7784f63f81",
         messagingSenderId: "299659202964" 
     };
