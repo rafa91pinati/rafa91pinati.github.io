@@ -402,56 +402,75 @@ onAuthStateChanged(auth, (user) => {
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
 window.salvarNovaTarefa = async () => {
-        const desc = document.getElementById('descTask').value;
-        if(!desc) return alert("Dê um nome!");
-        const btn = document.getElementById('btnSalvar');
-        btn.innerHTML = "⏳ Subindo arquivos..."; btn.disabled = true;
+    const desc = document.getElementById('descTask').value;
+    if(!desc || !window.usuarioLogado) return alert("Verifique a descrição ou login!");
+    
+    const btn = document.getElementById('btnSalvar');
+    btn.innerHTML = "⏳ Subindo arquivos...";
+    btn.disabled = true;
 
-        let linksFotos = [];
-        try {
-            for (let base64 of fotosNovasArray) {
-                // Dentro do loop de fotos da função salvarNovaTarefa:
-                const blob = await (await fetch(base64)).blob(); // Converte texto em arquivo real
-                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}.jpg`);
-                const snap = await uploadBytes(sRef, blob);
-                const url = await getDownloadURL(snap.ref);
-                linksFotos.push(url);
-            }
-            await addDoc(collection(db, "tarefas"), { 
-                uid: window.usuarioLogado.uid,
-                descricao: desc, 
-                hora: document.getElementById('horaTask').value, 
-                dataString: document.getElementById('dataSeletor').value, 
-                categoria: categoriaFiltroAtiva, 
-                fotos: linksFotos, 
-                criadoEm: new Date(),
-                alarmeAtivo: true, alertaDisparado: false 
-            });
-            fotosNovasArray = []; document.getElementById('descTask').value = "";
-            document.getElementById('previewFotosNovas').innerHTML = ""; carregarTarefas();
-        } catch (e) { alert("Erro ao salvar."); }
-        finally { btn.innerHTML = "Salvar na Nuvem"; btn.disabled = false; }
-    };
+    let linksFotos = [];
+    try {
+        for (let base64 of fotosNovasArray) {
+            // CONVERSÃO ESSENCIAL PARA O STORAGE
+            const blob = await (await fetch(base64)).blob();
+            const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${Math.random().toString(36).substr(2,5)}.jpg`);
+            const snap = await uploadBytes(sRef, blob);
+            const url = await getDownloadURL(snap.ref);
+            linksFotos.push(url);
+        }
+
+        await addDoc(collection(db, "tarefas"), { 
+            uid: window.usuarioLogado.uid,
+            descricao: desc, 
+            hora: document.getElementById('horaTask').value, 
+            dataString: document.getElementById('dataSeletor').value, 
+            categoria: categoriaFiltroAtiva, 
+            fotos: linksFotos, 
+            criadoEm: new Date(),
+            alarmeAtivo: true, alertaDisparado: false 
+        });
+        
+        fotosNovasArray = []; document.getElementById('descTask').value = "";
+        document.getElementById('previewFotosNovas').innerHTML = ""; 
+        carregarTarefas();
+        alert("Salvo com sucesso!");
+    } catch (e) { 
+        console.error(e);
+        alert("Erro ao salvar. Verifique se as regras do Storage foram publicadas."); 
+    } finally { 
+        btn.innerHTML = "Salvar na Nuvem"; 
+        btn.disabled = false; 
+    }
+};
 
     window.subirArquivoFixo = async () => {
-        const file = document.getElementById('inputArquivoFixo').files[0];
-        const nome = document.getElementById('nomeArquivoFixo').value;
-        if(!file || !nome) return alert("Preencha tudo!");
-        const btn = document.getElementById('btnSubirFixo');
-        btn.innerHTML = "⏳ Enviando..."; btn.disabled = true;
-        try {
-            const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
-            const snap = await uploadBytes(sRef, file);
-            const url = await getDownloadURL(snap.ref);
-            await addDoc(collection(db, "arquivos_fixos"), {
-                uid: window.usuarioLogado.uid, Nomearquivo: nome,
-                categoria: document.getElementById('catArquivoFixo').value,
-                link: url, dataUpload: new Date()
-            });
-            alert("Sucesso!"); carregarArquivosFixos();
-        } catch (e) { alert("Erro no upload."); }
-        finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
-    };
+    const file = document.getElementById('inputArquivoFixo').files[0];
+    const nome = document.getElementById('nomeArquivoFixo').value;
+    if(!file || !nome || !window.usuarioLogado) return alert("Preencha tudo!");
+
+    const btn = document.getElementById('btnSubirFixo');
+    btn.innerHTML = "⏳ Enviando...";
+    btn.disabled = true;
+
+    try {
+        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
+        const snapshot = await uploadBytes(sRef, file);
+        const url = await getDownloadURL(snapshot.ref);
+
+        await addDoc(collection(db, "arquivos_fixos"), {
+            uid: window.usuarioLogado.uid,
+            Nomearquivo: nome,
+            categoria: document.getElementById('catArquivoFixo').value,
+            link: url,
+            dataUpload: new Date()
+        });
+
+        alert("Arquivo fixo salvo!");
+        carregarArquivosFixos();
+    } catch (e) { alert("Erro no upload."); }
+    finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
+};
 	
 	
     window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); }; r.readAsDataURL(f); }); input.value = ""; };
@@ -470,33 +489,36 @@ window.salvarNovaTarefa = async () => {
     };
 
     window.carregarTarefas = async () => {
-    if (!window.usuarioLogado) return; // Segurança: Não busca se não estiver logado
-
+    if (!window.usuarioLogado) return;
     const lista = document.getElementById('listaTarefas');
     const dataFiltro = document.getElementById('dataSeletor').value;
-    let q;
+    
+    // Adicionado filtro de UID para segurança
+    const q = query(collection(db, "tarefas"), 
+              where("uid", "==", window.usuarioLogado.uid), 
+              where("dataString", "==", dataFiltro), 
+              orderBy("hora", "asc"));
 
-    // Adicionamos o filtro: where("uid", "==", window.usuarioLogado.uid)
-    if (tipoFiltroTempo === 'semana') {
-        q = query(collection(db, "tarefas"), 
-            where("uid", "==", window.usuarioLogado.uid), // Filtro de dono
-            where("dataString", ">=", dataInicioSemana), 
-            where("dataString", "<=", dataFimSemana), 
-            orderBy("dataString", "asc")
-        );
-    } else {
-        q = query(collection(db, "tarefas"), 
-            where("uid", "==", window.usuarioLogado.uid), // Filtro de dono
-            where("dataString", "==", dataFiltro), 
-            orderBy("hora", "asc")
-        );
-		}
+    try {
         const snap = await getDocs(q);
         lista.innerHTML = "";
-        
         let tarefas = [];
         snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
+        window.tarefasMonitoramento = tarefas;
 
+        tarefas.forEach(t => {
+            lista.innerHTML += `
+                <div class="tarefa-item">
+                    <div class="tarefa-content">
+                        <div style="font-weight:bold;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
+                        <div class="container-fotos">${(t.fotos || []).map(img => `<img src="${img}" class="img-tarefa">`).join('')}</div>
+                        <button onclick="excluirTask('${t.id}')" style="position:absolute; right:10px; top:10px; background:none; border:none; color:red; cursor:pointer;">✕</button>
+                    </div>
+                </div>`;
+        });
+        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center;'>Nenhuma atividade encontrada.</p>";
+    } catch (e) { console.error("Erro ao carregar:", e); }
+};
         window.tarefasMonitoramento = tarefas;
 
         if (tipoFiltroTempo === 'semana') tarefas.sort((a, b) => { if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); return a.dataString.localeCompare(b.dataString); });
