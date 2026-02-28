@@ -4,12 +4,11 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.9.9.7</title>
+    <title>Minha Agenda Inteligente - v1.9.9.8</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #1c1e21; }
         .container { max-width: 480px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* CABEÇALHO DINÂMICO */
         .timeline-header { display: flex; gap: 4px; margin-bottom: 20px; align-items: center; width: 100%; box-sizing: border-box; }
         .btn-date { flex: 1; padding: 10px 2px; border-radius: 25px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; min-width: 0; }
         .btn-date.ativo { background: #007bff; color: white; border-color: #007bff; }
@@ -22,10 +21,7 @@
         .seta-secao { transition: transform 0.3s; font-size: 0.7rem; transform: rotate(-90deg); }
         .seta-expandida { transform: rotate(0deg); }
 
-        /* COMPONENTES 100% DINÂMICOS */
-        textarea, input[type="text"], input[type="time"], select, input[type="number"] { 
-            width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; resize: none; 
-        }
+        textarea, input[type="text"], input[type="time"], select, input[type="number"] { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; resize: none; }
         
         .tarefa-item { background: #fff; margin-bottom: 10px; padding: 12px; border-radius: 12px; border-left: 6px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .tarefa-content { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; position: relative; }
@@ -52,7 +48,6 @@
         .modal-foto { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: flex; align-items: center; justify-content: center; }
         .modal-foto img { max-width: 95%; max-height: 85%; border-radius: 10px; }
 
-        /* Abas Configuração */
         .tablink { background-color: transparent; border: none; border-bottom: 3px solid transparent; border-radius: 0; }
         .tablink.active { border-bottom: 3px solid #007bff; color: #007bff; }
         .tabcontent { animation: fadeIn 0.3s; }
@@ -108,16 +103,17 @@
       <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência (minutos):</label>
       <input type="number" id="tempoAntecedencia" value="10">
       
-      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme:</label>
+      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme (Internet):</label>
       <div style="display: flex; gap: 8px; margin-bottom: 15px;">
         <select id="somAlarmeSelecionado" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-          <option value="alarme.mp3">Alarme Padrão</option>
-          <option value="notificacao.mp3">Notificação Curta</option>
+          <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Relógio Digital</option>
+          <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Bip Curto</option>
+          <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Corneta</option>
         </select>
         <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
       </div>
 
-      <button onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar Notificações Push</button>
+      <button onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Permitir Notificações Locais</button>
     </div>
 
     <div id="abaCategorias" class="tabcontent" style="display: none;">
@@ -127,12 +123,9 @@
         <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1;">
         <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
       </div>
-      
       <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-      
       <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
-      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;">
-        </ul>
+      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
     </div>
   </div>
 </div>
@@ -145,44 +138,37 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
         projectId: "agenda-4efa7",
         storageBucket: "agenda-4efa7.appspot.com",
-        messagingSenderId: "299659202964",
         appId: "1:299659202964:web:e358210feb4d7784f63f81"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const messaging = getMessaging(app);
 
     let idEmEdicao = null;
     let fotosTemporarias = []; 
     let fotosNovasArray = [];  
     let categoriaFiltroAtiva = "Geral";
-    
-    // Variáveis para o filtro de tempo
     let tipoFiltroTempo = 'dia'; 
     let dataInicioSemana = '';
     let dataFimSemana = '';
+    
+    // Variável global para armazenar todas as tarefas ativas do dia
+    window.tarefasMonitoramento = [];
 
     signInAnonymously(auth).then(async () => {
         await carregarCategorias(); 
         setarData('hoje', document.getElementById('btnHoje'));
     });
 
-    // --- CONTROLES DO MENU DE CONFIGURAÇÕES (v1.9.9.7) ---
-    window.abrirConfig = () => { 
-        document.getElementById('modalConfiguracoes').style.display = 'flex'; 
-        carregarCategoriasModal(); 
-    };
+    window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
     window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
-    
     window.abrirAba = (evt, nomeAba) => {
         let i, tabcontent, tablinks;
         tabcontent = document.getElementsByClassName("tabcontent");
@@ -193,187 +179,119 @@
         evt.currentTarget.classList.add("active");
     };
 
-    // --- FUNCIONALIDADES DE ALARME E NOTIFICAÇÃO ---
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => console.log('Erro no Service Worker:', err));
-    }
-
+    // --- SISTEMA DE ALARME LOCAL (Monitora enquanto a aba existe) ---
     window.solicitarPermissaoNotificacao = () => {
         Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-                getToken(messaging, { vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8' })
-                .then((currentToken) => {
-                    if (currentToken) {
-                        alert("Notificações ativadas com sucesso!");
-                        console.log('Token:', currentToken);
-                    }
-                }).catch((err) => alert("Erro ao ativar notificações: " + err));
-            } else {
-                alert("Permissão negada pelo usuário.");
-            }
+            if (permission === 'granted') alert("Permissão concedida! Mantenha o app aberto ou minimizado para receber os alertas.");
+            else alert("Permissão negada pelo usuário.");
         });
     };
 
     window.testarAlarme = () => {
-        const som = document.getElementById('somAlarmeSelecionado').value;
-        const audio = new Audio(som);
-        audio.play().catch(e => alert("Não foi possível tocar. Verifique se o arquivo '" + som + "' está salvo na pasta."));
+        const somUrl = document.getElementById('somAlarmeSelecionado').value;
+        const audio = new Audio(somUrl);
+        audio.play().catch(e => alert("Erro ao reproduzir. O navegador pode ter bloqueado o áudio automático."));
+        if(Notification.permission === 'granted') {
+            new Notification("Teste de Alarme", { body: "O som e a notificação estão funcionando!" });
+        }
     };
 
-    onMessage(messaging, (payload) => {
-        alert(`🔔 ${payload.notification.title}\n${payload.notification.body}`);
-    });
+    // O "Motor" que checa as tarefas a cada 60 segundos
+    setInterval(() => {
+        if (Notification.permission !== "granted") return; // Só roda se tiver permissão
+        
+        const agora = new Date();
+        const dataHojeStr = agora.toLocaleDateString('en-CA');
+        const horaAtualMinutos = agora.getHours() * 60 + agora.getMinutes();
+        
+        const antecedencia = parseInt(document.getElementById('tempoAntecedencia').value) || 0;
+        const somUrl = document.getElementById('somAlarmeSelecionado').value;
 
-    // --- GERENCIADOR DE CATEGORIAS (v1.9.9.7) ---
+        window.tarefasMonitoramento.forEach(t => {
+            if (t.dataString === dataHojeStr && t.hora) {
+                const [h, m] = t.hora.split(':').map(Number);
+                const horaTarefaMinutos = (h * 60) + m;
+                
+                // Se faltam exatos 'antecedencia' minutos para a tarefa:
+                if (horaTarefaMinutos - antecedencia === horaAtualMinutos) {
+                    new Notification("Lembrete da Agenda", {
+                        body: `Sua tarefa "${t.descricao}" começa às ${t.hora}!`,
+                        requireInteraction: true
+                    });
+                    const audio = new Audio(somUrl);
+                    audio.play().catch(console.error);
+                }
+            }
+        });
+    }, 60000); // 60000 ms = 1 minuto
+
+    // --- GERENCIADOR DE CATEGORIAS ---
     window.adicionarCategoria = async () => {
         const nome = document.getElementById('novaCategoria').value;
         const cor = document.getElementById('corNovaCategoria').value;
-        if(!nome) return alert("Digite um nome para a categoria!");
-        
+        if(!nome) return alert("Digite um nome!");
         await addDoc(collection(db, "categorias"), { nome: nome, cor: cor });
-        document.getElementById('novaCategoria').value = ""; 
-        carregarCategoriasModal(); 
-        carregarCategorias(); 
+        document.getElementById('novaCategoria').value = ""; carregarCategoriasModal(); carregarCategorias(); 
     };
-
     window.carregarCategoriasModal = async () => {
         const lista = document.getElementById('listaCategoriasModal');
-        lista.innerHTML = "<p style='text-align:center; font-size: 12px; color: #888;'>Carregando...</p>";
-        
+        lista.innerHTML = "<p style='text-align:center;'>Carregando...</p>";
         const snap = await getDocs(collection(db, "categorias"));
         lista.innerHTML = "";
-        
         snap.forEach(d => {
             const c = d.data();
             lista.innerHTML += `
                 <li style="display:flex; align-items:center; gap:10px; margin-bottom:10px; background:#f8f9fa; padding:10px; border-radius:8px; border: 1px solid #eee;">
-                    <input type="color" id="cor-edit-${d.id}" value="${c.cor}" style="width:35px; height:35px; padding:0; border:none; border-radius:4px; cursor:pointer;" onchange="atualizarCorCategoria('${d.id}')">
+                    <input type="color" id="cor-edit-${d.id}" value="${c.cor}" style="width:35px; height:35px; border:none; border-radius:4px; cursor:pointer;" onchange="atualizarCorCategoria('${d.id}')">
                     <span style="flex:1; font-weight:bold; color: #333;">${c.nome}</span>
-                    <button onclick="excluirCategoria('${d.id}')" style="background:#ff4d4d; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold;">🗑️</button>
-                </li>
-            `;
+                    <button onclick="excluirCategoria('${d.id}')" style="background:#ff4d4d; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">🗑️</button>
+                </li>`;
         });
     };
-
-    window.atualizarCorCategoria = async (id) => {
-        const novaCor = document.getElementById(`cor-edit-${id}`).value;
-        await updateDoc(doc(db, "categorias", id), { cor: novaCor });
-        carregarCategorias(); 
-    };
-
-    window.excluirCategoria = async (id) => {
-        if(confirm("Tem certeza que deseja apagar esta categoria?")) {
-            await deleteDoc(doc(db, "categorias", id));
-            carregarCategoriasModal(); 
-            carregarCategorias(); 
-        }
-    };
+    window.atualizarCorCategoria = async (id) => { await updateDoc(doc(db, "categorias", id), { cor: document.getElementById(`cor-edit-${id}`).value }); carregarCategorias(); };
+    window.excluirCategoria = async (id) => { if(confirm("Apagar categoria?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategoriasModal(); carregarCategorias(); } };
 
     // --- EDIÇÃO (ARQUIVO E SALVAR) ---
-    window.ativarEdicao = (id, fotos) => {
-        if(idEmEdicao === id) idEmEdicao = null; 
-        else { idEmEdicao = id; fotosTemporarias = [...fotos]; }
-        carregarTarefas();
-    };
-
+    window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
     window.removerFotoTemporaria = (idx) => { fotosTemporarias.splice(idx, 1); renderizarFotosEdicao(); };
     window.renderizarFotosEdicao = () => {
         const container = document.getElementById(`container-fotos-edit-${idEmEdicao}`);
         if(!container) return;
-        container.innerHTML = fotosTemporarias.map((img, idx) => `
-            <div class="foto-wrapper">
-                <img src="${img}" class="img-tarefa">
-                <button class="btn-remover-foto" onclick="event.stopPropagation(); removerFotoTemporaria(${idx});">×</button>
-            </div>`).join('');
+        container.innerHTML = fotosTemporarias.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="event.stopPropagation(); removerFotoTemporaria(${idx});">×</button></div>`).join('');
     };
-
-    window.adicionarFotosEdicao = (input) => {
-        Array.from(input.files).forEach(file => {
-            if (fotosTemporarias.length >= 4) return;
-            const reader = new FileReader();
-            reader.onloadend = () => { fotosTemporarias.push(reader.result); renderizarFotosEdicao(); };
-            reader.readAsDataURL(file);
-        });
-        input.value = "";
-    };
-
-    window.salvarAlteracoes = async (id) => {
-        const novaDesc = document.getElementById(`edit-desc-${id}`).value;
-        const novaHora = document.getElementById(`edit-hora-${id}`).value;
-        await updateDoc(doc(db, "tarefas", id), { descricao: novaDesc, hora: novaHora, fotos: fotosTemporarias });
-        idEmEdicao = null; carregarTarefas();
-    };
+    window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
+    window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
     // --- NOVA TAREFA ---
     window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
         if(!desc) return alert("Digite a descrição!");
-        await addDoc(collection(db, "tarefas"), {
-            descricao: desc, hora: document.getElementById('horaTask').value,
-            dataString: document.getElementById('dataSeletor').value,
-            categoria: categoriaFiltroAtiva, fotos: fotosNovasArray, criadoEm: new Date()
-        });
+        await addDoc(collection(db, "tarefas"), { descricao: desc, hora: document.getElementById('horaTask').value, dataString: document.getElementById('dataSeletor').value, categoria: categoriaFiltroAtiva, fotos: fotosNovasArray, criadoEm: new Date() });
         document.getElementById('descTask').value = ""; fotosNovasArray = []; renderizarPreviewFotosNovas(); carregarTarefas();
     };
-
-    window.prepararFotosNovas = (input) => {
-        Array.from(input.files).forEach(f => {
-            if (fotosNovasArray.length >= 4) return;
-            const r = new FileReader();
-            r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); };
-            r.readAsDataURL(f);
-        });
-        input.value = "";
-    };
-
-    const renderizarPreviewFotosNovas = () => {
-        document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join('');
-    };
+    window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosNovasArray.push(r.result); renderizarPreviewFotosNovas(); }; r.readAsDataURL(f); }); input.value = ""; };
+    const renderizarPreviewFotosNovas = () => { document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); };
     window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
-    // --- FILTROS DE TEMPO CORRIGIDO ---
+    // --- FILTROS DE TEMPO ---
     window.setarData = (tipo, el) => {
-        const input = document.getElementById('dataSeletor');
-        const hoje = new Date();
-        tipoFiltroTempo = 'dia'; 
-
-        if (tipo === 'hoje') {
-            input.value = hoje.toLocaleDateString('en-CA');
-        } else if (tipo === 'amanha') {
-            const am = new Date(); am.setDate(hoje.getDate() + 1);
-            input.value = am.toLocaleDateString('en-CA');
-        } else if (tipo === 'semana') {
-            tipoFiltroTempo = 'semana';
-            const primeiroDia = new Date(hoje);
-            primeiroDia.setDate(hoje.getDate() - hoje.getDay());
-            const ultimoDia = new Date(primeiroDia);
-            ultimoDia.setDate(primeiroDia.getDate() + 6);
-            
-            dataInicioSemana = primeiroDia.toLocaleDateString('en-CA');
-            dataFimSemana = ultimoDia.toLocaleDateString('en-CA');
-            input.value = dataInicioSemana; // Visual apenas
-        } else if (tipo === 'custom') {
-            tipoFiltroTempo = 'dia';
-        }
-
-        if(el) { 
-            document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); 
-            if(el.tagName === 'BUTTON') el.classList.add('ativo'); 
-        }
+        const input = document.getElementById('dataSeletor'); const hoje = new Date(); tipoFiltroTempo = 'dia'; 
+        if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
+        else if (tipo === 'amanha') { const am = new Date(); am.setDate(hoje.getDate() + 1); input.value = am.toLocaleDateString('en-CA'); }
+        else if (tipo === 'semana') { tipoFiltroTempo = 'semana'; const p = new Date(hoje); p.setDate(hoje.getDate() - hoje.getDay()); const u = new Date(p); u.setDate(p.getDate() + 6); dataInicioSemana = p.toLocaleDateString('en-CA'); dataFimSemana = u.toLocaleDateString('en-CA'); input.value = dataInicioSemana; }
+        else if (tipo === 'custom') tipoFiltroTempo = 'dia';
+        if(el) { document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); if(el.tagName === 'BUTTON') el.classList.add('ativo'); }
         carregarTarefas();
     };
 
-    // --- LISTAGEM E RENDERIZAÇÃO ---
+    // --- LISTAGEM ---
     window.carregarTarefas = async () => {
         const lista = document.getElementById('listaTarefas');
         const dataFiltro = document.getElementById('dataSeletor').value;
         let q;
 
-        if (tipoFiltroTempo === 'semana') {
-            q = query(collection(db, "tarefas"), where("dataString", ">=", dataInicioSemana), where("dataString", "<=", dataFimSemana), orderBy("dataString", "asc"));
-        } else {
-            q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
-        }
+        if (tipoFiltroTempo === 'semana') q = query(collection(db, "tarefas"), where("dataString", ">=", dataInicioSemana), where("dataString", "<=", dataFimSemana), orderBy("dataString", "asc"));
+        else q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
 
         const snap = await getDocs(q);
         lista.innerHTML = "";
@@ -381,22 +299,15 @@
         let tarefas = [];
         snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
 
-        if (tipoFiltroTempo === 'semana') {
-            tarefas.sort((a, b) => {
-                if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00");
-                return a.dataString.localeCompare(b.dataString);
-            });
-        }
-        if (categoriaFiltroAtiva !== "Geral") {
-            tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
-        }
+        // Atualiza a variável global do motor de alarmes com TODAS as tarefas carregadas antes de filtrar por categoria
+        window.tarefasMonitoramento = tarefas;
+
+        if (tipoFiltroTempo === 'semana') tarefas.sort((a, b) => { if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); return a.dataString.localeCompare(b.dataString); });
+        if (categoriaFiltroAtiva !== "Geral") tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
 
         tarefas.forEach(t => {
-            const isEditando = idEmEdicao === t.id;
-            const listaFotos = t.fotos || [];
-            
-            const dataObj = new Date(t.dataString + 'T00:00:00');
-            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+            const isEditando = idEmEdicao === t.id; const listaFotos = t.fotos || [];
+            const dataObj = new Date(t.dataString + 'T00:00:00'); const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
             lista.innerHTML += `
                 <div class="tarefa-item">
@@ -429,18 +340,8 @@
     };
 
     // --- AUXILIARES ---
-    window.carregarCategorias = async () => {
-        const container = document.getElementById('listaCategorias');
-        const snap = await getDocs(collection(db, "categorias"));
-        container.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`;
-        snap.forEach(d => container.innerHTML += `<div class="category-tab" onclick="selecionarCat('${d.data().nome}', '${d.data().cor}', this)">${d.data().nome}</div>`);
-    };
-    window.selecionarCat = (nome, cor, el) => {
-        categoriaFiltroAtiva = nome;
-        document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; });
-        if(el) { el.style.backgroundColor = cor; el.style.color = 'white'; }
-        carregarTarefas();
-    };
+    window.carregarCategorias = async () => { const c = document.getElementById('listaCategorias'); const s = await getDocs(collection(db, "categorias")); c.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`; s.forEach(d => c.innerHTML += `<div class="category-tab" onclick="selecionarCat('${d.data().nome}', '${d.data().cor}', this)">${d.data().nome}</div>`); };
+    window.selecionarCat = (nome, cor, el) => { categoriaFiltroAtiva = nome; document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; }); if(el) { el.style.backgroundColor = cor; el.style.color = 'white'; } carregarTarefas(); };
     window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
