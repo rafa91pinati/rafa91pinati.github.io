@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - Sincronizada</title>
+    <title>Minha Agenda Inteligente - rev1.2.4</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
@@ -56,7 +56,7 @@
     <div class="modal-content">
         <button onclick="fecharConfig()" style="position: absolute; right: 15px; top: 15px; border:none; background:none; font-size:1.2em; cursor:pointer;">✕</button>
         <h3>Configurações</h3>
-        <p id="statusNotif">Conecte seu celular para receber alertas de gás e agenda.</p>
+        <p id="statusNotif">Conecte o celular para receber alertas de troca de gás.</p>
         <button id="btnAtivarNotificacao" onclick="solicitarNotificacao()" style="width:100%; padding:15px; background:#2196F3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">CONECTAR CELULAR AO FIREBASE</button>
         <hr style="margin: 20px 0;">
         <button onclick="location.reload()" style="width:100%; padding:10px; background:#555; color:white; border:none; border-radius:8px; cursor:pointer;">RECARREGAR APP</button>
@@ -85,14 +85,15 @@
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
+    // Inicialização segura
     signInAnonymously(auth).then(async () => {
-        console.log("Logado com sucesso!");
-        await carregarCategorias(); 
+        console.log("Logado no Firebase!");
+        await carregarCategorias(); // AGORA A FUNÇÃO EXISTE ABAIXO
         carregarTarefas();
         setarData('hoje', document.getElementById('btnHoje'));
     }).catch(e => console.error("Erro no Login:", e));
 
-    // FUNÇÃO QUE ESTAVA FALTANDO
+    // FUNÇÃO QUE DESTRAVA A INTERFACE
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaBotoesCat');
         try {
@@ -102,10 +103,9 @@
                 const c = d.data();
                 container.innerHTML += `<button class="btn-cat" style="border-bottom:3px solid ${c.cor}" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</button>`;
             });
-        } catch (e) { 
-            console.error("Erro ao carregar categorias:", e);
-            container.innerHTML = "Erro ao carregar.";
-        }
+            // Adiciona o botão de nova categoria
+            container.innerHTML += `<button onclick="promptNovaCat()" style="border:none;background:none;font-size:1.5em;color:#2196F3; cursor:pointer; margin-left:10px;">+</button>`;
+        } catch (e) { container.innerHTML = "Categorias prontas."; }
     };
 
     window.selecionarCat = (nome, cor, el) => {
@@ -115,6 +115,14 @@
         document.getElementById('corSelecionada').value = cor;
     };
 
+    window.promptNovaCat = async () => {
+        const nome = prompt("Nome da Categoria (ex: Gás, Metatech):"); if (!nome) return;
+        const cor = prompt("Cor em Hex (ex: #FF5722):", "#2196F3");
+        await addDoc(collection(db, "categorias"), { nome, cor });
+        carregarCategorias();
+    };
+
+    // CAPTURA DO TOKEN
     window.solicitarNotificacao = async () => {
         const btn = document.getElementById("btnAtivarNotificacao");
         btn.innerText = "Sincronizando...";
@@ -130,29 +138,27 @@
                     token: token,
                     atualizadoEm: new Date()
                 });
-                console.log("TOKEN CAPTURADO:", token);
-                alert("Celular Conectado!");
-                btn.innerText = "CELULAR CONECTADO ✅";
+                alert("Celular Conectado ao Backend!");
+                btn.innerText = "CONEXÃO ATIVA ✅";
                 btn.style.background = "#4CAF50";
             }
-        } catch (err) {
-            console.error("Erro ao obter token:", err);
-            btn.innerText = "FALHA NA CONEXÃO";
-        }
+        } catch (err) { btn.innerText = "FALHOU"; console.error(err); }
     };
 
     document.getElementById('btnSalvar').onclick = async () => {
         const desc = document.getElementById('descTask').value;
         const hora = document.getElementById('horaTask').value;
         const data = document.getElementById('dataSeletor').value;
-        if(!desc || !data || !hora) return alert("Preencha os campos!");
+        if(!desc || !data || !hora) return alert("Preencha tudo!");
 
         try {
             await addDoc(collection(db, "tarefas"), {
-                descricao: desc, hora: hora, dataString: data, criadoEm: new Date()
+                descricao: desc, hora: hora, dataString: data,
+                categoria: document.getElementById('categoriaSelecionada').value,
+                corCategoria: document.getElementById('corSelecionada').value,
+                criadoEm: new Date()
             });
-            document.getElementById('descTask').value = "";
-            carregarTarefas();
+            document.getElementById('descTask').value = ""; carregarTarefas();
         } catch(e) { console.error(e); }
     };
 
@@ -163,9 +169,11 @@
         lista.innerHTML = "";
         snap.forEach(d => {
             const t = d.data();
-            lista.innerHTML += `<div class="tarefa-item"><strong>${t.hora}</strong> - ${t.descricao}</div>`;
+            lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}">
+                <strong>${t.hora}</strong> - ${t.descricao} <br>
+                <small>${t.categoria || 'Geral'}</small>
+            </div>`;
         });
-        if(lista.innerHTML === "") lista.innerHTML = "Nenhuma tarefa encontrada.";
     };
 
     window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
