@@ -4,9 +4,8 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.2.6</title>
+    <title>Minha Agenda Inteligente - v1.2.7</title>
     <style>
-        /* Estilo original restaurado e mantido */
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 10px; margin: 0; }
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .timeline-header { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; justify-content: space-between; }
@@ -40,7 +39,7 @@
         <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.5em; cursor:pointer;">⚙️</button>
     </div>
 
-    <div class="category-scroll" id="listaBotoesCat">Carregando...</div>
+    <div class="category-scroll" id="listaBotoesCat">Sincronizando...</div>
 
     <div class="header-secao">📝 Nova Tarefa</div>
     <div class="secao-card">
@@ -55,7 +54,7 @@
     </div>
 
     <div class="header-secao">📅 Minhas Atividades</div>
-    <div id="listaTarefas">Sincronizando...</div>
+    <div id="listaTarefas">Carregando...</div>
 </div>
 
 <div id="modalConfig" class="modal escondido">
@@ -70,7 +69,7 @@
             <h4>Alertas</h4>
             <input type="number" id="minutosAlerta" value="1" style="width: 60px;"> min antes
             <button id="btnAtivarNotificacao" onclick="solicitarNotificacao()" style="width:100%; padding:12px; background:#2196F3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin: 10px 0;">CONECTAR CELULAR</button>
-            <button id="btnTestarSom" onclick="testarSom()" style="width:100%; padding:10px; background:#FF9800; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">TESTAR SOM</button>
+            <button onclick="testarSom()" style="width:100%; padding:10px; background:#FF9800; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">TESTAR SOM</button>
         </div>
 
         <div id="conteudoCategorias" class="escondido">
@@ -101,47 +100,69 @@
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
+    // Inicialização principal
     signInAnonymously(auth).then(async () => {
+        console.log("🚀 Sistema Iniciado no SSD Novo!");
         await carregarCategorias(); 
         carregarTarefas();
-        setarData('hoje', document.getElementById('btnHoje'));
         
-        // REATIVANDO O RELÓGIO (Polling)
+        // Garante que o botão de hoje seja clicado no início
+        const btnHoje = document.getElementById('btnHoje');
+        if(btnHoje) window.setarData('hoje', btnHoje);
+        
+        // Inicia o relógio de 1 em 1 minuto
         setInterval(verificarAlarmes, 60000);
-    });
+        console.log("⏰ Relógio de monitoramento ativo.");
+    }).catch(e => console.error("Erro no login:", e));
 
-    // ESCUTADOR PARA APP ABERTO (onMessage)
+    // Escuta notificações enviadas pela nuvem (Cloud Functions) [cite: 2026-02-27]
     onMessage(messaging, (payload) => {
-        console.log('Mensagem recebida com app aberto:', payload);
-        new Notification(payload.notification.title, { body: payload.notification.body });
-        new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play().catch(()=>{});
+        console.log('🔔 Mensagem via Push recebida:', payload);
+        if (Notification.permission === "granted") {
+            new Notification(payload.notification.title, { body: payload.notification.body });
+        }
     });
 
-    // FUNÇÃO DE ALARME LOCAL
+    // Função que checa os horários salvos
     async function verificarAlarmes() {
+        console.log("🔍 Checando alarmes agora...");
         const agora = new Date();
         const dataHoje = agora.toLocaleDateString('en-CA');
         const horaAtual = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
         const antecedencia = parseInt(document.getElementById('minutosAlerta').value) || 0;
 
-        const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje), where("alertaDisparado", "==", false));
-        const snap = await getDocs(q);
-        snap.forEach(async (d) => {
-            const t = d.data();
-            const [h, m] = t.hora.split(':');
-            const dataTarefa = new Date(); dataTarefa.setHours(h, m, 0);
-            const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
-            const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
+        try {
+            const q = query(collection(db, "tarefas"), where("dataString", "==", dataHoje), where("alertaDisparado", "==", false));
+            const snap = await getDocs(q);
+            
+            snap.forEach(async (d) => {
+                const t = d.data();
+                const [h, m] = t.hora.split(':');
+                const dataTarefa = new Date(); dataTarefa.setHours(h, m, 0);
+                const dataAlerta = new Date(dataTarefa.getTime() - (antecedencia * 60000));
+                const horaAlerta = dataAlerta.getHours().toString().padStart(2, '0') + ":" + dataAlerta.getMinutes().toString().padStart(2, '0');
 
-            if (horaAtual === horaAlerta) {
-                new Notification("⏰ Hora da Tarefa!", { body: t.descricao });
-                new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play().catch(()=>{});
-                await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
-            }
-        });
+                console.log(`Verificando: ${t.descricao} (${t.hora}) | Alerta previsto: ${horaAlerta} | Agora: ${horaAtual}`);
+
+                if (horaAtual === horaAlerta) {
+                    dispararNotificacaoLocal(t.descricao, t.hora);
+                    await updateDoc(doc(db, "tarefas", d.id), { alertaDisparado: true });
+                }
+            });
+        } catch (e) { console.error("Erro ao verificar alarmes:", e); }
     }
 
-    // Restante das funções (Categorias, Fotos, Interface)
+    function dispararNotificacaoLocal(titulo, hora) {
+        if (Notification.permission === "granted") {
+            new Notification("⏰ Hora da Tarefa!", { body: `${titulo} às ${hora}` });
+            new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play().catch(()=>{});
+        } else {
+            alert(`ALARME: ${titulo} às ${hora}`);
+        }
+    }
+
+    // --- FUNÇÕES GLOBAIS (Anexadas ao Window para o HTML ver) ---
+
     window.carregarCategorias = async () => {
         const container = document.getElementById('listaBotoesCat');
         const listaExcluir = document.getElementById('listaExcluirCat');
@@ -153,6 +174,65 @@
             container.innerHTML += `<button class="btn-cat" style="border-bottom:3px solid ${c.cor}" onclick="selecionarCat('${c.nome}', '${c.cor}', this)">${c.nome}</button>`;
             listaExcluir.innerHTML += `<div class="cat-excluir-item"><span>${c.nome}</span><button onclick="excluirCategoria('${d.id}')">✕</button></div>`;
         });
+        container.innerHTML += `<button onclick="promptNovaCat()" style="border:none;background:none;font-size:1.5em;color:#2196F3; cursor:pointer;">+</button>`;
+    };
+
+    window.setarData = (tipo, el) => {
+        const input = document.getElementById('dataSeletor');
+        document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
+        if(el) el.classList.add('ativo');
+
+        if (tipo === 'hoje') input.value = new Date().toLocaleDateString('en-CA');
+        else if (tipo === 'amanha') {
+            const am = new Date(); am.setDate(am.getDate()+1);
+            input.value = am.toLocaleDateString('en-CA');
+        }
+        window.carregarTarefas();
+    };
+
+    window.carregarTarefas = async () => {
+        const lista = document.getElementById('listaTarefas');
+        const dataFiltro = document.getElementById('dataSeletor').value;
+        const snap = await getDocs(query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc")));
+        lista.innerHTML = "";
+        snap.forEach(d => {
+            const t = d.data();
+            lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria || '#2196F3'}">
+                <button class="btn-excluir" onclick="excluirTask('${d.id}')">🗑️</button>
+                <strong>${t.hora}</strong> - ${t.descricao} <br>
+                ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;">` : ""}
+            </div>`;
+        });
+        if(lista.innerHTML === "") lista.innerHTML = "Sem tarefas para este dia.";
+    };
+
+    window.solicitarNotificacao = async () => {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+            const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+            const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+            if (token) {
+                await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() });
+                alert("Celular Conectado!");
+            }
+        } else { alert("Você precisa permitir as notificações no navegador!"); }
+    };
+
+    window.excluirTask = async (id) => { if(confirm("Remover?")) { await deleteDoc(doc(db, "tarefas", id)); window.carregarTarefas(); } };
+    window.testarSom = () => new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play().catch(()=>alert("Clique na tela antes de testar o som."));
+    window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
+    window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
+    window.selecionarCat = (nome, cor, el) => {
+        document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('ativo'));
+        el.classList.add('ativo');
+        document.getElementById('categoriaSelecionada').value = nome;
+        document.getElementById('corSelecionada').value = cor;
+    };
+    window.mudarAba = (aba) => {
+        const cA = document.getElementById('conteudoAlarme'), cC = document.getElementById('conteudoCategorias');
+        const tA = document.getElementById('tabAlarme'), tC = document.getElementById('tabCat');
+        if(aba==='alarme'){cA.classList.remove('escondido');cC.classList.add('escondido');tA.classList.add('ativo');tC.classList.remove('ativo');}
+        else{cC.classList.remove('escondido');cA.classList.add('escondido');tC.classList.add('ativo');tA.classList.remove('ativo');}
     };
 
     document.getElementById('btnSalvar').onclick = async () => {
@@ -173,38 +253,7 @@
             corCategoria: document.getElementById('corSelecionada').value,
             fotoUrl: base64, alertaDisparado: false, criadoEm: new Date()
         });
-        carregarTarefas();
-    };
-
-    window.carregarTarefas = async () => {
-        const lista = document.getElementById('listaTarefas');
-        const snap = await getDocs(query(collection(db, "tarefas"), orderBy("criadoEm", "desc")));
-        lista.innerHTML = "";
-        snap.forEach(d => {
-            const t = d.data();
-            lista.innerHTML += `<div class="tarefa-item" style="border-left-color: ${t.corCategoria}">
-                <strong>${t.hora}</strong> - ${t.descricao} <br>
-                ${t.fotoUrl ? `<img src="${t.fotoUrl}" style="max-width:100%; border-radius:10px;">` : ""}
-            </div>`;
-        });
-    };
-
-    window.solicitarNotificacao = async () => {
-        const reg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-        if (token) await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { token, atualizadoEm: new Date() });
-        alert("Conectado!");
-    };
-
-    window.testarSom = () => new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
-    window.abrirConfig = () => document.getElementById('modalConfig').classList.remove('escondido');
-    window.fecharConfig = () => document.getElementById('modalConfig').classList.add('escondido');
-    window.mudarAba = (aba) => {
-        if(aba==='alarme'){document.getElementById('conteudoAlarme').classList.remove('escondido');document.getElementById('conteudoCategorias').classList.add('escondido');}
-        else{document.getElementById('conteudoCategorias').classList.remove('escondido');document.getElementById('conteudoAlarme').classList.add('escondido');}
-    };
-    window.setarData = (tipo, el) => {
-        if (tipo === 'hoje') document.getElementById('dataSeletor').value = new Date().toLocaleDateString('en-CA');
+        document.getElementById('descTask').value = ""; window.carregarTarefas();
     };
 </script>
 </body>
