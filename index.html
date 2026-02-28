@@ -142,12 +142,26 @@
         }
     });
 
-    window.salvarPreferencias = () => {
-        const min = document.getElementById('minutosAlerta').value;
-        const tipo = document.getElementById('tipoNotificacao').value;
-        localStorage.setItem('agenda_minutos', min);
-        localStorage.setItem('agenda_tipo_notif', tipo);
-    };
+window.salvarPreferencias = async () => {
+    const min = document.getElementById('minutosAlerta').value;
+    const tipo = document.getElementById('tipoNotificacao').value;
+    
+    // Salva localmente (para a interface carregar rápido)
+    localStorage.setItem('agenda_minutos', min);
+    localStorage.setItem('agenda_tipo_notif', tipo);
+
+    // Sincroniza com o Firestore para a Cloud Function saber
+    try {
+        await setDoc(doc(db, "tokens_dispositivos", "meu_celular"), { 
+            tipoNotificacao: tipo,
+            minutosAntecedencia: min,
+            atualizadoEm: new Date() 
+        }, { merge: true }); // O merge evita apagar o token que já está lá
+        console.log("Preferências sincronizadas com a nuvem!");
+    } catch (e) {
+        console.error("Erro ao sincronizar:", e);
+    }
+};
 
     window.carregarPreferencias = () => {
         const min = localStorage.getItem('agenda_minutos');
