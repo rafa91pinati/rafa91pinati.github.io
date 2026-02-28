@@ -96,14 +96,12 @@
     <span>📂 ARQUIVOS FIXOS</span>
     <span id="setaArq" class="seta-secao">▼</span>
 </div>
+
 <div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 10px;">
-    <div class="grid-50">
         <input type="text" id="nomeArquivoFixo" placeholder="Nome do arquivo (ex: Manual Gás)">
-        <select id="catArquivoFixo">
-            <option value="Geral">Geral</option>
-            <option value="Metatech">Metatech</option>
-            <option value="Trabalho">Trabalho</option>
-        </select>
+        <input type="file" id="inputArquivoFixo" style="margin-top:10px;">
+        <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background:#007bff; color:white; border:none; padding:12px; width:100%; border-radius:8px; margin-top:10px; font-weight:bold; cursor:pointer;">📤 Subir Arquivo Fixo</button>
+        <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid #eee; padding-top: 10px;"></div>
     </div>
     <input type="file" id="inputArquivoFixo" style="margin-top:10px;">
     <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background:#007bff; color:white; border:none; padding:12px; width:100%; border-radius:8px; margin-top:10px; font-weight:bold; cursor:pointer;">📤 Subir Arquivo Fixo</button>
@@ -411,10 +409,11 @@ const firebaseConfig = {
         finally { btn.innerHTML = "Salvar na Nuvem"; btn.disabled = false; }
     };
 
-    window.subirArquivoFixo = async () => {
+window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
         const nome = document.getElementById('nomeArquivoFixo').value;
-        if(!file || !nome || !window.usuarioLogado) return alert("Preencha tudo!");
+        if(!file || !nome || !window.usuarioLogado) return alert("Preencha o nome e selecione o arquivo!");
+        
         const btn = document.getElementById('btnSubirFixo');
         btn.innerHTML = "⏳ Enviando..."; btn.disabled = true;
         try {
@@ -422,12 +421,15 @@ const firebaseConfig = {
             const snap = await uploadBytes(sRef, file);
             const url = await getDownloadURL(snap.ref);
             await addDoc(collection(db, "arquivos_fixos"), {
-                uid: window.usuarioLogado.uid, Nomearquivo: nome,
-                categoria: document.getElementById('catArquivoFixo').value,
+                uid: window.usuarioLogado.uid, 
+                Nomearquivo: nome,
+                categoria: categoriaFiltroAtiva, // <--- Puxa a categoria selecionada lá no topo
                 link: url, dataUpload: new Date()
             });
-            alert("Arquivo Fixo salvo!"); carregarArquivosFixos();
+            alert("Arquivo Fixo salvo com sucesso!"); 
+            carregarArquivosFixos();
             document.getElementById('nomeArquivoFixo').value = "";
+            document.getElementById('inputArquivoFixo').value = "";
         } catch (e) { alert("Erro no upload do arquivo."); }
         finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
     };
@@ -517,22 +519,39 @@ window.prepararFotosNovas = (input) => {
     };
     
     window.carregarArquivosFixos = async () => {
-        if (!window.usuarioLogado) return; 
+        if (!window.usuarioLogado) return;
         const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
         const snap = await getDocs(q);
-        const lista = document.getElementById('listaArquivosFixos'); lista.innerHTML = "";
-        snap.forEach(d => {
-            const a = d.data();
+        const lista = document.getElementById('listaArquivosFixos'); 
+        lista.innerHTML = "";
+        
+        let arquivos = [];
+        snap.forEach(d => arquivos.push({ id: d.id, ...d.data() }));
+
+        // Filtra os arquivos pela categoria selecionada no topo
+        if (categoriaFiltroAtiva !== "Geral") {
+            arquivos = arquivos.filter(a => a.categoria === categoriaFiltroAtiva);
+        }
+
+        arquivos.forEach(a => {
             lista.innerHTML += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items: center;">
                 <span style="font-size:0.9rem;"><b>[${a.categoria}]</b> ${a.Nomearquivo}</span>
                 <a href="${a.link}" target="_blank" style="color:white; background:#007bff; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-weight:bold; font-size: 0.8rem;">ABRIR</a>
             </div>`;
         });
+
+        if(arquivos.length === 0) lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhum arquivo nesta categoria.</p>";
     };
 
     window.carregarCategorias = async () => { const c = document.getElementById('listaCategorias'); const s = await getDocs(collection(db, "categorias")); c.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`; s.forEach(d => c.innerHTML += `<div class="category-tab" onclick="selecionarCat('${d.data().nome}', '${d.data().cor}', this)">${d.data().nome}</div>`); };
-    window.selecionarCat = (nome, cor, el) => { categoriaFiltroAtiva = nome; document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; }); if(el) { el.style.backgroundColor = cor; el.style.color = 'white'; } carregarTarefas(); };
-    window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
+    window.selecionarCat = (nome, cor, el) => { 
+        categoriaFiltroAtiva = nome; 
+        document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; }); 
+        if(el) { el.style.backgroundColor = cor; el.style.color = 'white'; } 
+        carregarTarefas(); 
+        carregarArquivosFixos(); // <--- Agora os arquivos mudam na mesma hora que você clica na aba!
+    };
+	window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
