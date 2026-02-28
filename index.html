@@ -284,20 +284,20 @@ if ('serviceWorker' in navigator) {
     }
 
     // --- MONITOR DE LOGIN ---
-    onAuthStateChanged(auth, (user) => {
-        const tela = document.getElementById('telaLogin');
-        if (user) {
-            window.usuarioLogado = user;
-            if(tela) tela.classList.add('escondido');
-            carregarCategorias(); 
-            setarData('hoje', document.getElementById('btnHoje'));
-            carregarArquivosFixos();
-            carregarPreferenciasNuvem();
-        } else {
-            window.usuarioLogado = null;
-            if(tela) tela.classList.remove('escondido');
-        }
-    });
+// Substitua o bloco do signInAnonymously por este:
+onAuthStateChanged(auth, (user) => {
+    const tela = document.getElementById('telaLogin');
+    if (user && !user.isAnonymous) { // Se logou com e-mail
+        window.usuarioLogado = user;
+        if(tela) tela.classList.add('escondido');
+        carregarCategorias(); 
+        setarData('hoje', document.getElementById('btnHoje'));
+        carregarArquivosFixos();
+    } else {
+        window.usuarioLogado = null;
+        if(tela) tela.classList.remove('escondido');
+    }
+});
 
     window.fazerLogin = () => {
         const e = document.getElementById('emailLogin').value;
@@ -410,10 +410,12 @@ window.salvarNovaTarefa = async () => {
         let linksFotos = [];
         try {
             for (let base64 of fotosNovasArray) {
-                const blob = await (await fetch(base64)).blob();
-                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${Math.random().toString(36).substr(2,5)}.jpg`);
+                // Dentro do loop de fotos da função salvarNovaTarefa:
+                const blob = await (await fetch(base64)).blob(); // Converte texto em arquivo real
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}.jpg`);
                 const snap = await uploadBytes(sRef, blob);
-                linksFotos.push(await getDownloadURL(snap.ref));
+                const url = await getDownloadURL(snap.ref);
+                linksFotos.push(url);
             }
             await addDoc(collection(db, "tarefas"), { 
                 uid: window.usuarioLogado.uid,
@@ -468,13 +470,27 @@ window.salvarNovaTarefa = async () => {
     };
 
     window.carregarTarefas = async () => {
-        const lista = document.getElementById('listaTarefas');
-        const dataFiltro = document.getElementById('dataSeletor').value;
-        let q;
+    if (!window.usuarioLogado) return; // Segurança: Não busca se não estiver logado
 
-        if (tipoFiltroTempo === 'semana') q = query(collection(db, "tarefas"), where("dataString", ">=", dataInicioSemana), where("dataString", "<=", dataFimSemana), orderBy("dataString", "asc"));
-        else q = query(collection(db, "tarefas"), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
+    const lista = document.getElementById('listaTarefas');
+    const dataFiltro = document.getElementById('dataSeletor').value;
+    let q;
 
+    // Adicionamos o filtro: where("uid", "==", window.usuarioLogado.uid)
+    if (tipoFiltroTempo === 'semana') {
+        q = query(collection(db, "tarefas"), 
+            where("uid", "==", window.usuarioLogado.uid), // Filtro de dono
+            where("dataString", ">=", dataInicioSemana), 
+            where("dataString", "<=", dataFimSemana), 
+            orderBy("dataString", "asc")
+        );
+    } else {
+        q = query(collection(db, "tarefas"), 
+            where("uid", "==", window.usuarioLogado.uid), // Filtro de dono
+            where("dataString", "==", dataFiltro), 
+            orderBy("hora", "asc")
+        );
+		}
         const snap = await getDocs(q);
         lista.innerHTML = "";
         
@@ -521,8 +537,8 @@ window.salvarNovaTarefa = async () => {
     };
 	
 	window.carregarArquivosFixos = async () => {
-        const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
-        const snap = await getDocs(q);
+        constq = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
+		const snap = await getDocs(q);
         const lista = document.getElementById('listaArquivosFixos'); lista.innerHTML = "";
         snap.forEach(d => {
             const a = d.data();
