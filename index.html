@@ -772,21 +772,21 @@ window.gerarRelatorioPDF = (evento) => {
         // A MÁGICA ACONTECE AQUI: Em vez de salvar, exportamos como Blob (arquivo bruto)
         return pdf.output('blob');
 
-    }).then(async (pdfBlob) => {
+}).then(async (pdfBlob) => {
         
         btn.innerHTML = "☁️ Salvando na nuvem...";
 
         try {
-            // 2. Faz o Upload do PDF para o Firebase Storage
-            // Assumindo que as importações ref, uploadBytes, getDownloadURL já estão no topo do seu arquivo
             const caminhoStorage = `arquivos_fixos/${categoriaFiltroAtiva}/${nomeRelatorio}.pdf`;
-            const storageRef = ref(window.storage, caminhoStorage); // Use a sua variável do storage
+            
+            // CORREÇÃO: Usando a sua variável 'storage' exatamente como declarada no topo!
+            const storageRef = ref(storage, caminhoStorage); 
             
             await uploadBytes(storageRef, pdfBlob);
             const urlArquivo = await getDownloadURL(storageRef);
 
-            // 3. Salva a referência no Firestore (para aparecer na lista de Arquivos Fixos)
-            await addDoc(collection(window.db, "arquivos_fixos"), {
+            // CORREÇÃO: Usando a sua variável 'db' também diretamente!
+            await addDoc(collection(db, "arquivos_fixos"), {
                 nome: `${nomeRelatorio}.pdf`,
                 categoria: categoriaFiltroAtiva,
                 url: urlArquivo,
