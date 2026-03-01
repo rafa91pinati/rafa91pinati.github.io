@@ -356,48 +356,46 @@
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
-    import { getStorage, ref, uploadBytes, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
-	
-const firebaseConfig = {
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+    
+    const firebaseConfig = {
         apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
         authDomain: "agenda-4efa7.firebaseapp.com",
         projectId: "agenda-4efa7",
-        storageBucket: "agenda-4efa7.firebasestorage.app", // <--- AQUI ESTÁ A MÁGICA!
+        storageBucket: "agenda-4efa7.firebasestorage.app",
         appId: "1:299659202964:web:e358210feb4d7784f63f81",
         messagingSenderId: "299659202964" 
     };
-	
+    
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
     const messaging = getMessaging(app);
     const storage = getStorage(app);
-	
-	// Já puxa da memória do celular no exato momento que o app abre
-	let categoriaFiltroAtiva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
     
-	let idEmEdicao = null;
+    // VARIÁVEIS E DICIONÁRIOS GLOBAIS
+    window.coresCategorias = { "Geral": "#94a3b8" }; 
+    window.logosCategorias = {}; 
+
+    let categoriaFiltroAtiva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
+    let idEmEdicao = null;
     let fotosTemporarias = []; 
     let fotosNovasArray = [];  
-    
     let tipoFiltroTempo = 'dia'; 
-    let dataInicioSemana = '';
-    let dataFimSemana = '';
-	let tagFiltroAtiva = ""; // Variável global para o filtro de tags
-
-window.selecionarTag = (valor) => {
-    tagFiltroAtiva = valor;
-    carregarTarefas(); 
-    carregarArquivosFixos(); 
-};
+    let tagFiltroAtiva = ""; 
     window.usuarioLogado = null;
     window.tarefasMonitoramento = [];
 
-    // --- SERVICE WORKER ---
+    window.selecionarTag = (valor) => {
+        tagFiltroAtiva = valor;
+        carregarTarefas(); 
+        carregarArquivosFixos(); 
+    };
+
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log('Erro SW:', err));
     }
@@ -461,30 +459,26 @@ window.selecionarTag = (valor) => {
         });
     };
 
-    // --- O CADEADO DE LOGIN CORRIGIDO ---
-onAuthStateChanged(auth, (user) => {
-    const tela = document.getElementById('telaLogin');
-    if (user) {
-        window.usuarioLogado = user;
-        if(tela) tela.classList.add('escondido'); // 1º Esconde o login para não travar a tela
-        
-        // 2º Carrega os dados
-        carregarCategorias(); 
-        setarData('hoje', document.getElementById('btnHoje'));
-        carregarArquivosFixos();
-        carregarPreferenciasNuvem();
-        carregarArquivosFixos();
-		atualizarSeletorMarcadores(); // <-- Garante a carga inicial
-		
-        // 3º Carrega os novos Marcadores no filtro global
-		setTimeout(() => {
-            atualizarSeletorMarcadores();
-        }, 800);// Um pequeno delay para garantir que o HTML já carregou
-    } else {
-        window.usuarioLogado = null;
-        if(tela) tela.classList.remove('escondido');
-    }
-});
+    // --- LOGIN E AUTH ---
+    onAuthStateChanged(auth, (user) => {
+        const tela = document.getElementById('telaLogin');
+        if (user) {
+            window.usuarioLogado = user;
+            if(tela) tela.classList.add('escondido'); 
+            
+            carregarCategorias(); 
+            setarData('hoje', document.getElementById('btnHoje'));
+            carregarPreferenciasNuvem();
+            carregarArquivosFixos();
+            
+            setTimeout(() => {
+                atualizarSeletorMarcadores();
+            }, 800);
+        } else {
+            window.usuarioLogado = null;
+            if(tela) tela.classList.remove('escondido');
+        }
+    });
 
     window.fazerLogin = () => {
         const e = document.getElementById('emailLogin').value;
@@ -502,37 +496,14 @@ onAuthStateChanged(auth, (user) => {
 
     window.fazerLogout = () => { if(confirm("Deseja sair da agenda?")) signOut(auth); };
     
-	window.atualizarSeletorMarcadores = async () => {
-    const seletor = document.getElementById('filtroTagGlobal');
-    // Se o seletor não existir na tela ainda, ele sai da função sem travar o script
-    if(!seletor || !window.usuarioLogado) return; 
-
-    try {
-        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
-        const snap = await getDocs(q);
-        
-        seletor.innerHTML = '<option value="">Todas as Etapas</option>';
-        snap.forEach(d => {
-            const m = d.data();
-            const opcao = document.createElement('option');
-            opcao.value = m.nome;
-            opcao.textContent = m.nome;
-            seletor.appendChild(opcao);
-        });
-    } catch (e) {
-        console.error("Erro ao carregar seletor:", e);
-    }
-};
-
-    // --- FUNÇÕES DE UI E ALARME ---
- window.abrirConfig = () => { 
-    document.getElementById('modalConfiguracoes').style.display = 'flex'; 
-    carregarCategoriasModal(); 
-    carregarMarcadoresModal(); // <-- ADICIONE ESTA LINHA AQUI
-};
-window.fecharModalConfig = () => { 
-    document.getElementById('modalConfiguracoes').style.display = 'none'; 
-};
+    // --- UI E ALARMES ---
+    window.abrirConfig = () => { 
+        document.getElementById('modalConfiguracoes').style.display = 'flex'; 
+        carregarCategoriasModal(); 
+        carregarMarcadoresModal(); 
+    };
+    window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
+    
     window.abrirAba = (evt, nomeAba) => {
         let i, tabcontent, tablinks;
         tabcontent = document.getElementsByClassName("tabcontent");
@@ -569,389 +540,266 @@ window.fecharModalConfig = () => {
     }, 60000); 
 
     // --- CATEGORIAS ---
-window.adicionarCategoria = async () => {
-    const nome = document.getElementById('nomeNovaCat').value;
-    const cor = document.getElementById('corNovaCat').value;
-    const logoFile = document.getElementById('logoCatInput').files[0];
-    
-    if(!nome) return alert("Digite o nome da categoria!");
+    window.carregarCategorias = async () => { 
+        const c = document.getElementById('listaCategorias'); 
+        if (!window.usuarioLogado) return; 
 
-    const btn = document.querySelector("button[onclick='adicionarCategoria()']");
-    btn.disabled = true;
-    btn.innerHTML = "⏳";
+        try {
+            const q = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+            const s = await getDocs(q); 
+            
+            const catSalva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
+            const corSalva = localStorage.getItem('ultimaCorCategoria') || "#94a3b8";
 
-    let logoUrl = "";
+            const corGeral = catSalva === "Geral" ? "#94a3b8" : "rgba(255,255,255,0.05)";
+            const textoGeral = catSalva === "Geral" ? "white" : "#cbd5e1";
+            let htmlTabs = `<div class="category-tab" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8', this)">Geral</div>`; 
+            
+            s.forEach(d => { 
+                const cat = d.data();
+                window.coresCategorias[cat.nome] = cat.cor; 
+                if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
+                
+                const corFundo = catSalva === cat.nome ? cat.cor : "rgba(255,255,255,0.05)";
+                const corTexto = catSalva === cat.nome ? "white" : "#cbd5e1";
+                
+                htmlTabs += `<div class="category-tab" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
+            }); 
+            
+            c.innerHTML = htmlTabs;
+            carregarTarefas();
+            carregarArquivosFixos();
+        } catch (e) { console.error("Erro ao carregar categorias:", e); }
+    };
 
-    try {
-        // Se houver uma imagem, faz o upload para uma pasta específica de logos
-        if (logoFile) {
-            const storageRef = ref(storage, `logos_categorias/${window.usuarioLogado.uid}/${Date.now()}_${logoFile.name}`);
-            const snapshot = await uploadBytes(storageRef, logoFile);
-            logoUrl = await getDownloadURL(snapshot.ref);
+    window.selecionarCat = (nome, cor, el) => { 
+        categoriaFiltroAtiva = nome; 
+        localStorage.setItem('ultimaCategoriaAgenda', nome);
+        localStorage.setItem('ultimaCorCategoria', cor);
+        document.querySelectorAll('.category-tab').forEach(b => { 
+            b.style.backgroundColor = 'rgba(255,255,255,0.05)'; 
+            b.style.color = '#cbd5e1'; 
+        }); 
+        if(el) { 
+            el.style.backgroundColor = cor; 
+            el.style.color = 'white'; 
+        } 
+        carregarTarefas(); 
+        carregarArquivosFixos(); 
+    };
+
+    window.adicionarCategoria = async () => {
+        const nome = document.getElementById('nomeNovaCat').value;
+        const cor = document.getElementById('corNovaCat').value;
+        const logoFile = document.getElementById('logoCatInput').files[0];
+        
+        if(!nome) return alert("Digite o nome da categoria!");
+
+        const btn = document.querySelector("button[onclick='adicionarCategoria()']");
+        btn.disabled = true; btn.innerHTML = "⏳";
+        let logoUrl = "";
+
+        try {
+            if (logoFile) {
+                const storageRef = ref(storage, `logos_categorias/${window.usuarioLogado.uid}/${Date.now()}_${logoFile.name}`);
+                const snapshot = await uploadBytes(storageRef, logoFile);
+                logoUrl = await getDownloadURL(snapshot.ref);
+            }
+            await addDoc(collection(db, "categorias"), { nome: nome, cor: cor, logoUrl: logoUrl, uid: window.usuarioLogado.uid, criadoEm: new Date() });
+            
+            document.getElementById('nomeNovaCat').value = "";
+            document.getElementById('logoCatInput').value = "";
+            carregarCategoriasModal();
+            carregarCategorias(); 
+            alert("Categoria com logo criada!");
+        } catch (e) { alert("Erro ao salvar categoria."); } 
+        finally { btn.disabled = false; btn.innerHTML = "+"; }
+    };
+
+    window.carregarCategoriasModal = async () => {
+        const lista = document.getElementById('listaCategoriasModal');
+        if (!lista || !window.usuarioLogado) return;
+        lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
+
+        try {
+            const q = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+
+            snap.forEach(d => {
+                const c = d.data();
+                const logoPreview = c.logoUrl ? `<img src="${c.logoUrl}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:12px;">🖼️</span>`;
+                lista.innerHTML += `
+                    <li style="display:flex; align-items:center; gap:8px; margin-bottom:10px; background: rgba(0,0,0,0.2); padding:10px; border-radius:8px; border: 1px solid rgba(255,255,255,0.1);">
+                        <input type="color" value="${c.cor || '#007bff'}" onchange="atualizarCorCategoria('${d.id}', this.value)" style="width:35px; height:35px; border:none; padding:0; border-radius:4px; cursor:pointer; background:none;">
+                        <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;" onclick="document.getElementById('logo-edit-${d.id}').click()" title="Alterar Logo">
+                            ${logoPreview}
+                            <input type="file" id="logo-edit-${d.id}" accept="image/*" style="display: none;" onchange="atualizarLogoCategoria('${d.id}', this.files[0])">
+                        </div>
+                        <input type="text" value="${c.nome}" style="flex:1; background:transparent; border:none; color:white; font-size:0.9rem;" onchange="atualizarNomeCategoria('${d.id}', this.value)">
+                        <button onclick="excluirCategoria('${d.id}')" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; padding:8px; border-radius:6px; cursor:pointer;">🗑️</button>
+                    </li>`;
+            });
+            if(snap.empty) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma categoria encontrada.</p>";
+        } catch (e) { lista.innerHTML = "<p style='text-align:center; color:#ff4d4d;'>Erro ao carregar.</p>"; }
+    };
+
+    window.atualizarCorCategoria = async (id, novaCor) => { await updateDoc(doc(db, "categorias", id), { cor: novaCor }); carregarCategorias(); };
+    window.atualizarNomeCategoria = async (id, novoNome) => { if(novoNome.trim()) { await updateDoc(doc(db, "categorias", id), { nome: novoNome }); carregarCategorias(); } };
+    window.excluirCategoria = async (id) => { if(confirm("Tem certeza que deseja apagar esta categoria?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategoriasModal(); carregarCategorias(); } };
+
+    // --- MARCADORES ---
+    window.adicionarMarcador = async () => {
+        const nome = document.getElementById('nomeNovoMarcador').value;
+        if(!nome) return alert("Digite o nome do marcador!");
+        try {
+            await addDoc(collection(db, "marcadores"), { nome: nome, uid: window.usuarioLogado.uid, criadoEm: new Date() });
+            document.getElementById('nomeNovoMarcador').value = "";
+            carregarMarcadoresModal();
+            atualizarSeletorMarcadores(); 
+        } catch (e) { console.error("Erro ao salvar marcador:", e); }
+    };
+
+    window.carregarMarcadoresModal = async () => {
+        const lista = document.getElementById('listaMarcadoresModal');
+        if(!lista || !window.usuarioLogado) return;
+        lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
+        
+        try {
+            const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+            
+            snap.forEach(d => {
+                const m = d.data();
+                lista.innerHTML += `
+                    <li style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.08); padding:12px; border-radius:12px; margin-bottom:8px; border: 1px solid rgba(255,255,255,0.1);">
+                        <b style="color:#ffffff; font-size:0.95rem;">${m.nome}</b>
+                        <button onclick="excluirMarcador('${d.id}')" style="background:rgba(239, 68, 68, 0.3); border:none; color:#ff8080; cursor:pointer; border-radius:8px; padding:8px 12px; font-weight:bold;">🗑️</button>
+                    </li>`;
+            });
+            if(snap.empty) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhum marcador criado.</p>";
+        } catch (e) { console.error(e); }
+    };
+
+    window.atualizarSeletorMarcadores = async () => {
+        const seletor = document.getElementById('filtroTagGlobal');
+        if (!seletor || !window.usuarioLogado) return;
+        try {
+            const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
+            const snap = await getDocs(q);
+            seletor.innerHTML = '<option value="">Todas as Etapas</option>';
+            snap.forEach(d => {
+                const m = d.data();
+                const opcao = document.createElement('option');
+                opcao.value = m.nome; opcao.textContent = m.nome;
+                seletor.appendChild(opcao);
+            });
+        } catch (e) { console.error("Erro no drop-down:", e); }
+    };
+
+    window.excluirMarcador = async (id) => { if(confirm("Deseja apagar esta etapa?")) { await deleteDoc(doc(db, "marcadores", id)); carregarMarcadoresModal(); } };
+
+    // --- TAREFAS E FOTOS ---
+    window.setarData = (tipo, el) => {
+        const input = document.getElementById('dataSeletor'); 
+        const hoje = new Date(); 
+        tipoFiltroTempo = 'dia'; 
+        
+        if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
+        else if (tipo === 'amanha') { const am = new Date(); am.setDate(hoje.getDate() + 1); input.value = am.toLocaleDateString('en-CA'); }
+        else if (tipo === 'semana') { 
+            tipoFiltroTempo = 'semana'; 
+            const p = new Date(hoje); 
+            p.setDate(hoje.getDate() - hoje.getDay()); 
+            window.arrayDiasSemana = [];
+            for(let i = 0; i < 7; i++) {
+                const d = new Date(p); d.setDate(p.getDate() + i);
+                window.arrayDiasSemana.push(d.toLocaleDateString('en-CA'));
+            }
+            input.value = window.arrayDiasSemana[0]; 
         }
-
-        await addDoc(collection(db, "categorias"), {
-            nome: nome,
-            cor: cor,
-            logoUrl: logoUrl, // Salva o link da imagem no documento da categoria
-            uid: window.usuarioLogado.uid,
-            criadoEm: new Date()
-        });
-
-        // Limpa tudo
-        document.getElementById('nomeNovaCat').value = "";
-        document.getElementById('logoCatInput').value = "";
-        carregarCategoriasModal();
-        carregarCategorias(); // Atualiza as abas principais
-        alert("Categoria com logo criada!");
-    } catch (e) {
-        console.error(e);
-        alert("Erro ao salvar categoria.");
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = "+";
-    }
-};
-
-// --- GERENCIAMENTO DE CATEGORIAS NO MODAL ---
-
-window.carregarCategoriasModal = async () => {
-    const lista = document.getElementById('listaCategoriasModal');
-    if (!lista || !window.usuarioLogado) return;
-
-    lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
-
-    try {
-        const q = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
-        const snap = await getDocs(q);
-        lista.innerHTML = "";
-
-        snap.forEach(d => {
-            const c = d.data();
-            // Fallback: se não tiver logoUrl, mostra um ícone padrão
-            const logoPreview = c.logoUrl 
-                ? `<img src="${c.logoUrl}" style="width:100%; height:100%; object-fit:cover;">` 
-                : `<span style="font-size:12px;">🖼️</span>`;
-
-            lista.innerHTML += `
-                <li style="display:flex; align-items:center; gap:8px; margin-bottom:10px; background: rgba(0,0,0,0.2); padding:10px; border-radius:8px; border: 1px solid rgba(255,255,255,0.1);">
-                    
-                    <input type="color" value="${c.cor || '#007bff'}" 
-                           onchange="atualizarCorCategoria('${d.id}', this.value)"
-                           style="width:35px; height:35px; border:none; padding:0; border-radius:4px; cursor:pointer; background:none;">
-
-                    <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;" 
-                         onclick="document.getElementById('logo-edit-${d.id}').click()" title="Alterar Logo">
-                        ${logoPreview}
-                        <input type="file" id="logo-edit-${d.id}" accept="image/*" style="display: none;" 
-                               onchange="atualizarLogoCategoria('${d.id}', this.files[0])">
-                    </div>
-
-                    <input type="text" value="${c.nome}" 
-                           style="flex:1; background:transparent; border:none; color:white; font-size:0.9rem;" 
-                           onchange="atualizarNomeCategoria('${d.id}', this.value)">
-
-                    <button onclick="excluirCategoria('${d.id}')" 
-                            style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; padding:8px; border-radius:6px; cursor:pointer;">
-                        🗑️
-                    </button>
-                </li>`;
-        });
-
-        if(snap.empty) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma categoria encontrada.</p>";
-
-    } catch (e) {
-        console.error("Erro ao carregar categorias:", e);
-        lista.innerHTML = "<p style='text-align:center; color:#ff4d4d;'>Erro ao carregar.</p>";
-    }
-};
-
-window.atualizarCorCategoria = async (id) => { 
-    const novaCor = document.getElementById(`cor-edit-${id}`).value;
-    await updateDoc(doc(db, "categorias", id), { cor: novaCor }); 
-    carregarCategorias(); // Atualiza as abas na tela principal na hora
-};
-
-window.atualizarNomeCategoria = async (id) => { 
-    const novoNome = document.getElementById(`nome-edit-${id}`).value;
-    if(!novoNome.trim()) return; // Evita salvar nome vazio sem querer
-    await updateDoc(doc(db, "categorias", id), { nome: novoNome }); 
-    carregarCategorias(); // Atualiza as abas na tela principal na hora
-    
-    // Obs: Se quiser, podemos fazer uma lógica extra aqui depois para atualizar 
-    // o nome da categoria nas tarefas antigas que já foram salvas com o nome anterior.
-};
-
-window.excluirCategoria = async (id) => { 
-    if(confirm("Tem certeza que deseja apagar esta categoria?")) { 
-        await deleteDoc(doc(db, "categorias", id)); 
-        carregarCategoriasModal(); // Tira da lista do modal
-        carregarCategorias(); // Tira das abas da tela inicial
-    } 
-};
-
-
-// --- GERENCIAMENTO DE MARCADORES (ETAPAS) ---
-// --- GERENCIAMENTO DE MARCADORES SIMPLIFICADO ---
-window.adicionarMarcador = async () => {
-    const nome = document.getElementById('nomeNovoMarcador').value;
-    if(!nome) return alert("Digite o nome do marcador!");
-
-    try {
-        await addDoc(collection(db, "marcadores"), {
-            nome: nome,
-            uid: window.usuarioLogado.uid,
-            criadoEm: new Date()
-        });
-
-        document.getElementById('nomeNovoMarcador').value = "";
-        carregarMarcadoresModal();
-        await atualizarSeletorMarcadores(); // Força a atualização imediata no drop-down
-    } catch (e) {
-        console.error("Erro ao salvar:", e);
-    }
-};
-
-window.carregarMarcadoresModal = async () => {
-    const lista = document.getElementById('listaMarcadoresModal');
-    if(!lista || !window.usuarioLogado) return;
-    lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
-    
-    try {
-        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
-        const snap = await getDocs(q);
-        lista.innerHTML = "";
+        else if (tipo === 'custom') tipoFiltroTempo = 'dia';
         
-        snap.forEach(d => {
-            const m = d.data();
-            // FONTE BRANCA (#ffffff) E SEM DATAS
-            lista.innerHTML += `
-                <li style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.08); padding:12px; border-radius:12px; margin-bottom:8px; border: 1px solid rgba(255,255,255,0.1);">
-                    <b style="color:#ffffff; font-size:0.95rem;">${m.nome}</b>
-                    <button onclick="excluirMarcador('${d.id}')" style="background:rgba(239, 68, 68, 0.3); border:none; color:#ff8080; cursor:pointer; border-radius:8px; padding:8px 12px; font-weight:bold;">🗑️</button>
-                </li>`;
-        });
-        if(snap.empty) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhum marcador criado.</p>";
-    } catch (e) { console.error(e); }
-};
+        if(el) { document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); if(el.tagName === 'BUTTON') el.classList.add('ativo'); }
+        carregarTarefas();
+    };
 
-// ESSA FUNÇÃO FAZ O DROP DOWN FUNCIONAR
-window.atualizarSeletorMarcadores = async () => {
-    const seletor = document.getElementById('filtroTagGlobal');
-    
-    // Se o seletor não for encontrado no HTML, ele avisa no console
-    if (!seletor) {
-        console.warn("Aviso: Elemento 'filtroTagGlobal' não encontrado no HTML.");
-        return;
-    }
-    if (!window.usuarioLogado) return;
+    window.carregarTarefas = async () => {
+        if (!window.usuarioLogado) return; 
+        const lista = document.getElementById('listaTarefas');
+        const dataFiltro = document.getElementById('dataSeletor').value;
+        let q;
 
-    try {
-        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
-        const snap = await getDocs(q);
-        
-        // Reinicia o seletor com a opção padrão
-        seletor.innerHTML = '<option value="">Todas as Etapas</option>';
-        
-        snap.forEach(d => {
-            const m = d.data();
-            const opcao = document.createElement('option');
-            opcao.value = m.nome;
-            opcao.textContent = m.nome;
-            seletor.appendChild(opcao);
-        });
-        
-        console.log(`${snap.size} marcadores carregados no drop-down.`);
-    } catch (e) {
-        console.error("Erro ao popular drop-down de tags:", e);
-    }
-};
+        try {
+            if (tipoFiltroTempo === 'semana') q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "in", window.arrayDiasSemana));
+            else q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
 
-window.excluirMarcador = async (id) => {
-    if(confirm("Deseja apagar esta etapa?")) {
-        await deleteDoc(doc(db, "marcadores", id));
-        carregarMarcadoresModal();
-    }
-};
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+            let tarefas = [];
+            snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
+            window.tarefasMonitoramento = tarefas;
 
+            if (tipoFiltroTempo === 'semana') {
+                tarefas.sort((a, b) => { 
+                    if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); 
+                    return a.dataString.localeCompare(b.dataString); 
+                });
+            }
 
+            if (categoriaFiltroAtiva !== "Geral") tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
+            if (tagFiltroAtiva !== "") tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
 
-window.gerarRelatorioPDF = (evento) => {
-    evento.stopPropagation();
+            tarefas.forEach(t => {
+                const isEditando = idEmEdicao === t.id; 
+                const listaFotos = t.fotos || [];
+                const dataObj = new Date(t.dataString + 'T00:00:00'); 
+                const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+                const corDaBorda = window.coresCategorias[t.categoria] || "#94a3b8";
 
-    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
-        return alert("Não há atividades carregadas para gerar o relatório.");
-    }
+                // Formatação blindada para evitar erros com aspas
+                const fotosStringSegura = JSON.stringify(listaFotos).split('"').join('&quot;');
 
-    let tarefasDoPDF = window.tarefasMonitoramento;
-    if (categoriaFiltroAtiva !== "Geral") {
-        tarefasDoPDF = tarefasDoPDF.filter(t => t.categoria === categoriaFiltroAtiva);
-    }
+                lista.innerHTML += `
+                    <div class="tarefa-item" style="border-left-color: ${corDaBorda}; border-left-width: 6px;">
+                        <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${fotosStringSegura})">
+                            <div class="dia-badge">${dataObj.getDate()}<span>${diasSemana[dataObj.getDay()]}</span></div>
+                            <div class="tarefa-info" style="flex:1;">
+                                ${isEditando ? `
+                                    <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
+                                    <div id="container-fotos-edit-${t.id}" class="container-fotos"></div>
+                                    <div class="area-edicao" onclick="event.stopPropagation()">
+                                        <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}">
+                                        <div class="btn-grupo-edicao-final">
+                                            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('edit-foto-${t.id}').click()">📷 ARQUIVO</button>
+                                            <button class="btn-acao-edit btn-salvar-azul" onclick="salvarAlteracoes('${t.id}')">SALVAR</button>
+                                        </div>
+                                        <input type="file" id="edit-foto-${t.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
+                                    </div>
+                                ` : `
+                                    <div style="font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">
+                                        <span style="background: rgba(30, 41, 59, 0.8); color: #ffffff; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                                            🏷️ ${t.marcador || 'Sem Etapa'}
+                                        </span>
+                                    </div>
+                                    <div style="font-weight:bold; padding-right: 35px; word-wrap: break-word; color: #1e293b;">
+                                        ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
+                                    </div>
+                                    <div class="container-fotos">
+                                        ${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}
+                                    </div>
+                                    <button class="btn-excluir-task" title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')">✕</button>
+                                `}
+                            </div>
+                        </div>
+                    </div>`;
+                if(isEditando) renderizarFotosEdicao();
+            });
+            if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
+        } catch (error) { console.error("Erro tarefas:", error); }
+    };
 
-    if (tarefasDoPDF.length === 0) {
-        return alert("Não há atividades nesta categoria específica para gerar o relatório.");
-    }
-
-    const btn = evento.currentTarget;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Gerando...";
-    btn.disabled = true;
-
-    let dataFiltroTexto = "";
-    if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
-        const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
-        const fim = window.arrayDiasSemana[6].split('-').reverse().join('/');
-        dataFiltroTexto = `${inicio} a ${fim}`;
-    } else {
-        const diaExato = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
-        dataFiltroTexto = diaExato;
-    }
-
-    const tarefasPorDia = {};
-    tarefasDoPDF.forEach(t => {
-        if (!tarefasPorDia[t.dataString]) tarefasPorDia[t.dataString] = [];
-        tarefasPorDia[t.dataString].push(t);
-    });
-    const diasOrdenados = Object.keys(tarefasPorDia).sort();
-    const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-
-    const relatorioTemp = document.createElement('div');
-    relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
-    relatorioTemp.style.color = '#1e293b';
-
-    let logoHeaderHtml = "";
-    if (categoriaFiltroAtiva !== "Geral" && window.logosCategorias && window.logosCategorias[categoriaFiltroAtiva]) {
-        logoHeaderHtml = `<img src="${window.logosCategorias[categoriaFiltroAtiva]}" style="max-height: 40px; margin-right: 15px; border-radius: 4px; object-fit: contain;">`;
-    }
-
-    let htmlPdf = `
-        <div style="padding: 10px 30px;">
-            <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center;">
-                ${logoHeaderHtml}
-                <h1 style="margin: 0; font-size: 26px;">Resumo Executivo - ${categoriaFiltroAtiva}</h1>
-            </div>
-            <ul style="list-style-type: none; padding: 0;">
-    `;
-
-    diasOrdenados.forEach(dia => {
-        const dataObj = new Date(dia + 'T00:00:00');
-        const nomeDia = diasSemanaNomes[dataObj.getDay()];
-        const dataFormatada = dia.split('-').reverse().join('/');
-        htmlPdf += `
-            <li style="margin-bottom: 20px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-                    ${nomeDia} (${dataFormatada})
-                </h3>
-        `;
-        tarefasPorDia[dia].forEach(t => {
-            htmlPdf += `<div style="padding-left: 12px; border-left: 3px solid ${window.coresCategorias[t.categoria] || '#94a3b8'}; margin-bottom: 8px; font-size: 14px; color: #475569;">${t.descricao}</div>`;
-        });
-        htmlPdf += `</li>`;
-    });
-    htmlPdf += `</ul></div>`;
-
-    diasOrdenados.forEach(dia => {
-        const dataObj = new Date(dia + 'T00:00:00');
-        const nomeDia = diasSemanaNomes[dataObj.getDay()];
-        const diaMes = dataObj.getDate();
-        htmlPdf += `<div class="html2pdf__page-break"></div>`;
-        htmlPdf += `<div style="padding: 10px 30px 0 30px;"><h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">${diaMes} - ${nomeDia}</h2>`;
-        
-        let alturaAtual = 40;
-        const ALTURA_MAXIMA = 265;
-
-        tarefasPorDia[dia].forEach(t => {
-            let temFoto = t.fotos && t.fotos.length > 0;
-            let alturaTarefa = temFoto ? 110 : 35; 
-
-            if (alturaAtual + alturaTarefa > ALTURA_MAXIMA) {
-                htmlPdf += `</div><div class="html2pdf__page-break"></div><div style="padding: 10px 30px 0 30px;"><h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">${diaMes} - ${nomeDia}</h2>`;
-                alturaAtual = 40;
-            }
-
-            let fotosHtml = '';
-            if (temFoto) {
-                const qtd = Math.min(t.fotos.length, 4); 
-                let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 280px; margin-top: 15px;';
-                if (qtd === 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
-                else if (qtd === 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
-                else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; 
-
-                fotosHtml += `<div style="${gridStyles}">`;
-                for(let i=0; i < qtd; i++) {
-                    fotosHtml += `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;"><img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>`;
-                }
-                fotosHtml += `</div>`;
-            }
-
-            htmlPdf += `<div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;"><div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">${t.descricao}</div>${fotosHtml}</div>`;
-            alturaAtual += alturaTarefa;
-        });
-        htmlPdf += `</div>`; 
-    });
-
-    relatorioTemp.innerHTML = htmlPdf;
-
-    const opcoes = {
-        margin: [15, 0, 15, 0], 
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true }, 
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] } 
-    };
-
-    const periodoFormatado = dataFiltroTexto.replace(/\//g, '-').replace(/ /g, '_');
-    const nomeRelatorio = `Relatorio_${categoriaFiltroAtiva}_${periodoFormatado}`;
-
-    html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
-        const totalPages = pdf.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            pdf.setPage(i);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(30, 41, 59); 
-            pdf.setFontSize(11);
-            pdf.text(`Relatório Técnico | Categoria: ${categoriaFiltroAtiva}`, 15, 10);
-            pdf.text(dataFiltroTexto, 195, 10, { align: 'right' }); 
-            pdf.setDrawColor(203, 213, 225); 
-            pdf.setLineWidth(0.5);
-            pdf.line(15, 12, 195, 12);
-            pdf.setFontSize(10);
-            pdf.text(`Página ${i} de ${totalPages}`, 195, 287, { align: 'right' });
-            pdf.line(15, 282, 195, 282);
-        }
-        return pdf.output('blob');
-    }).then(async (pdfBlob) => {
-        btn.innerHTML = "☁️ Salvando...";
-        try {
-            const caminhoStorage = `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`;
-            const storageRef = ref(storage, caminhoStorage); 
-            
-            await uploadBytes(storageRef, pdfBlob);
-            const urlArquivo = await getDownloadURL(storageRef);
-
-            await addDoc(collection(db, "arquivos_fixos"), {
-                uid: window.usuarioLogado.uid,
-                Nomearquivo: nomeRelatorio,
-                categoria: categoriaFiltroAtiva,
-                link: urlArquivo,          
-                dataUpload: new Date()     
-            });
-
-            alert(`Relatório salvo com sucesso em Arquivos Fixos!`);
-            carregarArquivosFixos(); 
-
-        } catch (error) {
-            console.error("Erro no Firebase:", error);
-            alert("Erro ao salvar na nuvem.");
-        } finally {
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        }
-    });
-};
-
-
-// --- EDIÇÃO E SALVAMENTO ---
     window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
     window.removerFotoTemporaria = (idx) => { fotosTemporarias.splice(idx, 1); renderizarFotosEdicao(); };
     window.renderizarFotosEdicao = () => {
@@ -962,72 +810,49 @@ window.gerarRelatorioPDF = (evento) => {
     window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
-    // --- UPLOAD DE FOTOS E ARQUIVOS (STORAGE V2) ---
-	window.cancelarNovaTarefa = () => {
-        // Limpa os campos de texto e hora
-        document.getElementById('descTask').value = "";
-        document.getElementById('horaTask').value = "";
-        
-        // Limpa o input de arquivo e o preview visual na tela
-        document.getElementById('fotoTask').value = "";
-        document.getElementById('previewFotosNovas').innerHTML = "";
-        
-        // Esvazia o array de fotos em memória
+    window.cancelarNovaTarefa = () => {
+        document.getElementById('descTask').value = ""; document.getElementById('horaTask').value = "";
+        document.getElementById('fotoTask').value = ""; document.getElementById('previewFotosNovas').innerHTML = "";
         fotosNovasArray = []; 
-        
-        // Recolhe a aba automaticamente para dar feedback visual
         document.getElementById('secaoAdd').classList.add('escondido');
         document.getElementById('setaAdd').classList.remove('seta-expandida');
     };
-	
-window.salvarNovaTarefa = async () => {
-    const desc = document.getElementById('descTask').value;
     
-    // CORREÇÃO: Usando '=' e pegando o valor do filtro global no topo
-    const marcadorAtivo = document.getElementById('filtroTagGlobal').value; 
+    window.salvarNovaTarefa = async () => {
+        const desc = document.getElementById('descTask').value;
+        const marcadorAtivo = document.getElementById('filtroTagGlobal').value; 
+        if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
+        
+        const btn = document.getElementById('btnSalvar');
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = "⏳ Salvando..."; btn.disabled = true;
 
-    if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
-    
-    const btn = document.getElementById('btnSalvar');
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Salvando..."; btn.disabled = true;
+        try {
+            let linksFotos = [];
+            for (let file of fotosNovasArray) {
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
+                const snap = await uploadBytes(sRef, file);
+                linksFotos.push(await getDownloadURL(snap.ref));
+            }
+            await addDoc(collection(db, "tarefas"), { 
+                uid: window.usuarioLogado.uid, descricao: desc, marcador: marcadorAtivo, hora: document.getElementById('horaTask').value, dataString: document.getElementById('dataSeletor').value, categoria: categoriaFiltroAtiva, fotos: linksFotos, criadoEm: new Date(), alarmeAtivo: true, alertaDisparado: false 
+            });
+            cancelarNovaTarefa(); carregarTarefas(); alert("Tarefa salva!");
+        } catch (e) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+    };
 
-    try {
-        let linksFotos = [];
-        for (let file of fotosNovasArray) {
-            const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
-            const snap = await uploadBytes(sRef, file);
-            linksFotos.push(await getDownloadURL(snap.ref));
-        }
+    window.prepararFotosNovas = (input) => { 
+        Array.from(input.files).forEach(f => { if (fotosNovasArray.length >= 4) return; fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); 
+        input.value = ""; 
+    };
+    const renderizarPreviewFotosNovas = () => { 
+        document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((file, idx) => `
+            <div class="foto-wrapper"><img src="${URL.createObjectURL(file)}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); 
+    };
+    window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
-        await addDoc(collection(db, "tarefas"), { 
-            uid: window.usuarioLogado.uid, 
-            descricao: desc, 
-            marcador: marcadorAtivo, // Salva a tag selecionada
-            hora: document.getElementById('horaTask').value, 
-            dataString: document.getElementById('dataSeletor').value, 
-            categoria: categoriaFiltroAtiva, 
-            fotos: linksFotos, 
-            criadoEm: new Date(), 
-            alarmeAtivo: true, 
-            alertaDisparado: false 
-        });
-
-        fotosNovasArray = []; 
-        document.getElementById('descTask').value = "";
-        document.getElementById('previewFotosNovas').innerHTML = ""; 
-        carregarTarefas();
-        alert("Tarefa salva com sucesso!");
-    } catch (e) { 
-        console.error(e);
-        alert("Erro ao salvar."); 
-    } finally { 
-        btn.innerHTML = textoOriginal; 
-        btn.disabled = false; 
-    }
-};
-
-window.subirArquivoFixo = async () => {
+    // --- ARQUIVOS E PDF ---
+    window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
         const nome = document.getElementById('nomeArquivoFixo').value;
         if(!file || !nome || !window.usuarioLogado) return alert("Preencha o nome e selecione o arquivo!");
@@ -1038,163 +863,13 @@ window.subirArquivoFixo = async () => {
             const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
             const snap = await uploadBytes(sRef, file);
             const url = await getDownloadURL(snap.ref);
-            await addDoc(collection(db, "arquivos_fixos"), {
-                uid: window.usuarioLogado.uid, 
-                Nomearquivo: nome,
-                categoria: categoriaFiltroAtiva, // <--- Puxa a categoria selecionada lá no topo
-                link: url, dataUpload: new Date()
-            });
-            alert("Arquivo Fixo salvo com sucesso!"); 
+            await addDoc(collection(db, "arquivos_fixos"), { uid: window.usuarioLogado.uid, Nomearquivo: nome, categoria: categoriaFiltroAtiva, link: url, dataUpload: new Date() });
+            alert("Arquivo Fixo salvo!"); 
             carregarArquivosFixos();
-            document.getElementById('nomeArquivoFixo').value = "";
-            document.getElementById('inputArquivoFixo').value = "";
-        } catch (e) { alert("Erro no upload do arquivo."); }
-        finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
+            document.getElementById('nomeArquivoFixo').value = ""; document.getElementById('inputArquivoFixo').value = "";
+        } catch (e) { alert("Erro no upload."); } finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
     };
-    
-window.prepararFotosNovas = (input) => { 
-        Array.from(input.files).forEach(f => { 
-            if (fotosNovasArray.length >= 4) return; 
-            fotosNovasArray.push(f); // Salva o ARQUIVO REAL em vez do texto
-            renderizarPreviewFotosNovas(); 
-        }); 
-        input.value = ""; 
-    };
-    const renderizarPreviewFotosNovas = () => { 
-        document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((file, idx) => `
-            <div class="foto-wrapper">
-                <img src="${URL.createObjectURL(file)}" class="img-tarefa">
-                <button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button>
-            </div>`).join(''); 
-    };
-	window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
-    // --- FILTROS, BUSCA E UI GERAL ---
-window.setarData = (tipo, el) => {
-    const input = document.getElementById('dataSeletor'); 
-    const hoje = new Date(); 
-    tipoFiltroTempo = 'dia'; 
-    
-    if (tipo === 'hoje') {
-        input.value = hoje.toLocaleDateString('en-CA');
-    }
-    else if (tipo === 'amanha') { 
-        const am = new Date(); 
-        am.setDate(hoje.getDate() + 1); 
-        input.value = am.toLocaleDateString('en-CA'); 
-    }
-    else if (tipo === 'semana') { 
-        tipoFiltroTempo = 'semana'; 
-        const p = new Date(hoje); 
-        p.setDate(hoje.getDate() - hoje.getDay()); // Volta pro Domingo
-        
-        // Cria um array com os 7 dias exatos da semana para driblar o bloqueio do Firebase
-        window.arrayDiasSemana = [];
-        for(let i = 0; i < 7; i++) {
-            const d = new Date(p);
-            d.setDate(p.getDate() + i);
-            window.arrayDiasSemana.push(d.toLocaleDateString('en-CA'));
-        }
-        
-        input.value = window.arrayDiasSemana[0]; // Mostra o domingo no input
-    }
-    else if (tipo === 'custom') {
-        tipoFiltroTempo = 'dia';
-    }
-    
-    // Atualiza a cor dos botões
-    if(el) { 
-        document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); 
-        if(el.tagName === 'BUTTON') el.classList.add('ativo'); 
-    }
-    carregarTarefas();
-};
-
- window.carregarTarefas = async () => {
-    if (!window.usuarioLogado) return; 
-    const lista = document.getElementById('listaTarefas');
-    const dataFiltro = document.getElementById('dataSeletor').value;
-    let q;
-
-    try {
-        if (tipoFiltroTempo === 'semana') {
-            q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "in", window.arrayDiasSemana));
-        } else {
-            q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
-        }
-
-        const snap = await getDocs(q);
-        lista.innerHTML = "";
-        let tarefas = [];
-        snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
-
-        window.tarefasMonitoramento = tarefas;
-
-        if (tipoFiltroTempo === 'semana') {
-            tarefas.sort((a, b) => { 
-                if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); 
-                return a.dataString.localeCompare(b.dataString); 
-            });
-        }
-
-        // Filtros 100% calibrados:
-        if (categoriaFiltroAtiva !== "Geral") {
-            tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
-        }
-        if (tagFiltroAtiva !== "") {
-            tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
-        }
-
-        tarefas.forEach(t => {
-            const isEditando = idEmEdicao === t.id; 
-            const listaFotos = t.fotos || [];
-            const dataObj = new Date(t.dataString + 'T00:00:00'); 
-            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-            const corDaBorda = window.coresCategorias[t.categoria] || "#94a3b8";
-
-            lista.innerHTML += `
-                <div class="tarefa-item" style="border-left-color: ${corDaBorda}; border-left-width: 6px;">
-                    <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${JSON.stringify(listaFotos).replace(/"/g, '&quot;')})">
-                        <div class="dia-badge">${dataObj.getDate()}<span>${diasSemana[dataObj.getDay()]}</span></div>
-                        <div class="tarefa-info" style="flex:1;">
-                            ${isEditando ? `
-                                <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
-                                <div id="container-fotos-edit-${t.id}" class="container-fotos"></div>
-                                <div class="area-edicao" onclick="event.stopPropagation()">
-                                    <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}">
-                                    <div class="btn-grupo-edicao-final">
-                                        <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('edit-foto-${t.id}').click()">📷 ARQUIVO</button>
-                                        <button class="btn-acao-edit btn-salvar-azul" onclick="salvarAlteracoes('${t.id}')">SALVAR</button>
-                                    </div>
-                                    <input type="file" id="edit-foto-${t.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
-                                </div>
-                            ` : `
-                                <div style="font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">
-                                    <span style="background: rgba(30, 41, 59, 0.8); color: #ffffff; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2);">
-                                        🏷️ ${t.marcador || 'Sem Etapa'}
-                                    </span>
-                                </div>
-                                <div style="font-weight:bold; padding-right: 35px; word-wrap: break-word; color: #1e293b;">
-                                    ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
-                                </div>
-                                <div class="container-fotos">
-                                    ${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}
-                                </div>
-                                <button class="btn-excluir-task" title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')">✕</button>
-                            `}
-                        </div>
-                    </div>
-                </div>`;
-            if(isEditando) renderizarFotosEdicao();
-        });
-        
-        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
-    } catch (error) {
-        console.error("Erro ao carregar tarefas:", error);
-        lista.innerHTML = "<p style='text-align:center; color: #ef4444; margin-top:20px;'>Erro de conexão com o banco de dados.</p>";
-    }
-};
-    
     window.carregarArquivosFixos = async () => {
         if (!window.usuarioLogado) return;
         const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
@@ -1205,13 +880,8 @@ window.setarData = (tipo, el) => {
         let arquivos = [];
         snap.forEach(d => arquivos.push({ id: d.id, ...d.data() }));
 
-        // Filtra os arquivos pela categoria selecionada no topo
-		if (categoriaFiltroAtiva !== "Geral") {
-    arquivos = arquivos.filter(a => a.categoria === categoriaFiltroAtiva);
-}
-if (tagFiltroAtiva !== "") {
-    arquivos = arquivos.filter(a => a.marcador === tagFiltroAtiva);
-}
+        if (categoriaFiltroAtiva !== "Geral") arquivos = arquivos.filter(a => a.categoria === categoriaFiltroAtiva);
+        if (tagFiltroAtiva !== "") arquivos = arquivos.filter(a => a.marcador === tagFiltroAtiva);
 
         arquivos.forEach(a => {
             lista.innerHTML += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items: center;">
@@ -1219,76 +889,141 @@ if (tagFiltroAtiva !== "") {
                 <a href="${a.link}" target="_blank" style="color:white; background:#007bff; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-weight:bold; font-size: 0.8rem;">ABRIR</a>
             </div>`;
         });
-
         if(arquivos.length === 0) lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhum arquivo nesta categoria.</p>";
     };
 
-// Dicionário global para guardar as cores
-window.coresCategorias = { "Geral": "#94a3b8" }; 
-window.logosCategorias = {}; /
+    window.gerarRelatorioPDF = (evento) => {
+        evento.stopPropagation();
+        if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) return alert("Não há atividades para gerar.");
 
+        let tarefasDoPDF = window.tarefasMonitoramento;
+        if (categoriaFiltroAtiva !== "Geral") tarefasDoPDF = tarefasDoPDF.filter(t => t.categoria === categoriaFiltroAtiva);
+        if (tarefasDoPDF.length === 0) return alert("Não há atividades nesta categoria.");
 
-window.carregarCategorias = async () => { 
-    const c = document.getElementById('listaCategorias'); 
-    if (!window.usuarioLogado) return; 
+        const btn = evento.currentTarget;
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = "⏳ Gerando..."; btn.disabled = true;
 
-    try {
-        const q = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
-        const s = await getDocs(q); 
-        
-        const catSalva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
-        const corSalva = localStorage.getItem('ultimaCorCategoria') || "#94a3b8";
+        let dataFiltroTexto = "";
+        if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
+            const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
+            const fim = window.arrayDiasSemana[6].split('-').reverse().join('/');
+            dataFiltroTexto = `${inicio} a ${fim}`;
+        } else {
+            dataFiltroTexto = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
+        }
 
-        const corGeral = catSalva === "Geral" ? "#94a3b8" : "rgba(255,255,255,0.05)";
-        const textoGeral = catSalva === "Geral" ? "white" : "#cbd5e1";
-        let htmlTabs = `<div class="category-tab" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8', this)">Geral</div>`; 
-        
-        s.forEach(d => { 
-            const cat = d.data();
-            window.coresCategorias[cat.nome] = cat.cor; 
-            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
-            
-            const corFundo = catSalva === cat.nome ? cat.cor : "rgba(255,255,255,0.05)";
-            const corTexto = catSalva === cat.nome ? "white" : "#cbd5e1";
-            
-            htmlTabs += `<div class="category-tab" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
-        }); 
-        
-        c.innerHTML = htmlTabs;
-        carregarTarefas();
-        carregarArquivosFixos();
-    } catch (e) {
-        console.error("Erro ao carregar categorias:", e);
-    }
-};
+        const tarefasPorDia = {};
+        tarefasDoPDF.forEach(t => {
+            if (!tarefasPorDia[t.dataString]) tarefasPorDia[t.dataString] = [];
+            tarefasPorDia[t.dataString].push(t);
+        });
+        const diasOrdenados = Object.keys(tarefasPorDia).sort();
+        const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
-window.selecionarCat = (nome, cor, el) => { 
-    categoriaFiltroAtiva = nome; 
-    
-    // Salva na memória do navegador
-    localStorage.setItem('ultimaCategoriaAgenda', nome);
-    localStorage.setItem('ultimaCorCategoria', cor);
+        const relatorioTemp = document.createElement('div');
+        relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
+        relatorioTemp.style.color = '#1e293b';
 
-    // Reseta o estilo de todos os botões para o "vidro" padrão
-    document.querySelectorAll('.category-tab').forEach(b => { 
-        b.style.backgroundColor = 'rgba(255,255,255,0.05)'; 
-        b.style.color = '#cbd5e1'; 
-    }); 
-    
-    // Aplica a cor no botão recém-clicado
-    if(el) { 
-        el.style.backgroundColor = cor; 
-        el.style.color = 'white'; 
-    } 
-    
-    carregarTarefas(); 
-    carregarArquivosFixos(); 
-};
-	window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
+        let logoHeaderHtml = "";
+        if (categoriaFiltroAtiva !== "Geral" && window.logosCategorias && window.logosCategorias[categoriaFiltroAtiva]) {
+            logoHeaderHtml = `<img src="${window.logosCategorias[categoriaFiltroAtiva]}" style="max-height: 40px; margin-right: 15px; border-radius: 4px; object-fit: contain;">`;
+        }
+
+        let htmlPdf = `
+            <div style="padding: 10px 30px;">
+                <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center;">
+                    ${logoHeaderHtml}
+                    <h1 style="margin: 0; font-size: 26px;">Resumo Executivo - ${categoriaFiltroAtiva}</h1>
+                </div>
+                <ul style="list-style-type: none; padding: 0;">`;
+
+        diasOrdenados.forEach(dia => {
+            const dataObj = new Date(dia + 'T00:00:00');
+            const nomeDia = diasSemanaNomes[dataObj.getDay()];
+            const dataFormatada = dia.split('-').reverse().join('/');
+            htmlPdf += `<li style="margin-bottom: 20px;"><h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">${nomeDia} (${dataFormatada})</h3>`;
+            tarefasPorDia[dia].forEach(t => {
+                htmlPdf += `<div style="padding-left: 12px; border-left: 3px solid ${window.coresCategorias[t.categoria] || '#94a3b8'}; margin-bottom: 8px; font-size: 14px; color: #475569;">${t.descricao}</div>`;
+            });
+            htmlPdf += `</li>`;
+        });
+        htmlPdf += `</ul></div>`;
+
+        diasOrdenados.forEach(dia => {
+            const dataObj = new Date(dia + 'T00:00:00');
+            const nomeDia = diasSemanaNomes[dataObj.getDay()];
+            const diaMes = dataObj.getDate();
+            htmlPdf += `<div class="html2pdf__page-break"></div><div style="padding: 10px 30px 0 30px;"><h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">${diaMes} - ${nomeDia}</h2>`;
+            
+            let alturaAtual = 40;
+            const ALTURA_MAXIMA = 265;
+
+            tarefasPorDia[dia].forEach(t => {
+                let temFoto = t.fotos && t.fotos.length > 0;
+                let alturaTarefa = temFoto ? 110 : 35; 
+
+                if (alturaAtual + alturaTarefa > ALTURA_MAXIMA) {
+                    htmlPdf += `</div><div class="html2pdf__page-break"></div><div style="padding: 10px 30px 0 30px;"><h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">${diaMes} - ${nomeDia}</h2>`;
+                    alturaAtual = 40;
+                }
+
+                let fotosHtml = '';
+                if (temFoto) {
+                    const qtd = Math.min(t.fotos.length, 4); 
+                    let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 280px; margin-top: 15px;';
+                    if (qtd === 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
+                    else if (qtd === 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
+                    else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; 
+
+                    fotosHtml += `<div style="${gridStyles}">`;
+                    for(let i=0; i < qtd; i++) {
+                        fotosHtml += `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;"><img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>`;
+                    }
+                    fotosHtml += `</div>`;
+                }
+
+                htmlPdf += `<div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;"><div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">${t.descricao}</div>${fotosHtml}</div>`;
+                alturaAtual += alturaTarefa;
+            });
+            htmlPdf += `</div>`; 
+        });
+
+        relatorioTemp.innerHTML = htmlPdf;
+
+        const opcoes = { margin: [15, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } };
+        
+        // Formatação do nome de arquivo sem Regex para segurança total
+        const periodoSeguro = dataFiltroTexto.split('/').join('-').split(' ').join('_');
+        const nomeRelatorio = `Relatorio_${categoriaFiltroAtiva}_${periodoSeguro}`;
+
+        html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
+            const totalPages = pdf.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                pdf.setPage(i); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(30, 41, 59); pdf.setFontSize(11);
+                pdf.text(`Relatório Técnico | Categoria: ${categoriaFiltroAtiva}`, 15, 10);
+                pdf.text(dataFiltroTexto, 195, 10, { align: 'right' }); 
+                pdf.setDrawColor(203, 213, 225); pdf.setLineWidth(0.5); pdf.line(15, 12, 195, 12);
+                pdf.setFontSize(10); pdf.text(`Página ${i} de ${totalPages}`, 195, 287, { align: 'right' }); pdf.line(15, 282, 195, 282);
+            }
+            return pdf.output('blob');
+        }).then(async (pdfBlob) => {
+            btn.innerHTML = "☁️ Salvando...";
+            try {
+                const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`); 
+                await uploadBytes(sRef, pdfBlob);
+                const urlArquivo = await getDownloadURL(sRef);
+                await addDoc(collection(db, "arquivos_fixos"), { uid: window.usuarioLogado.uid, Nomearquivo: nomeRelatorio, categoria: categoriaFiltroAtiva, link: urlArquivo, dataUpload: new Date() });
+                alert(`Relatório salvo em Arquivos Fixos!`); carregarArquivosFixos(); 
+            } catch (error) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+        });
+    };
+
+    // --- FUNÇÕES AUXILIARES ---
+    window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
-    
 
 </script>
 </body>
