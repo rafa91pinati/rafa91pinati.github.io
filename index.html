@@ -526,11 +526,11 @@ onAuthStateChanged(auth, (user) => {
 };
 
     // --- FUNÇÕES DE UI E ALARME ---
-    window.abrirConfig = () => { 
+ window.abrirConfig = () => { 
     document.getElementById('modalConfiguracoes').style.display = 'flex'; 
-    carregarCategoriasModal(); // É essa linha que puxa a lista na hora que a tela abre!
+    carregarCategoriasModal(); 
+    carregarMarcadoresModal(); // <-- ADICIONE ESTA LINHA AQUI
 };
-
 window.fecharModalConfig = () => { 
     document.getElementById('modalConfiguracoes').style.display = 'none'; 
 };
@@ -671,18 +671,15 @@ window.carregarMarcadoresModal = async () => {
         
         snap.forEach(d => {
             const m = d.data();
-            // AJUSTE: Cor branca (#ffffff) e layout sem datas
+            // FONTE BRANCA (#ffffff) E SEM DATAS
             lista.innerHTML += `
                 <li style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.08); padding:12px; border-radius:12px; margin-bottom:8px; border: 1px solid rgba(255,255,255,0.1);">
                     <b style="color:#ffffff; font-size:0.95rem;">${m.nome}</b>
                     <button onclick="excluirMarcador('${d.id}')" style="background:rgba(239, 68, 68, 0.3); border:none; color:#ff8080; cursor:pointer; border-radius:8px; padding:8px 12px; font-weight:bold;">🗑️</button>
                 </li>`;
         });
-
         if(snap.empty) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhum marcador criado.</p>";
-    } catch (e) {
-        console.error("Erro ao carregar marcadores:", e);
-    }
+    } catch (e) { console.error(e); }
 };
 
 // ESSA FUNÇÃO FAZ O DROP DOWN FUNCIONAR
@@ -914,7 +911,7 @@ window.salvarNovaTarefa = async () => {
     const descInput = document.getElementById('descTask');
     const filtroTag = document.getElementById('filtroTagGlobal');
     
-    // Verificação de segurança para evitar erros de 'null'
+    // CORREÇÃO DA LINHA 912: Sintaxe limpa e funcional
     const desc = descInput ? descInput.value : "";
     const marcadorAtivo = filtroTag ? filtroTag.value : "";
 
@@ -922,7 +919,8 @@ window.salvarNovaTarefa = async () => {
     
     const btn = document.getElementById('btnSalvar');
     const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Salvando..."; btn.disabled = true;
+    btn.innerHTML = "⏳ Salvando..."; 
+    btn.disabled = true;
 
     try {
         let linksFotos = [];
@@ -935,7 +933,7 @@ window.salvarNovaTarefa = async () => {
         await addDoc(collection(db, "tarefas"), { 
             uid: window.usuarioLogado.uid, 
             descricao: desc, 
-            marcador: marcadorAtivo, // Herda a tag selecionada no filtro global
+            marcador: marcadorAtivo, // Salva com a tag que você está filtrando no momento
             hora: document.getElementById('horaTask').value, 
             dataString: document.getElementById('dataSeletor').value, 
             categoria: categoriaFiltroAtiva, 
