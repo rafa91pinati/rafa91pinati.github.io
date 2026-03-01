@@ -908,39 +908,55 @@ window.gerarRelatorioPDF = (evento) => {
 	
 window.salvarNovaTarefa = async () => {
     const desc = document.getElementById('descTask').value;
-    const // No momento de montar o objeto para o addDoc:
-	const marcador: document.getElementById('filtroTagGlobal').value; // Pega o que está no filtro no topo
-        if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
-        const btn = document.getElementById('btnSalvar');
-        btn.innerHTML = "⏳ Subindo arquivos..."; btn.disabled = true;
+    
+    // CORREÇÃO AQUI: Pegamos o marcador que está selecionado no filtro lá no topo
+    const marcadorSelecionado = document.getElementById('filtroTagGlobal').value; 
 
-        let linksFotos = [];
-        try {
-            for (let file of fotosNovasArray) {
-                // Envia o arquivo de foto diretamente (Adeus Erro 400!)
-                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
-                const snap = await uploadBytes(sRef, file);
-                linksFotos.push(await getDownloadURL(snap.ref));
-            }
-            await addDoc(collection(db, "tarefas"), { 
+    if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
+    
+    const btn = document.getElementById('btnSalvar');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳ Subindo arquivos..."; 
+    btn.disabled = true;
+
+    let linksFotos = [];
+    try {
+        for (let file of fotosNovasArray) {
+            // Envia o arquivo de foto diretamente para o storage
+            const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
+            const snap = await uploadBytes(sRef, file);
+            linksFotos.push(await getDownloadURL(snap.ref));
+        }
+
+        // SALVAMENTO NO FIRESTORE
+        await addDoc(collection(db, "tarefas"), { 
             uid: window.usuarioLogado.uid, 
             descricao: desc, 
-            marcador: marcadorSelecionado, // SALVA A TAG NO DOCUMENTO
+            marcador: marcadorSelecionado, // Vincula a atividade à tag ativa no filtro
             hora: document.getElementById('horaTask').value, 
             dataString: document.getElementById('dataSeletor').value, 
             categoria: categoriaFiltroAtiva, 
             fotos: linksFotos, 
             criadoEm: new Date(), 
             alarmeAtivo: true, 
-            alertaDisparado: false
-			});
-            fotosNovasArray = []; document.getElementById('descTask').value = "";
-            document.getElementById('previewFotosNovas').innerHTML = ""; carregarTarefas();
-			document.getElementById('seletorMarcadorTask').value = "";
-            alert("Tarefa salva com sucesso!");
-        } catch (e) { alert("Erro ao salvar."); console.error(e); }
-        finally { btn.innerHTML = "Salvar na Nuvem"; btn.disabled = false; }
-    };
+            alertaDisparado: false 
+        });
+
+        // LIMPEZA APÓS SUCESSO
+        fotosNovasArray = []; 
+        document.getElementById('descTask').value = "";
+        document.getElementById('previewFotosNovas').innerHTML = ""; 
+        carregarTarefas();
+        alert("Tarefa salva com sucesso!");
+
+    } catch (e) { 
+        alert("Erro ao salvar."); 
+        console.error("Erro técnico:", e); 
+    } finally { 
+        btn.innerHTML = "Salvar"; 
+        btn.disabled = false; 
+    }
+};
 
 window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
