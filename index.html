@@ -617,49 +617,52 @@ window.adicionarCategoria = async () => {
 
 window.carregarCategoriasModal = async () => {
     const lista = document.getElementById('listaCategoriasModal');
+    if (!lista || !window.usuarioLogado) return;
+
     lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
-    
+
     try {
-        const snap = await getDocs(collection(db, "categorias"));
+        const q = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+        const snap = await getDocs(q);
         lista.innerHTML = "";
-        
-        if(snap.empty) {
-            lista.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size:0.9rem;'>Nenhuma categoria criada.</p>";
-            return;
-        }
 
         snap.forEach(d => {
             const c = d.data();
-			const temLogo = cat.logoUrl ? `<img src="${cat.logoUrl}" style="width:25px; height:25px; border-radius:4px; object-fit:cover;">` : `<div style="width:25px; height:25px; background:${cat.cor}; border-radius:4px;"></div>`;
-            // Injetamos um layout escuro com inputs para cor e texto
-	lista.innerHTML += `
-    <li style="display:flex; align-items:center; gap:8px; margin-bottom:10px; background: rgba(0,0,0,0.2); padding:10px; border-radius:8px; border: 1px solid rgba(255,255,255,0.1);">
-        
-        <input type="color" id="cor-edit-${d.id}" value="${c.cor}" title="Mudar cor" 
-               onchange="atualizarCorCategoria('${d.id}', this.value)"
-               style="width:35px; height:35px; border:none; padding:0; border-radius:4px; cursor:pointer; background:none;">
+            // Fallback: se não tiver logoUrl, mostra um ícone padrão
+            const logoPreview = c.logoUrl 
+                ? `<img src="${c.logoUrl}" style="width:100%; height:100%; object-fit:cover;">` 
+                : `<span style="font-size:12px;">🖼️</span>`;
 
-        <div style="position: relative; width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;" 
-             onclick="document.getElementById('logo-edit-input-${d.id}').click()" title="Mudar Logo">
-            ${c.logoUrl ? `<img src="${c.logoUrl}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:12px;">🖼️</span>`}
-            <input type="file" id="logo-edit-input-${d.id}" accept="image/*" style="display: none;" 
-                   onchange="atualizarLogoCategoria('${d.id}', this.files[0])">
-        </div>
+            lista.innerHTML += `
+                <li style="display:flex; align-items:center; gap:8px; margin-bottom:10px; background: rgba(0,0,0,0.2); padding:10px; border-radius:8px; border: 1px solid rgba(255,255,255,0.1);">
+                    
+                    <input type="color" value="${c.cor || '#007bff'}" 
+                           onchange="atualizarCorCategoria('${d.id}', this.value)"
+                           style="width:35px; height:35px; border:none; padding:0; border-radius:4px; cursor:pointer; background:none;">
 
-        <input type="text" id="nome-edit-${d.id}" value="${c.nome}" 
-               style="flex:1; background:transparent; border:none; color:white; font-size:0.9rem;" 
-               onchange="atualizarNomeCategoria('${d.id}', this.value)">
+                    <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;" 
+                         onclick="document.getElementById('logo-edit-${d.id}').click()" title="Alterar Logo">
+                        ${logoPreview}
+                        <input type="file" id="logo-edit-${d.id}" accept="image/*" style="display: none;" 
+                               onchange="atualizarLogoCategoria('${d.id}', this.files[0])">
+                    </div>
 
-        <button onclick="excluirCategoria('${d.id}')" 
-                style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; padding:8px; border-radius:6px; cursor:pointer;">
-            🗑️
-        </button>
-    </li>`;
-	
+                    <input type="text" value="${c.nome}" 
+                           style="flex:1; background:transparent; border:none; color:white; font-size:0.9rem;" 
+                           onchange="atualizarNomeCategoria('${d.id}', this.value)">
+
+                    <button onclick="excluirCategoria('${d.id}')" 
+                            style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; padding:8px; border-radius:6px; cursor:pointer;">
+                        🗑️
+                    </button>
+                </li>`;
         });
+
+        if(snap.empty) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma categoria encontrada.</p>";
+
     } catch (e) {
-        console.error("Erro ao listar categorias: ", e);
-        lista.innerHTML = "<p style='text-align:center; color:#ef4444;'>Erro ao carregar.</p>";
+        console.error("Erro ao carregar categorias:", e);
+        lista.innerHTML = "<p style='text-align:center; color:#ff4d4d;'>Erro ao carregar.</p>";
     }
 };
 
@@ -817,13 +820,20 @@ window.gerarRelatorioPDF = (evento) => {
     relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
     relatorioTemp.style.color = '#1e293b';
 
-    let htmlPdf = `
-        <div style="padding: 10px 30px;">
-            <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
-                <h1 style="margin: 0; font-size: 26px;">Resumo Executivo</h1>
-            </div>
-            <ul style="list-style-type: none; padding: 0;">
-    `;
+    // Prepara a tag da imagem se a categoria atual tiver uma logo
+    let logoHeaderHtml = "";
+    if (categoriaFiltroAtiva !== "Geral" && window.logosCategorias[categoriaFiltroAtiva]) {
+        logoHeaderHtml = `<img src="${window.logosCategorias[categoriaFiltroAtiva]}" style="max-height: 40px; margin-right: 15px; border-radius: 4px; object-fit: contain;">`;
+    }
+
+    let htmlPdf = `
+        <div style="padding: 10px 30px;">
+            <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center;">
+                ${logoHeaderHtml}
+                <h1 style="margin: 0; font-size: 26px;">Resumo Executivo - ${categoriaFiltroAtiva}</h1>
+            </div>
+            <ul style="list-style-type: none; padding: 0;">
+    `;
 
     diasOrdenados.forEach(dia => {
         const dataObj = new Date(dia + 'T00:00:00');
@@ -1223,36 +1233,42 @@ if (tagFiltroAtiva !== "") {
 
 // Dicionário global para guardar as cores
 window.coresCategorias = { "Geral": "#94a3b8" }; 
+window.logosCategorias = {}; /
+
+// Dicionários globais para guardar as cores e as logos
+window.coresCategorias = { "Geral": "#94a3b8" }; 
+window.logosCategorias = {}; // <-- Novo: Guardar as logos na memória!
 
 window.carregarCategorias = async () => { 
-    const c = document.getElementById('listaCategorias'); 
-    const s = await getDocs(collection(db, "categorias")); 
-    
-    // Confirma a categoria e a cor salvas
-    const catSalva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
-    const corSalva = localStorage.getItem('ultimaCorCategoria') || "#94a3b8";
+    const c = document.getElementById('listaCategorias'); 
+    if (!window.usuarioLogado) return; // Evita rodar sem login
 
-    // Monta a aba "Geral" já pintando ela se for a ativa
-    const corGeral = catSalva === "Geral" ? "#94a3b8" : "rgba(255,255,255,0.05)";
-    const textoGeral = catSalva === "Geral" ? "white" : "#cbd5e1";
-    let htmlTabs = `<div class="category-tab" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8', this)">Geral</div>`; 
-    
-    // Monta as demais abas puxando do Firebase
-    s.forEach(d => { 
-        const cat = d.data();
-        window.coresCategorias[cat.nome] = cat.cor; 
-        
-        const corFundo = catSalva === cat.nome ? cat.cor : "rgba(255,255,255,0.05)";
-        const corTexto = catSalva === cat.nome ? "white" : "#cbd5e1";
-        
-        htmlTabs += `<div class="category-tab" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
-    }); 
-    
-    c.innerHTML = htmlTabs;
-    
-    // Garante que as listas vão dar um refresh final na categoria certa
-    carregarTarefas();
-    carregarArquivosFixos();
+    // Correção: Agora usamos a 'query' com o 'where' igual no modal!
+    const q = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+    const s = await getDocs(q); 
+    
+    const catSalva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
+    const corSalva = localStorage.getItem('ultimaCorCategoria') || "#94a3b8";
+
+    const corGeral = catSalva === "Geral" ? "#94a3b8" : "rgba(255,255,255,0.05)";
+    const textoGeral = catSalva === "Geral" ? "white" : "#cbd5e1";
+    let htmlTabs = `<div class="category-tab" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8', this)">Geral</div>`; 
+    
+    s.forEach(d => { 
+        const cat = d.data();
+        window.coresCategorias[cat.nome] = cat.cor; 
+        // Se a categoria tiver logo salva, guarda no dicionário
+        if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
+        
+        const corFundo = catSalva === cat.nome ? cat.cor : "rgba(255,255,255,0.05)";
+        const corTexto = catSalva === cat.nome ? "white" : "#cbd5e1";
+        
+        htmlTabs += `<div class="category-tab" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
+    }); 
+    
+    c.innerHTML = htmlTabs;
+    carregarTarefas();
+    carregarArquivosFixos();
 };
 
 window.selecionarCat = (nome, cor, el) => { 
