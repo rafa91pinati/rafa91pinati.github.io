@@ -572,109 +572,80 @@ window.excluirCategoria = async (id) => {
 };
 
 window.gerarRelatorioPDF = (evento) => {
-        evento.stopPropagation();
+    // Evita que o clique no botão feche a aba de atividades sem querer
+    evento.stopPropagation();
 
-        if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
-            return alert("Não há atividades carregadas para gerar o relatório.");
-        }
+    // Verifica se tem algo para imprimir
+    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
+        return alert("Não há atividades na tela para gerar o relatório.");
+    }
 
-        let tarefasDoPDF = window.tarefasMonitoramento;
-        if (categoriaFiltroAtiva !== "Geral") {
-            tarefasDoPDF = tarefasDoPDF.filter(t => t.categoria === categoriaFiltroAtiva);
-        }
+    // Muda o texto do botão para dar um feedback visual
+    const btn = evento.currentTarget;
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳ Gerando...";
+    btn.disabled = true;
 
-        if (tarefasDoPDF.length === 0) {
-            return alert("Não há atividades nesta categoria específica para gerar o relatório.");
-        }
+    // 1. Cria um elemento HTML invisível (na memória) só para o PDF
+    const relatorioTemp = document.createElement('div');
+    relatorioTemp.style.padding = '30px';
+    relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
+    relatorioTemp.style.color = '#1e293b';
 
-        const btn = evento.currentTarget;
-        const textoOriginal = btn.innerHTML;
-        btn.innerHTML = "⏳ Gerando...";
-        btn.disabled = true;
+    // 2. Monta o cabeçalho do documento
+    let dataFiltroTexto = document.getElementById('dataSeletor').value;
+    if (tipoFiltroTempo === 'semana') dataFiltroTexto = "Semana Atual";
+    if (tipoFiltroTempo === 'hoje') dataFiltroTexto = "Hoje";
+    if (tipoFiltroTempo === 'amanha') dataFiltroTexto = "Amanhã";
 
-        const relatorioTemp = document.createElement('div');
-        relatorioTemp.style.padding = '30px';
-        relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
-        relatorioTemp.style.color = '#1e293b';
+    let htmlPdf = `
+        <div style="border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
+            <h1 style="margin: 0; font-size: 24px;">Relatório de Atividades</h1>
+            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
+                <strong>Categoria:</strong> ${categoriaFiltroAtiva} | <strong>Período:</strong> ${dataFiltroTexto}
+            </p>
+        </div>
+    `;
 
-        let dataFiltroTexto = "";
-        if (tipoFiltroTempo === 'semana') {
-            const inicio = dataInicioSemana.split('-').reverse().join('/');
-            const fim = dataFimSemana.split('-').reverse().join('/');
-            dataFiltroTexto = `${inicio} a ${fim}`;
-        } else {
-            const diaExato = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
-            dataFiltroTexto = diaExato;
-        }
-
-        let htmlPdf = `
-            <div style="border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
-                <h1 style="margin: 0; font-size: 24px;">Relatório de Atividades</h1>
-                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
-                    <strong>Categoria:</strong> ${categoriaFiltroAtiva} | <strong>Período:</strong> ${dataFiltroTexto}
-                </p>
+    // 3. Adiciona as tarefas da tela no PDF
+    window.tarefasMonitoramento.forEach(t => {
+        // Formata a data de YYYY-MM-DD para DD/MM/YYYY
+        const dataFormatada = t.dataString.split('-').reverse().join('/');
+        
+        htmlPdf += `
+            <div style="margin-bottom: 15px; padding: 12px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0;">
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">
+                    ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
+                </div>
+                <div style="font-size: 12px; color: #64748b;">
+                    Data: ${dataFormatada}
+                </div>
             </div>
         `;
+    });
 
-        tarefasDoPDF.forEach(t => {
-            const dataFormatada = t.dataString.split('-').reverse().join('/');
-            
-            let fotosHtml = '';
-            if (t.fotos && t.fotos.length > 0) {
-                const qtd = t.fotos.length;
-                fotosHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">`;
-                
-                t.fotos.forEach(foto => {
-                    let largura = "100%"; 
-                    let altura = "250px"; 
+    relatorioTemp.innerHTML = htmlPdf;
 
-                    if (qtd === 2) {
-                        largura = "calc(50% - 4px)"; 
-                        altura = "180px";
-                    } else if (qtd >= 3) {
-                        largura = "calc(50% - 4px)"; 
-                        altura = "140px";
-                    }
-
-                    fotosHtml += `<img src="${foto}" style="width: ${largura}; height: ${altura}; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">`;
-                });
-                
-                fotosHtml += `</div>`;
-            }
-            
-            htmlPdf += `
-                <div style="margin-bottom: 20px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
-                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">
-                        ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
-                    </div>
-                    <div style="font-size: 12px; color: #64748b;">
-                        Data: ${dataFormatada}
-                    </div>
-                    ${fotosHtml}
-                </div>
-            `;
-        });
-
-        relatorioTemp.innerHTML = htmlPdf;
-
-        const opcoes = {
-            margin:       10,
-            filename:     `Relatorio_${categoriaFiltroAtiva}_${Date.now()}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true }, 
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opcoes).from(relatorioTemp).save().then(() => {
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        }).catch(err => {
-            console.error("Erro ao gerar PDF:", err);
-            alert("Ocorreu um erro ao gerar o documento. Verifique sua conexão.");
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        });
+    // 4. Configurações da biblioteca html2pdf
+    const opcoes = {
+        margin:       10, // Margem do PDF em mm
+        filename:     `Relatorio_${categoriaFiltroAtiva}_${Date.now()}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 }, // Aumenta a qualidade da renderização
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
+
+    // 5. Gera o arquivo e devolve o botão ao estado normal
+    html2pdf().set(opcoes).from(relatorioTemp).save().then(() => {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    }).catch(err => {
+        console.error("Erro ao gerar PDF:", err);
+        alert("Ocorreu um erro ao gerar o documento.");
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    });
+};
 
 // --- EDIÇÃO E SALVAMENTO ---
     window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
