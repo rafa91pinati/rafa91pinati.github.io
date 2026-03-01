@@ -909,7 +909,7 @@ window.gerarRelatorioPDF = (evento) => {
 window.salvarNovaTarefa = async () => {
     const desc = document.getElementById('descTask').value;
     const // No momento de montar o objeto para o addDoc:
-marcador: document.getElementById('filtroTagGlobal').value; // Pega o que está no filtro no topo
+	const marcador: document.getElementById('filtroTagGlobal').value; // Pega o que está no filtro no topo
         if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
         const btn = document.getElementById('btnSalvar');
         btn.innerHTML = "⏳ Subindo arquivos..."; btn.disabled = true;
