@@ -694,12 +694,27 @@ window.coresCategorias = { "Geral": "#94a3b8" };
 		};
 		
 			window.selecionarCat = (nome, cor, el) => { 
-        categoriaFiltroAtiva = nome; 
-        document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; }); 
-        if(el) { el.style.backgroundColor = cor; el.style.color = 'white'; } 
-        carregarTarefas(); 
-        carregarArquivosFixos(); // <--- Agora os arquivos mudam na mesma hora que você clica na aba!
-    };
+				categoriaFiltroAtiva = nome; 
+				
+				// Salva a escolha na memória do navegador
+				localStorage.setItem('ultimaCategoriaAgenda', nome);
+				localStorage.setItem('ultimaCorCategoria', cor);
+			
+				// Volta os botões não selecionados para o visual de "vidro" padrão
+				document.querySelectorAll('.category-tab').forEach(b => { 
+					b.style.backgroundColor = 'rgba(255,255,255,0.05)'; 
+					b.style.color = '#cbd5e1'; 
+				}); 
+				
+				// Aplica a cor na aba que acabou de ser clicada
+				if(el) { 
+					el.style.backgroundColor = cor; 
+					el.style.color = 'white'; 
+				} 
+				
+				carregarTarefas(); 
+				carregarArquivosFixos(); 
+			};
 	window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
