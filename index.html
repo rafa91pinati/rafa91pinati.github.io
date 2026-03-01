@@ -219,6 +219,14 @@
     </div>
 <div id="secaoAdd" class="secao-card escondido">
         <input type="text" id="descTask" placeholder="O que agendar hoje?">
+		
+		<div style="display: flex; align-items: center; gap: 10px; margin: 5px 0 12px 0; padding: 0 5px;">
+        <span style="font-weight: 800; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Tag:</span>
+        <select id="seletorMarcadorTask" style="flex: 1; margin: 0; padding: 8px; font-size: 0.85rem; font-weight: 600;">
+            <option value="">Nenhuma Etapa</option>
+            </select>
+    </div>
+	
         <div id="previewFotosNovas" class="container-fotos"></div>
         <div class="grid-50">
             <input type="time" id="horaTask">
@@ -488,6 +496,29 @@ const firebaseConfig = {
 
     window.fazerLogout = () => { if(confirm("Deseja sair da agenda?")) signOut(auth); };
     
+	window.atualizarSeletorMarcadores = async () => {
+    const seletor = document.getElementById('seletorMarcadorTask');
+    if(!seletor || !window.usuarioLogado) return;
+
+    try {
+        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
+        const snap = await getDocs(q);
+        
+        // Mantém a opção padrão
+        seletor.innerHTML = '<option value="">Nenhuma Etapa</option>';
+        
+        snap.forEach(d => {
+            const m = d.data();
+            const opcao = document.createElement('option');
+            opcao.value = m.nome; // Salvamos o nome da etapa
+            opcao.textContent = m.nome;
+            seletor.appendChild(opcao);
+        });
+    } catch (e) {
+        console.error("Erro ao carregar seletor de marcadores:", e);
+    }
+};
+
     // --- FUNÇÕES DE UI E ALARME ---
     window.abrirConfig = () => { 
     document.getElementById('modalConfiguracoes').style.display = 'flex'; 
@@ -866,8 +897,9 @@ window.gerarRelatorioPDF = (evento) => {
         document.getElementById('setaAdd').classList.remove('seta-expandida');
     };
 	
-    window.salvarNovaTarefa = async () => {
-        const desc = document.getElementById('descTask').value;
+window.salvarNovaTarefa = async () => {
+    const desc = document.getElementById('descTask').value;
+    const marcadorSelecionado = document.getElementById('seletorMarcadorTask').value;
         if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
         const btn = document.getElementById('btnSalvar');
         btn.innerHTML = "⏳ Subindo arquivos..."; btn.disabled = true;
@@ -881,14 +913,20 @@ window.gerarRelatorioPDF = (evento) => {
                 linksFotos.push(await getDownloadURL(snap.ref));
             }
             await addDoc(collection(db, "tarefas"), { 
-                uid: window.usuarioLogado.uid, descricao: desc, 
-                hora: document.getElementById('horaTask').value, 
-                dataString: document.getElementById('dataSeletor').value, 
-                categoria: categoriaFiltroAtiva, fotos: linksFotos, 
-                criadoEm: new Date(), alarmeAtivo: true, alertaDisparado: false 
-            });
+            uid: window.usuarioLogado.uid, 
+            descricao: desc, 
+            marcador: marcadorSelecionado, // SALVA A TAG NO DOCUMENTO
+            hora: document.getElementById('horaTask').value, 
+            dataString: document.getElementById('dataSeletor').value, 
+            categoria: categoriaFiltroAtiva, 
+            fotos: linksFotos, 
+            criadoEm: new Date(), 
+            alarmeAtivo: true, 
+            alertaDisparado: false
+			});
             fotosNovasArray = []; document.getElementById('descTask').value = "";
             document.getElementById('previewFotosNovas').innerHTML = ""; carregarTarefas();
+			document.getElementById('seletorMarcadorTask').value = "";
             alert("Tarefa salva com sucesso!");
         } catch (e) { alert("Erro ao salvar."); console.error(e); }
         finally { btn.innerHTML = "Salvar na Nuvem"; btn.disabled = false; }
