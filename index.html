@@ -211,12 +211,19 @@
         <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
     </div>
 
-    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
+<div class="category-tabs" id="listaCategorias">Sincronizando...</div>
 
-    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
-        <span>📝 ADD Tarefa</span>
-        <span id="setaAdd" class="seta-secao">▼</span>
-    </div>
+<div style="display: flex; align-items: center; gap: 10px; margin: 0 5px 20px 5px; padding: 12px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+    <span style="font-weight: 800; font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Fase / Tag:</span>
+    <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; padding: 8px; border-radius: 10px; border: none; background: rgba(255,255,255,0.8); color: #1e293b; font-weight: 700; outline: none; cursor: pointer;">
+        <option value="">Todas as Etapas</option>
+    </select>
+</div>
+
+<div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
+    <span>📝 ADD Tarefa</span>
+    <span id="setaAdd" class="seta-secao">▼</span>
+</div>
 <div id="secaoAdd" class="secao-card escondido">
         <input type="text" id="descTask" placeholder="O que agendar hoje?">
 		
@@ -386,6 +393,13 @@ const firebaseConfig = {
     let tipoFiltroTempo = 'dia'; 
     let dataInicioSemana = '';
     let dataFimSemana = '';
+	let tagFiltroAtiva = ""; // Variável global para o filtro de tags
+
+window.selecionarTag = (valor) => {
+    tagFiltroAtiva = valor;
+    carregarTarefas();       // Atualiza a lista de atividades
+    carregarArquivosFixos(); // Atualiza a lista de arquivos
+};
     window.usuarioLogado = null;
     window.tarefasMonitoramento = [];
 
@@ -888,7 +902,8 @@ window.gerarRelatorioPDF = (evento) => {
 	
 window.salvarNovaTarefa = async () => {
     const desc = document.getElementById('descTask').value;
-    const marcadorSelecionado = document.getElementById('seletorMarcadorTask').value;
+    const // No momento de montar o objeto para o addDoc:
+marcador: document.getElementById('filtroTagGlobal').value; // Pega o que está no filtro no topo
         if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
         const btn = document.getElementById('btnSalvar');
         btn.innerHTML = "⏳ Subindo arquivos..."; btn.disabled = true;
@@ -1034,9 +1049,9 @@ window.setarData = (tipo, el) => {
         }
 
         // Aplica o filtro da aba de categoria
-        if (categoriaFiltroAtiva !== "Geral") {
-            tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
-        }
+if (tagFiltroAtiva !== "") {
+    tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
+}
 
         // Renderiza as tarefas na tela
         tarefas.forEach(t => {
@@ -1102,9 +1117,9 @@ window.setarData = (tipo, el) => {
         snap.forEach(d => arquivos.push({ id: d.id, ...d.data() }));
 
         // Filtra os arquivos pela categoria selecionada no topo
-        if (categoriaFiltroAtiva !== "Geral") {
-            arquivos = arquivos.filter(a => a.categoria === categoriaFiltroAtiva);
-        }
+if (tagFiltroAtiva !== "") {
+    arquivos = arquivos.filter(a => a.marcador === tagFiltroAtiva);
+}
 
         arquivos.forEach(a => {
             lista.innerHTML += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items: center;">
