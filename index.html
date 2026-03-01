@@ -108,24 +108,28 @@
         .btn-salvar-azul { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
         .btn-salvar-azul:hover { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); transform: translateY(-1px); }
 
-/* Botão excluir (Clean e Moderno) */
+/* Botão excluir (O Xizinho no canto direito) */
 .btn-excluir-task { 
     background: transparent; 
     border: none; 
     color: #94a3b8; /* Cinza discreto */
     cursor: pointer; 
-    font-size: 1.2rem; 
+    font-size: 1.1rem; 
     position: absolute; 
-    right: 15px; 
-    top: 15px; 
+    right: 5px; 
+    top: 5px; 
+    width: 30px; 
+    height: 30px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    transition: all 0.2s ease; 
+    transition: 0.2s; 
+    font-weight: bold;
+    z-index: 10;
 }
 .btn-excluir-task:hover { 
-    color: #ef4444; /* Fica vermelho só ao passar o mouse */
-    transform: scale(1.15) rotate(5deg); 
+    color: #ef4444; /* Fica vermelho ao passar o mouse */
+    transform: scale(1.15); 
 }
         
         .grid-50 { display: flex; gap: 10px; align-items: center; width: 100%; }
@@ -630,8 +634,8 @@ window.prepararFotosNovas = (input) => {
         if (tipoFiltroTempo === 'semana') {
             q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", ">=", dataInicioSemana), where("dataString", "<=", dataFimSemana), orderBy("dataString", "asc"));
         } else {
-            q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
-        }
+    q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
+}
 
         const snap = await getDocs(q);
         lista.innerHTML = "";
@@ -666,10 +670,16 @@ window.prepararFotosNovas = (input) => {
                                     <input type="file" id="edit-foto-${t.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
                                 </div>
                             ` : `
-                                <div style="font-weight:bold;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
-                                <div class="container-fotos">${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}</div>
-                                <button class="btn-excluir-task" title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')">🗑️</button>
-                            `}
+                               <div style="font-weight:bold; padding-right: 35px; word-wrap: break-word; color: #1e293b;">
+        ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
+    </div>
+    
+    <div class="container-fotos">
+        ${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}
+    </div>
+    
+    <button class="btn-excluir-task" title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')">✕</button>
+`}
                         </div>
                     </div>
                 </div>`;
