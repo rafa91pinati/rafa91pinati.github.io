@@ -39,8 +39,8 @@
         
         /* Botões de Data Premium */
         .timeline-header { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; width: 100%; box-sizing: border-box; }
-        .btn-date { flex: 1; padding: 10px 2px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 1); background: rgba(255,255,255,0.05); color: #cbd5e1; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; transition: all 0.3s ease; }
-        .btn-date.ativo { background: linear-gradient(135deg, #64748b, #475569); color: white; border: 1px solid rgba(0, 0, 0, 1); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); }
+        .btn-date { flex: 1; padding: 10px 2px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #cbd5e1; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; transition: all 0.3s ease; }
+        .btn-date.ativo { background: linear-gradient(135deg, #64748b, #475569); color: white; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); }
 		#dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none; }
         #dataSeletor::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; } /* Deixa o ícone do calendário branco */
 
@@ -73,9 +73,9 @@
 /* --- PASSO 2: INPUTS, CARTÕES E BOTÕES DE VIDRO --- */
         textarea, input[type="text"], input[type="time"], input[type="date"], input[type="email"], input[type="password"], select, input[type="number"], input[type="color"] { 
             width: 100%; padding: 14px; margin: 8px 0; 
-            background: rgba(255, 255, 255, 0.15); /* Vidro escuro */
+            background: rgba(255, 255, 255, 1); /* Vidro escuro */
             border: 5px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 12px; color: #f8fafc; 
+            border-radius: 12px; color: #000000; 
             font-family: inherit; font-size: 0.9rem; resize: none; 
             box-sizing: border-box; transition: all 0.3s ease; 
         }
