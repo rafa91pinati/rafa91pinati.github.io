@@ -117,7 +117,7 @@
         
 		/* Tira o branco do fundo da seção de arquivos */
         #secaoArquivos {
-            background: rgba(148, 163, 184, 1)
+            background: rgba(241, 245, 249, 1);
             backdrop-filter: blur(10px);
             border-radius: 12px;
             padding: 15px;
@@ -139,7 +139,7 @@
 
         /* Garante que o texto dentro do arquivo seja preto */
         #listaArquivosFixos span, #listaArquivosFixos b {
-            color: #f1f5f9 !important;
+            color: #000000 !important;
         }
 		
 		/* --- PASSO 3: MODAIS DE VIDRO E TEMA CINZA --- */
@@ -206,7 +206,7 @@
     <span id="setaArq" class="seta-secao">▼</span>
 </div>
 
-<div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 10px;">
+<div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: #f1f5f9; border-radius: 12px; margin-bottom: 10px;">
         <input type="text" id="nomeArquivoFixo" placeholder="Nome do arquivo (ex: Manual Gás)">
         <input type="file" id="inputArquivoFixo" style="margin-top:10px;">
         <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background:#007bff; color:white; border:none; padding:12px; width:100%; border-radius:8px; margin-top:10px; font-weight:bold; cursor:pointer;">📤 Subir Arquivo Fixo</button>
