@@ -321,16 +321,20 @@
       <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
     </div>
 
-    <div id="abaCategorias" class="tabcontent" style="display: none;">
+  <div id="abaCategorias" class="tabcontent" style="display: none;">
       <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
       <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px;">
         <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
         <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1; margin: 0;">
+        
+        <div style="position: relative; overflow: hidden; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Escolher Logo">
+            <span style="font-size: 1.2rem;">🖼️</span>
+            <input type="file" id="logoCatInput" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+        </div>
+
         <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
       </div>
-	  
-	  <div id="previewLogoNova" style="font-size: 0.7rem; color: #64748b; margin-top: -10px; margin-bottom: 10px; display: none;">Logo selecionada!</div>
-	  
+      
       <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
       <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
       <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
@@ -540,12 +544,14 @@
     }, 60000); 
 
     // --- CATEGORIAS ---
+// --- CATEGORIAS ---
     window.carregarCategorias = async () => { 
         const c = document.getElementById('listaCategorias'); 
         if (!window.usuarioLogado) return; 
 
         try {
-            const q = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+            // REMOVIDO O FILTRO DE LOGIN AQUI para puxar as suas categorias antigas!
+            const q = query(collection(db, "categorias"));
             const s = await getDocs(q); 
             
             const catSalva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
@@ -589,9 +595,11 @@
     };
 
     window.adicionarCategoria = async () => {
-        const nome = document.getElementById('nomeNovaCat').value;
-        const cor = document.getElementById('corNovaCat').value;
-        const logoFile = document.getElementById('logoCatInput').files[0];
+        // IDs corrigidos para baterem com o HTML novo!
+        const nome = document.getElementById('novaCategoria').value;
+        const cor = document.getElementById('corNovaCategoria').value;
+        const logoInput = document.getElementById('logoCatInput');
+        const logoFile = logoInput ? logoInput.files[0] : null;
         
         if(!nome) return alert("Digite o nome da categoria!");
 
@@ -607,11 +615,11 @@
             }
             await addDoc(collection(db, "categorias"), { nome: nome, cor: cor, logoUrl: logoUrl, uid: window.usuarioLogado.uid, criadoEm: new Date() });
             
-            document.getElementById('nomeNovaCat').value = "";
-            document.getElementById('logoCatInput').value = "";
+            document.getElementById('novaCategoria').value = "";
+            if (logoInput) logoInput.value = "";
             carregarCategoriasModal();
             carregarCategorias(); 
-            alert("Categoria com logo criada!");
+            alert("Categoria criada!");
         } catch (e) { alert("Erro ao salvar categoria."); } 
         finally { btn.disabled = false; btn.innerHTML = "+"; }
     };
@@ -622,20 +630,23 @@
         lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
 
         try {
-            const q = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+            // Removido o filtro de UID aqui também para poder gerenciar as antigas
+            const q = query(collection(db, "categorias"));
             const snap = await getDocs(q);
             lista.innerHTML = "";
 
             snap.forEach(d => {
                 const c = d.data();
-                const logoPreview = c.logoUrl ? `<img src="${c.logoUrl}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:12px;">🖼️</span>`;
+                const logoPreview = c.logoUrl ? `<img src="${c.logoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">` : `<span style="font-size:12px;">🖼️</span>`;
                 lista.innerHTML += `
                     <li style="display:flex; align-items:center; gap:8px; margin-bottom:10px; background: rgba(0,0,0,0.2); padding:10px; border-radius:8px; border: 1px solid rgba(255,255,255,0.1);">
                         <input type="color" value="${c.cor || '#007bff'}" onchange="atualizarCorCategoria('${d.id}', this.value)" style="width:35px; height:35px; border:none; padding:0; border-radius:4px; cursor:pointer; background:none;">
+                        
                         <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;" onclick="document.getElementById('logo-edit-${d.id}').click()" title="Alterar Logo">
                             ${logoPreview}
                             <input type="file" id="logo-edit-${d.id}" accept="image/*" style="display: none;" onchange="atualizarLogoCategoria('${d.id}', this.files[0])">
                         </div>
+
                         <input type="text" value="${c.nome}" style="flex:1; background:transparent; border:none; color:white; font-size:0.9rem;" onchange="atualizarNomeCategoria('${d.id}', this.value)">
                         <button onclick="excluirCategoria('${d.id}')" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; padding:8px; border-radius:6px; cursor:pointer;">🗑️</button>
                     </li>`;
@@ -647,7 +658,20 @@
     window.atualizarCorCategoria = async (id, novaCor) => { await updateDoc(doc(db, "categorias", id), { cor: novaCor }); carregarCategorias(); };
     window.atualizarNomeCategoria = async (id, novoNome) => { if(novoNome.trim()) { await updateDoc(doc(db, "categorias", id), { nome: novoNome }); carregarCategorias(); } };
     window.excluirCategoria = async (id) => { if(confirm("Tem certeza que deseja apagar esta categoria?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategoriasModal(); carregarCategorias(); } };
-
+    
+    // Função para conseguir atualizar a foto de uma categoria que já existe
+    window.atualizarLogoCategoria = async (id, file) => {
+        if (!file) return;
+        try {
+            const storageRef = ref(storage, `logos_categorias/${window.usuarioLogado.uid}/${Date.now()}_${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const logoUrl = await getDownloadURL(snapshot.ref);
+            await updateDoc(doc(db, "categorias", id), { logoUrl: logoUrl });
+            carregarCategoriasModal();
+            carregarCategorias();
+            alert("Logo atualizada com sucesso!");
+        } catch (e) { console.error(e); alert("Erro ao atualizar logo."); }
+    };
     // --- MARCADORES ---
     window.adicionarMarcador = async () => {
         const nome = document.getElementById('nomeNovoMarcador').value;
