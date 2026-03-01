@@ -258,15 +258,17 @@
 
 
 <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
-    <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1;">
-        <span id="headerMes">📅 Atividades</span>
-        <span id="setaLista" class="seta-secao seta-expandida">▼</span>
+        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
+            <span id="headerMes">📅 Atividades</span>
+            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
+        </div>
+        
+        <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            📄 PDF
+        </button>
     </div>
-    <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-        📄 PDF
-    </button>
-</div>
-
+    
+    <div id="listaTarefas">Carregando atividades...</div>
 
 <div id="modalConfiguracoes" class="modal" style="display: none;">
   <div class="modal-content">
