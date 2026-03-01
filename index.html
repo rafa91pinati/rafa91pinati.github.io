@@ -618,9 +618,11 @@ window.prepararFotosNovas = (input) => {
         tarefas.forEach(t => {
             const isEditando = idEmEdicao === t.id; const listaFotos = t.fotos || [];
             const dataObj = new Date(t.dataString + 'T00:00:00'); const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-
-            lista.innerHTML += `
-                <div class="tarefa-item">
+// Busca a cor correspondente ou usa o cinza padrão caso não ache
+			const corDaBorda = window.coresCategorias[t.categoria] || "#94a3b8";
+			
+			lista.innerHTML += `
+				<div class="tarefa-item" style="border-left-color: ${corDaBorda}; border-left-width: 6px;">
                     <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${JSON.stringify(listaFotos).replace(/"/g, '&quot;')})">
                         <div class="dia-badge">${dataObj.getDate()}<span>${diasSemana[dataObj.getDay()]}</span></div>
                         <div class="tarefa-info">
@@ -674,8 +676,24 @@ window.prepararFotosNovas = (input) => {
         if(arquivos.length === 0) lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhum arquivo nesta categoria.</p>";
     };
 
-    window.carregarCategorias = async () => { const c = document.getElementById('listaCategorias'); const s = await getDocs(collection(db, "categorias")); c.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`; s.forEach(d => c.innerHTML += `<div class="category-tab" onclick="selecionarCat('${d.data().nome}', '${d.data().cor}', this)">${d.data().nome}</div>`); };
-    window.selecionarCat = (nome, cor, el) => { 
+// Dicionário global para guardar as cores
+window.coresCategorias = { "Geral": "#94a3b8" }; 
+
+		window.carregarCategorias = async () => { 
+			const c = document.getElementById('listaCategorias'); 
+			const s = await getDocs(collection(db, "categorias")); 
+			
+			c.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`; 
+			
+			s.forEach(d => { 
+				const cat = d.data();
+				// Salva a cor vinculada ao nome da categoria
+				window.coresCategorias[cat.nome] = cat.cor; 
+				c.innerHTML += `<div class="category-tab" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
+			}); 
+		};
+		
+			window.selecionarCat = (nome, cor, el) => { 
         categoriaFiltroAtiva = nome; 
         document.querySelectorAll('.category-tab').forEach(b => { b.style.backgroundColor = '#f8f9fa'; b.style.color = '#1c1e21'; }); 
         if(el) { el.style.backgroundColor = cor; el.style.color = 'white'; } 
