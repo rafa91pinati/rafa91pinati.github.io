@@ -327,31 +327,27 @@
       <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
     </div>
 	
-	<div id="abaMarcadores" class="tabcontent" style="display: none;">
-  <label style="display:block; margin-bottom:5px; font-weight:bold;">Novo Marcador (Fase):</label>
+<div id="abaMarcadores" class="tabcontent" style="display: none;">
+  <label style="display:block; margin-bottom:5px; font-weight:bold;">Nova Etapa (Marcador):</label>
   
-  <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
-    <input type="color" id="corNovoMarcador" value="#8b5cf6" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
-    <input type="text" id="nomeNovoMarcador" placeholder="Ex: Infraestrutura Elétrica" style="flex: 1; margin: 0;">
-  </div>
+  <input type="text" id="nomeNovoMarcador" placeholder="Ex: Infraestrutura Elétrica" style="margin-bottom: 10px;">
 
   <div style="display: flex; gap: 8px; margin-bottom: 15px;">
     <div style="flex: 1;">
-      <label style="font-size: 0.75rem; color: #cbd5e1;">Início:</label>
+      <label style="font-size: 0.75rem; color: #64748b;">Data Início:</label>
       <input type="date" id="inicioMarcador" style="padding: 8px; font-size: 0.8rem;">
     </div>
     <div style="flex: 1;">
-      <label style="font-size: 0.75rem; color: #cbd5e1;">Fim:</label>
+      <label style="font-size: 0.75rem; color: #64748b;">Data Fim:</label>
       <input type="date" id="fimMarcador" style="padding: 8px; font-size: 0.8rem;">
     </div>
     <button onclick="adicionarMarcador()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; align-self: flex-end; margin-bottom: 8px;">+</button>
   </div>
 
-  <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+  <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 15px 0;">
   
-  <label style="display:block; margin-bottom:5px; font-weight:bold;">Fases Cadastradas:</label>
-  <ul id="listaMarcadoresModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;">
-      </ul>
+  <label style="display:block; margin-bottom:5px; font-weight:bold;">Etapas Ativas:</label>
+  <ul id="listaMarcadoresModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
 </div>
 
   </div>
@@ -602,6 +598,75 @@ window.excluirCategoria = async (id) => {
         carregarCategorias(); // Tira das abas da tela inicial
     } 
 };
+
+
+// --- GERENCIAMENTO DE MARCADORES (ETAPAS) ---
+
+window.adicionarMarcador = async () => {
+    const nome = document.getElementById('nomeNovoMarcador').value;
+    const inicio = document.getElementById('inicioMarcador').value;
+    const fim = document.getElementById('fimMarcador').value;
+
+    if(!nome || !inicio || !fim) return alert("Preencha o nome e o período completo!");
+
+    try {
+        await addDoc(collection(db, "marcadores"), {
+            nome: nome,
+            dataInicio: inicio,
+            dataFim: fim,
+            uid: window.usuarioLogado.uid,
+            criadoEm: new Date()
+        });
+
+        // Limpa os campos
+        document.getElementById('nomeNovoMarcador').value = "";
+        document.getElementById('inicioMarcador').value = "";
+        document.getElementById('fimMarcador').value = "";
+
+        alert("Etapa cadastrada com sucesso!");
+        carregarMarcadoresModal();
+    } catch (e) {
+        console.error("Erro ao salvar marcador:", e);
+    }
+};
+
+window.carregarMarcadoresModal = async () => {
+    const lista = document.getElementById('listaMarcadoresModal');
+    if(!lista) return;
+    lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Carregando etapas...</p>";
+    
+    try {
+        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
+        const snap = await getDocs(q);
+        lista.innerHTML = "";
+        
+        snap.forEach(d => {
+            const m = d.data();
+            const dataI = m.dataInicio.split('-').reverse().join('/');
+            const dataF = m.dataFim.split('-').reverse().join('/');
+
+            lista.innerHTML += `
+                <li style="display:flex; justify-content:space-between; align-items:center; background: rgba(0,0,0,0.05); padding:10px; border-radius:10px; margin-bottom:8px; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="flex:1;">
+                        <b style="color:#1e293b; font-size:0.9rem;">${m.nome}</b>
+                        <div style="font-size:0.75rem; color:#64748b;">${dataI} até ${dataF}</div>
+                    </div>
+                    <button onclick="excluirMarcador('${d.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; padding:5px 10px;">🗑️</button>
+                </li>`;
+        });
+    } catch (e) {
+        console.error("Erro ao carregar marcadores:", e);
+    }
+};
+
+window.excluirMarcador = async (id) => {
+    if(confirm("Deseja apagar esta etapa?")) {
+        await deleteDoc(doc(db, "marcadores", id));
+        carregarMarcadoresModal();
+    }
+};
+
+
 
 window.gerarRelatorioPDF = (evento) => {
     evento.stopPropagation();
@@ -971,6 +1036,13 @@ window.setarData = (tipo, el) => {
                                     <input type="file" id="edit-foto-${t.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
                                 </div>
                             ` : `
+							
+							<div style="font-size: 0.7rem; color: #64748b; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">
+    <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
+        🏷️ ${t.marcador || 'Sem Etapa'}
+    </span>
+</div>
+
                                 <div style="font-weight:bold; padding-right: 35px; word-wrap: break-word; color: #1e293b;">
                                     ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
                                 </div>
