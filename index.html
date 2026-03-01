@@ -685,20 +685,34 @@ window.carregarMarcadoresModal = async () => {
 
 // ESSA FUNÇÃO FAZ O DROP DOWN FUNCIONAR
 window.atualizarSeletorMarcadores = async () => {
-    const seletor = document.getElementById('seletorMarcadorTask');
-    if(!seletor || !window.usuarioLogado) return;
-
-    const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
-    const snap = await getDocs(q);
+    const seletor = document.getElementById('filtroTagGlobal');
     
-    seletor.innerHTML = '<option value="">Nenhuma Etapa</option>';
-    snap.forEach(d => {
-        const m = d.data();
-        const opcao = document.createElement('option');
-        opcao.value = m.nome;
-        opcao.textContent = m.nome;
-        seletor.appendChild(opcao);
-    });
+    // Se o seletor não for encontrado no HTML, ele avisa no console
+    if (!seletor) {
+        console.warn("Aviso: Elemento 'filtroTagGlobal' não encontrado no HTML.");
+        return;
+    }
+    if (!window.usuarioLogado) return;
+
+    try {
+        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
+        const snap = await getDocs(q);
+        
+        // Reinicia o seletor com a opção padrão
+        seletor.innerHTML = '<option value="">Todas as Etapas</option>';
+        
+        snap.forEach(d => {
+            const m = d.data();
+            const opcao = document.createElement('option');
+            opcao.value = m.nome;
+            opcao.textContent = m.nome;
+            seletor.appendChild(opcao);
+        });
+        
+        console.log(`${snap.size} marcadores carregados no drop-down.`);
+    } catch (e) {
+        console.error("Erro ao popular drop-down de tags:", e);
+    }
 };
 
 window.excluirMarcador = async (id) => {
