@@ -108,91 +108,28 @@
         .btn-salvar-azul { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
         .btn-salvar-azul:hover { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); transform: translateY(-1px); }
 
-        /* Botão excluir (O Xizinho) */
-        /* Estilo para o botão de excluir com ícone */
-.btn-excluir-task {
-    background: linear-gradient(135deg, #ff7f7f, #ef4444); /* Gradiente suave para vermelho */
-    color: white;
-    cursor: pointer;
-    font-size: 1.2rem;
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+/* Botão excluir (Clean e Moderno) */
+.btn-excluir-task { 
+    background: transparent; 
+    border: none; 
+    color: #94a3b8; /* Cinza discreto */
+    cursor: pointer; 
+    font-size: 1.2rem; 
+    position: absolute; 
+    right: 15px; 
+    top: 15px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: all 0.2s ease; 
 }
-
-/* Efeito de Hover */
-.btn-excluir-task:hover {
-    background: linear-gradient(135deg, #ef4444, #ff7f7f);
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
-
-/* Ícone moderno de lixeira */
-.btn-excluir-task i {
-    font-size: 1.2rem;
-}
-
-/* Quando o botão está clicado */
-.btn-excluir-task:active {
-    transform: scale(0.95);
+.btn-excluir-task:hover { 
+    color: #ef4444; /* Fica vermelho só ao passar o mouse */
+    transform: scale(1.15) rotate(5deg); 
 }
         
-        /* Ajuste de layout para os botões ficarem lado a lado */
-.grid-50 {
-    display: flex;
-    gap: 16px; /* Espaçamento entre os itens */
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-#inputArquivoFixo {
-    flex: 1; /* O input ocupa o máximo de espaço possível */
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 12px;
-    border-radius: 10px;
-    color: #cbd5e1;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-#inputArquivoFixo:hover {
-    border-color: #8b5cf6;
-}
-
-#inputArquivoFixo:focus {
-    outline: none;
-    border-color: #8b5cf6;
-    background: rgba(255, 255, 255, 0.2);
-}
-
-/* Botão de upload lado a lado */
-#btnSubirFixo {
-    flex: 1;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-    font-size: 1rem;
-    cursor: pointer;
-    border: none;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-/* Hover effect para o botão de enviar arquivo */
-#btnSubirFixo:hover {
-    background: linear-gradient(135deg, #059669, #10b981);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
+        .grid-50 { display: flex; gap: 10px; align-items: center; width: 100%; }
+        .grid-50 > * { flex: 1; }
         
 		/* Tira o branco do fundo da seção de arquivos */
         #secaoArquivos {
@@ -285,14 +222,23 @@
     <span id="setaArq" class="seta-secao">▼</span>
 </div>
 
-<div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: #f1f5f966; border-radius: 12px; margin-bottom: 10px;">
-        <div class="grid-50">
-    <input type="text" id="nomeArquivoFixo" placeholder="Nome do arquivo (ex: Manual Gás)">
-    <input type="file" id="inputArquivoFixo" style="margin-top:10px;">
-</div>
-<button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background:#007bff; color:white; border:none; padding:12px; width:100%; border-radius:8px; margin-top:10px; font-weight:bold; cursor:pointer;">📤 Subir Arquivo Fixo</button>
-        <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid #eee; padding-top: 10px;"></div>
+<div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
+    <input type="text" id="nomeArquivoFixo" placeholder="Descrição do arquivo (ex: Manual Gás)" style="width: 100%; margin-bottom: 12px; box-sizing: border-box;">
+    
+    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+        
+        <div style="flex: 1; position: relative; overflow: hidden; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 12px 10px; text-align: center; cursor: pointer; transition: 0.3s;">
+            <span id="file-label" style="font-size: 0.85rem; color: #1e293b; font-weight: 700;">📁 Escolher Arquivo</span>
+            <input type="file" id="inputArquivoFixo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" onchange="document.getElementById('file-label').innerText = this.files[0] ? this.files[0].name : '📁 Escolher Arquivo'">
+        </div>
+
+        <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); white-space: nowrap;">
+            📤 Subir
+        </button>
     </div>
+
+    <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px;"></div>
+</div>
 
 
 
@@ -692,9 +638,7 @@ window.prepararFotosNovas = (input) => {
                             ` : `
                                 <div style="font-weight:bold;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
                                 <div class="container-fotos">${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}</div>
-                                <button class="btn-excluir-task" onclick="event.stopPropagation(); excluirTask('${t.id}')">
-    <i class="fas fa-trash-alt"></i> <!-- Ícone moderno de lixeira -->
-</button>
+                                <button class="btn-excluir-task" title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')">🗑️</button>
                             `}
                         </div>
                     </div>
