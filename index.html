@@ -592,7 +592,6 @@ window.gerarRelatorioPDF = (evento) => {
     btn.innerHTML = "⏳ Gerando...";
     btn.disabled = true;
 
-    // Cabeçalho: Início e Fim da semana ou o dia exato
     let dataFiltroTexto = "";
     if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
         const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
@@ -694,14 +693,8 @@ window.gerarRelatorioPDF = (evento) => {
                 fotosHtml += `</div>`;
             }
 
-            // O 'page-break-inside: avoid' com o identificador de data dentro da tarefa
             htmlPdf += `
                 <div style="margin-bottom: 25px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
-                    
-                    <div style="font-size: 11px; color: #64748b; margin-bottom: 5px; font-weight: bold; text-transform: uppercase;">
-                        📅 ${diaMes}, ${nomeDia}
-                    </div>
-                    
                     <div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">
                         ${t.descricao}
                     </div>
@@ -715,17 +708,40 @@ window.gerarRelatorioPDF = (evento) => {
 
     relatorioTemp.innerHTML = htmlPdf;
 
-    // Novas Configurações do Gerador com Margens Universais e Quebra CSS
     const opcoes = {
-        margin:       [15, 0, 15, 0], // Margens: Topo, Direita, Fundo, Esquerda (em mm)
+        margin:       [15, 0, 15, 0], 
         filename:     `Relatorio_Agenda_${Date.now()}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true }, 
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'] } // Força a respeitar a quebra sem amassar
+        pagebreak:    { mode: ['css', 'legacy'] } 
     };
 
-    html2pdf().set(opcoes).from(relatorioTemp).save().then(() => {
+    // ==========================================
+    // INJEÇÃO DE CABEÇALHO E RODAPÉ EM TODAS AS PÁGINAS
+    // ==========================================
+    html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
+        const totalPages = pdf.internal.getNumberOfPages();
+        
+        for (let i = 1; i <= totalPages; i++) {
+            pdf.setPage(i);
+            
+            // Configurações da fonte
+            pdf.setFontSize(9);
+            pdf.setTextColor(100, 116, 139); // Cinza discreto
+            
+            // Cabeçalho Fixo (Esquerda)
+            pdf.text(`Relatório Técnico | Categoria: ${categoriaFiltroAtiva} | Período: ${dataFiltroTexto}`, 12, 10);
+            
+            // Linha fina separadora no topo
+            pdf.setDrawColor(226, 232, 240); 
+            pdf.setLineWidth(0.5);
+            pdf.line(12, 12, 198, 12);
+            
+            // Rodapé com Numeração (Direita)
+            pdf.text(`Página ${i} de ${totalPages}`, 180, 290);
+        }
+    }).save().then(() => {
         btn.innerHTML = textoOriginal;
         btn.disabled = false;
     }).catch(err => {
