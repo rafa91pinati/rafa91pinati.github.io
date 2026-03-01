@@ -592,7 +592,7 @@ window.gerarRelatorioPDF = (evento) => {
     btn.innerHTML = "⏳ Gerando...";
     btn.disabled = true;
 
-    // 1. CORREÇÃO DO PERÍODO DA SEMANA
+    // Cabeçalho: Início e Fim da semana ou o dia exato
     let dataFiltroTexto = "";
     if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
         const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
@@ -603,7 +603,6 @@ window.gerarRelatorioPDF = (evento) => {
         dataFiltroTexto = diaExato;
     }
 
-    // 2. AGRUPANDO TAREFAS POR DIA
     const tarefasPorDia = {};
     tarefasDoPDF.forEach(t => {
         if (!tarefasPorDia[t.dataString]) tarefasPorDia[t.dataString] = [];
@@ -617,7 +616,7 @@ window.gerarRelatorioPDF = (evento) => {
     relatorioTemp.style.color = '#1e293b';
 
     // ==========================================
-    // 3. PÁGINA 1: RESUMO DO PERÍODO
+    // PÁGINA 1: RESUMO DO PERÍODO
     // ==========================================
     let htmlPdf = `
         <div style="padding: 30px;">
@@ -635,20 +634,20 @@ window.gerarRelatorioPDF = (evento) => {
     diasOrdenados.forEach(dia => {
         const dataObj = new Date(dia + 'T00:00:00');
         const nomeDia = diasSemanaNomes[dataObj.getDay()];
-        const diaMes = dataObj.getDate();
         const dataFormatada = dia.split('-').reverse().join('/');
 
+        // Resumo: Sem o número solto do dia, sem a hora
         htmlPdf += `
             <li style="margin-bottom: 20px;">
                 <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-                    ${diaMes}, ${nomeDia} (${dataFormatada})
+                    ${nomeDia} (${dataFormatada})
                 </h3>
         `;
 
         tarefasPorDia[dia].forEach(t => {
             htmlPdf += `
                 <div style="padding-left: 12px; border-left: 3px solid ${window.coresCategorias[t.categoria] || '#94a3b8'}; margin-bottom: 8px; font-size: 14px; color: #475569;">
-                    <strong>${t.hora || '--:--'}</strong> - ${t.descricao}
+                    ${t.descricao}
                 </div>
             `;
         });
@@ -657,14 +656,14 @@ window.gerarRelatorioPDF = (evento) => {
     htmlPdf += `</ul></div>`;
 
     // ==========================================
-    // 4. PÁGINAS SEGUINTES: DETALHAMENTO DIÁRIO
+    // PÁGINAS SEGUINTES: DETALHAMENTO DIÁRIO
     // ==========================================
     diasOrdenados.forEach(dia => {
         const dataObj = new Date(dia + 'T00:00:00');
         const nomeDia = diasSemanaNomes[dataObj.getDay()];
         const diaMes = dataObj.getDate();
 
-        // Quebra de página automática do gerador
+        // Força a quebra de página antes de começar o novo dia
         htmlPdf += `<div class="html2pdf__page-break"></div>`;
 
         htmlPdf += `
@@ -675,49 +674,46 @@ window.gerarRelatorioPDF = (evento) => {
         `;
 
         tarefasPorDia[dia].forEach(t => {
-            
-            // Lógica Espaço Fixo (Grid) para as Fotos
             let fotosHtml = '';
             if (t.fotos && t.fotos.length > 0) {
-                const qtd = Math.min(t.fotos.length, 4); // Trava em 4 fotos no máximo para o documento
+                const qtd = Math.min(t.fotos.length, 4); 
                 
-                // Container Mestre: tamanho fixo, as fotos se adaptam dentro dele
                 let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 350px; margin-top: 15px;';
-                
                 if (qtd === 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
                 else if (qtd === 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
-                else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; // 3 ou 4 ocupam o grid de 4 espaços
+                else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; 
 
                 fotosHtml += `<div style="${gridStyles}">`;
                 
                 for(let i=0; i < qtd; i++) {
+                    // Fotos centralizadas e sem perder proporção (object-fit: contain)
                     fotosHtml += `
-                        <div style="width: 100%; height: 100%; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;">
-                            <img src="${t.fotos[i]}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;">
+                            <img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                         </div>
                     `;
                 }
                 fotosHtml += `</div>`;
             }
 
+            // O 'page-break-inside: avoid' garante que se a atividade não couber inteira na página atual, ela vai automaticamente pra próxima
             htmlPdf += `
                 <div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
                     <div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">
-                        ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
+                        ${t.descricao}
                     </div>
                     ${fotosHtml}
                 </div>
             `;
         });
         
-        htmlPdf += `</div>`; // Fecha a página diária
+        htmlPdf += `</div>`; 
     });
 
     relatorioTemp.innerHTML = htmlPdf;
 
-    // Configurações do Gerador
     const opcoes = {
-        margin:       0, // Zerei a margem externa pois controlamos no padding interno
+        margin:       0,
         filename:     `Relatorio_Agenda_${Date.now()}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true }, 
