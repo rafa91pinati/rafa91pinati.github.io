@@ -4,7 +4,10 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v2. </title>
+    <title>Minha Agenda Inteligente - v3.0</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
 /* --- NOVO VISUAL: GLASSMORPHISM --- */
         body { 
@@ -254,12 +257,16 @@
 
 
 
-    <div class="header-secao" onclick="toggleSecao('listaTarefas', 'setaLista')">
+<div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
+    <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1;">
         <span id="headerMes">📅 Atividades</span>
         <span id="setaLista" class="seta-secao seta-expandida">▼</span>
     </div>
-    <div id="listaTarefas">Carregando atividades...</div>
+    <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+        📄 PDF
+    </button>
 </div>
+
 
 <div id="modalConfiguracoes" class="modal" style="display: none;">
   <div class="modal-content">
@@ -562,6 +569,81 @@ window.excluirCategoria = async (id) => {
     } 
 };
 
+window.gerarRelatorioPDF = (evento) => {
+    // Evita que o clique no botão feche a aba de atividades sem querer
+    evento.stopPropagation();
+
+    // Verifica se tem algo para imprimir
+    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
+        return alert("Não há atividades na tela para gerar o relatório.");
+    }
+
+    // Muda o texto do botão para dar um feedback visual
+    const btn = evento.currentTarget;
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳ Gerando...";
+    btn.disabled = true;
+
+    // 1. Cria um elemento HTML invisível (na memória) só para o PDF
+    const relatorioTemp = document.createElement('div');
+    relatorioTemp.style.padding = '30px';
+    relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
+    relatorioTemp.style.color = '#1e293b';
+
+    // 2. Monta o cabeçalho do documento
+    let dataFiltroTexto = document.getElementById('dataSeletor').value;
+    if (tipoFiltroTempo === 'semana') dataFiltroTexto = "Semana Atual";
+    if (tipoFiltroTempo === 'hoje') dataFiltroTexto = "Hoje";
+    if (tipoFiltroTempo === 'amanha') dataFiltroTexto = "Amanhã";
+
+    let htmlPdf = `
+        <div style="border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
+            <h1 style="margin: 0; font-size: 24px;">Relatório de Atividades</h1>
+            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
+                <strong>Categoria:</strong> ${categoriaFiltroAtiva} | <strong>Período:</strong> ${dataFiltroTexto}
+            </p>
+        </div>
+    `;
+
+    // 3. Adiciona as tarefas da tela no PDF
+    window.tarefasMonitoramento.forEach(t => {
+        // Formata a data de YYYY-MM-DD para DD/MM/YYYY
+        const dataFormatada = t.dataString.split('-').reverse().join('/');
+        
+        htmlPdf += `
+            <div style="margin-bottom: 15px; padding: 12px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0;">
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">
+                    ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
+                </div>
+                <div style="font-size: 12px; color: #64748b;">
+                    Data: ${dataFormatada}
+                </div>
+            </div>
+        `;
+    });
+
+    relatorioTemp.innerHTML = htmlPdf;
+
+    // 4. Configurações da biblioteca html2pdf
+    const opcoes = {
+        margin:       10, // Margem do PDF em mm
+        filename:     `Relatorio_${categoriaFiltroAtiva}_${Date.now()}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 }, // Aumenta a qualidade da renderização
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // 5. Gera o arquivo e devolve o botão ao estado normal
+    html2pdf().set(opcoes).from(relatorioTemp).save().then(() => {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    }).catch(err => {
+        console.error("Erro ao gerar PDF:", err);
+        alert("Ocorreu um erro ao gerar o documento.");
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    });
+};
 
 // --- EDIÇÃO E SALVAMENTO ---
     window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
