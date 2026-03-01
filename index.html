@@ -572,126 +572,85 @@ window.excluirCategoria = async (id) => {
 };
 
 window.gerarRelatorioPDF = (evento) => {
-    evento.stopPropagation();
+        evento.stopPropagation();
 
-    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
-        return alert("Não há atividades carregadas para gerar o relatório.");
-    }
-
-    // 1. CORREÇÃO DO FILTRO: Garante que o PDF só pegue a categoria que está na tela
-    let tarefasDoPDF = window.tarefasMonitoramento;
-    if (categoriaFiltroAtiva !== "Geral") {
-        tarefasDoPDF = tarefasDoPDF.filter(t => t.categoria === categoriaFiltroAtiva);
-    }
-
-    if (tarefasDoPDF.length === 0) {
-        return alert("Não há atividades nesta categoria específica para gerar o relatório.");
-    }
-
-    const btn = evento.currentTarget;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Gerando...";
-    btn.disabled = true;
-
-    const relatorioTemp = document.createElement('div');
-    relatorioTemp.style.padding = '30px';
-    relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
-    relatorioTemp.style.color = '#1e293b';
-
-    // 2. CORREÇÃO DO CABEÇALHO: Exibe o período exato (Início a Fim)
-    let dataFiltroTexto = "";
-    if (tipoFiltroTempo === 'semana') {
-        const inicio = dataInicioSemana.split('-').reverse().join('/');
-        const fim = dataFimSemana.split('-').reverse().join('/');
-        dataFiltroTexto = `${inicio} a ${fim}`;
-    } else {
-        const diaExato = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
-        dataFiltroTexto = diaExato;
-    }
-
-    let htmlPdf = `
-        <div style="border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
-            <h1 style="margin: 0; font-size: 24px;">Relatório de Atividades</h1>
-            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
-                <strong>Categoria:</strong> ${categoriaFiltroAtiva} | <strong>Período:</strong> ${dataFiltroTexto}
-            </p>
-        </div>
-    `;
-
-    // Monta cada tarefa no PDF
-    tarefasDoPDF.forEach(t => {
-        const dataFormatada = t.dataString.split('-').reverse().join('/');
-        
-        // 3. LÓGICA DO MOSAICO DE FOTOS
-        let fotosHtml = '';
-        if (t.fotos && t.fotos.length > 0) {
-            const qtd = t.fotos.length;
-            fotosHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">`;
-            
-            t.fotos.forEach(foto => {
-                let largura = "100%"; // Padrão: 1 foto ocupa tudo
-                let altura = "250px"; 
-
-                if (qtd === 2) {
-                    largura = "calc(50% - 4px)"; // 2 fotos: metade para cada
-                    altura = "180px";
-                } else if (qtd >= 3) {
-                    largura = "calc(50% - 4px)"; // 3 ou 4 fotos: formato de grade 2x2
-                    altura = "140px";
-                }
-
-                fotosHtml += `<img src="${foto}" style="width: ${largura}; height: ${altura}; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">`;
-            });
-            
-            fotosHtml += `</div>`;
+        if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
+            return alert("Não há atividades carregadas para gerar o relatório.");
         }
-        
-        // Adiciona o bloco da tarefa no HTML do PDF
-        htmlPdf += `
-            <div style="margin-bottom: 20px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
-                <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">
-                    ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
-                </div>
-                <div style="font-size: 12px; color: #64748b;">
-                    Data: ${dataFormatada}
-                </div>
-                ${fotosHtml}
+
+        let tarefasDoPDF = window.tarefasMonitoramento;
+        if (categoriaFiltroAtiva !== "Geral") {
+            tarefasDoPDF = tarefasDoPDF.filter(t => t.categoria === categoriaFiltroAtiva);
+        }
+
+        if (tarefasDoPDF.length === 0) {
+            return alert("Não há atividades nesta categoria específica para gerar o relatório.");
+        }
+
+        const btn = evento.currentTarget;
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = "⏳ Gerando...";
+        btn.disabled = true;
+
+        const relatorioTemp = document.createElement('div');
+        relatorioTemp.style.padding = '30px';
+        relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
+        relatorioTemp.style.color = '#1e293b';
+
+        let dataFiltroTexto = "";
+        if (tipoFiltroTempo === 'semana') {
+            const inicio = dataInicioSemana.split('-').reverse().join('/');
+            const fim = dataFimSemana.split('-').reverse().join('/');
+            dataFiltroTexto = `${inicio} a ${fim}`;
+        } else {
+            const diaExato = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
+            dataFiltroTexto = diaExato;
+        }
+
+        let htmlPdf = `
+            <div style="border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
+                <h1 style="margin: 0; font-size: 24px;">Relatório de Atividades</h1>
+                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
+                    <strong>Categoria:</strong> ${categoriaFiltroAtiva} | <strong>Período:</strong> ${dataFiltroTexto}
+                </p>
             </div>
         `;
-    });
 
-    relatorioTemp.innerHTML = htmlPdf;
-
-    // Configurações do PDF (useCORS é essencial para carregar as fotos do Firebase)
-    const opcoes = {
-        margin:       10,
-        filename:     `Relatorio_${categoriaFiltroAtiva}_${Date.now()}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true }, // <--- MÁGICA DAS FOTOS AQUI
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opcoes).from(relatorioTemp).save().then(() => {
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
-    }).catch(err => {
-        console.error("Erro ao gerar PDF:", err);
-        alert("Ocorreu um erro ao gerar o documento. Verifique sua conexão.");
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
-    });
-};
-        window.tarefasMonitoramento.forEach(t => {
+        tarefasDoPDF.forEach(t => {
             const dataFormatada = t.dataString.split('-').reverse().join('/');
             
+            let fotosHtml = '';
+            if (t.fotos && t.fotos.length > 0) {
+                const qtd = t.fotos.length;
+                fotosHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">`;
+                
+                t.fotos.forEach(foto => {
+                    let largura = "100%"; 
+                    let altura = "250px"; 
+
+                    if (qtd === 2) {
+                        largura = "calc(50% - 4px)"; 
+                        altura = "180px";
+                    } else if (qtd >= 3) {
+                        largura = "calc(50% - 4px)"; 
+                        altura = "140px";
+                    }
+
+                    fotosHtml += `<img src="${foto}" style="width: ${largura}; height: ${altura}; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">`;
+                });
+                
+                fotosHtml += `</div>`;
+            }
+            
             htmlPdf += `
-                <div style="margin-bottom: 15px; padding: 12px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0;">
-                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">
+                <div style="margin-bottom: 20px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
+                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">
                         ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
                     </div>
                     <div style="font-size: 12px; color: #64748b;">
                         Data: ${dataFormatada}
                     </div>
+                    ${fotosHtml}
                 </div>
             `;
         });
@@ -702,7 +661,7 @@ window.gerarRelatorioPDF = (evento) => {
             margin:       10,
             filename:     `Relatorio_${categoriaFiltroAtiva}_${Date.now()}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
+            html2canvas:  { scale: 2, useCORS: true }, 
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
@@ -711,23 +670,11 @@ window.gerarRelatorioPDF = (evento) => {
             btn.disabled = false;
         }).catch(err => {
             console.error("Erro ao gerar PDF:", err);
-            alert("Ocorreu um erro ao gerar o documento.");
+            alert("Ocorreu um erro ao gerar o documento. Verifique sua conexão.");
             btn.innerHTML = textoOriginal;
             btn.disabled = false;
         });
     };
-
-    // 5. Gera o arquivo e devolve o botão ao estado normal
-    html2pdf().set(opcoes).from(relatorioTemp).save().then(() => {
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
-    }).catch(err => {
-        console.error("Erro ao gerar PDF:", err);
-        alert("Ocorreu um erro ao gerar o documento.");
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
-    });
-};
 
 // --- EDIÇÃO E SALVAMENTO ---
     window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
