@@ -592,6 +592,7 @@ window.gerarRelatorioPDF = (evento) => {
     btn.innerHTML = "⏳ Gerando...";
     btn.disabled = true;
 
+    // Cabeçalho: Início e Fim da semana ou o dia exato
     let dataFiltroTexto = "";
     if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
         const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
@@ -618,15 +619,10 @@ window.gerarRelatorioPDF = (evento) => {
     // PÁGINA 1: RESUMO DO PERÍODO
     // ==========================================
     let htmlPdf = `
-        <div style="padding: 15px 30px;">
-            <div style="border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
-                <h1 style="margin: 0; font-size: 26px;">Relatório de Atividades</h1>
-                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
-                    <strong>Categoria:</strong> ${categoriaFiltroAtiva} | <strong>Período:</strong> ${dataFiltroTexto}
-                </p>
+        <div style="padding: 10px 30px;">
+            <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
+                <h1 style="margin: 0; font-size: 26px;">Resumo Executivo</h1>
             </div>
-            
-            <h2 style="font-size: 20px; color: #3b82f6; margin-bottom: 20px;">Resumo Executivo</h2>
             <ul style="list-style-type: none; padding: 0;">
     `;
 
@@ -664,9 +660,10 @@ window.gerarRelatorioPDF = (evento) => {
         // Quebra de página para o novo dia
         htmlPdf += `<div class="html2pdf__page-break"></div>`;
 
+        // Título Gigante do Dia (Voltou para o corpo do texto para sabermos de quando é a tarefa)
         htmlPdf += `
-            <div style="padding: 0 30px;">
-                <h2 style="font-size: 28px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
+            <div style="padding: 10px 30px 0 30px;">
+                <h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
                     ${diaMes}, ${nomeDia}
                 </h2>
         `;
@@ -694,7 +691,7 @@ window.gerarRelatorioPDF = (evento) => {
             }
 
             htmlPdf += `
-                <div style="margin-bottom: 25px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
+                <div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
                     <div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">
                         ${t.descricao}
                     </div>
@@ -708,6 +705,7 @@ window.gerarRelatorioPDF = (evento) => {
 
     relatorioTemp.innerHTML = htmlPdf;
 
+    // Criamos um "sanduíche" de margens (15mm em cima, 15mm embaixo)
     const opcoes = {
         margin:       [15, 0, 15, 0], 
         filename:     `Relatorio_Agenda_${Date.now()}.pdf`,
@@ -718,7 +716,7 @@ window.gerarRelatorioPDF = (evento) => {
     };
 
     // ==========================================
-    // INJEÇÃO DE CABEÇALHO E RODAPÉ EM TODAS AS PÁGINAS
+    // INJEÇÃO DE CABEÇALHO E RODAPÉ OFICIAIS
     // ==========================================
     html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
         const totalPages = pdf.internal.getNumberOfPages();
@@ -726,20 +724,28 @@ window.gerarRelatorioPDF = (evento) => {
         for (let i = 1; i <= totalPages; i++) {
             pdf.setPage(i);
             
-            // Configurações da fonte
-            pdf.setFontSize(9);
-            pdf.setTextColor(100, 116, 139); // Cinza discreto
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(30, 41, 59); 
+
+            // --- CABEÇALHO (TOPO) ---
+            pdf.setFontSize(11);
+            pdf.text(`Relatório Técnico | Categoria: ${categoriaFiltroAtiva}`, 15, 10);
             
-            // Cabeçalho Fixo (Esquerda)
-            pdf.text(`Relatório Técnico | Categoria: ${categoriaFiltroAtiva} | Período: ${dataFiltroTexto}`, 12, 10);
+            // Período total alinhado no canto direito do cabeçalho
+            pdf.text(dataFiltroTexto, 195, 10, { align: 'right' }); 
             
             // Linha fina separadora no topo
-            pdf.setDrawColor(226, 232, 240); 
+            pdf.setDrawColor(203, 213, 225); 
             pdf.setLineWidth(0.5);
-            pdf.line(12, 12, 198, 12);
+            pdf.line(15, 12, 195, 12);
+
+            // --- RODAPÉ (EMBAIXO) ---
+            pdf.setFontSize(10);
+            // Numeração enviada para o canto inferior direito
+            pdf.text(`Página ${i} de ${totalPages}`, 195, 287, { align: 'right' });
             
-            // Rodapé com Numeração (Direita)
-            pdf.text(`Página ${i} de ${totalPages}`, 180, 290);
+            // Linha separadora do rodapé
+            pdf.line(15, 282, 195, 282);
         }
     }).save().then(() => {
         btn.innerHTML = textoOriginal;
