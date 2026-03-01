@@ -679,20 +679,36 @@ window.prepararFotosNovas = (input) => {
 // Dicionário global para guardar as cores
 window.coresCategorias = { "Geral": "#94a3b8" }; 
 
-		window.carregarCategorias = async () => { 
-			const c = document.getElementById('listaCategorias'); 
-			const s = await getDocs(collection(db, "categorias")); 
-			
-			c.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`; 
-			
-			s.forEach(d => { 
-				const cat = d.data();
-				// Salva a cor vinculada ao nome da categoria
-				window.coresCategorias[cat.nome] = cat.cor; 
-				c.innerHTML += `<div class="category-tab" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
-			}); 
-		};
-		
+window.carregarCategorias = async () => { 
+    const c = document.getElementById('listaCategorias'); 
+    const s = await getDocs(collection(db, "categorias")); 
+    
+    // Lê a última categoria salva. Se for a primeira vez, usa "Geral"
+    const catSalva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
+    const corSalva = localStorage.getItem('ultimaCorCategoria') || "#94a3b8";
+    
+    // Define a categoria ativa logo na inicialização
+    categoriaFiltroAtiva = catSalva;
+
+    // Monta a aba Geral (verifica se ela é a ativa)
+    const estiloGeral = catSalva === "Geral" ? `background-color: #94a3b8; color: white;` : ``;
+    let htmlTabs = `<div class="category-tab" style="${estiloGeral}" onclick="selecionarCat('Geral', '#94a3b8', this)">Geral</div>`; 
+    
+    // Monta as abas do banco de dados (verifica qual delas é a ativa)
+    s.forEach(d => { 
+        const cat = d.data();
+        window.coresCategorias[cat.nome] = cat.cor; 
+        
+        const estiloAtivo = catSalva === cat.nome ? `background-color: ${cat.cor}; color: white;` : ``;
+        htmlTabs += `<div class="category-tab" style="${estiloAtivo}" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
+    }); 
+    
+    c.innerHTML = htmlTabs;
+    
+    // Já dispara o carregamento das listas filtrando pela última que estava aberta
+    carregarTarefas();
+    carregarArquivosFixos();
+};
 			window.selecionarCat = (nome, cor, el) => { 
 				categoriaFiltroAtiva = nome; 
 				
