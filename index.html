@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v3.0</title>
+    <title>Minha Agenda Inteligente - v3.1</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -190,7 +190,7 @@
 
 <div id="telaLogin" class="modal">
     <div class="modal-content">
-        <h2 style="text-align:center;">Agenda v2.0</h2>
+        <h2 style="text-align:center;">Agenda v3</h2>
         <input type="email" id="emailLogin" placeholder="Seu e-mail">
         <input type="password" id="senhaLogin" placeholder="Sua senha">
         <button onclick="fazerLogin()" style="background:#007bff; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">Entrar</button>
@@ -572,109 +572,168 @@ window.excluirCategoria = async (id) => {
 };
 
 window.gerarRelatorioPDF = (evento) => {
-        evento.stopPropagation();
+    evento.stopPropagation();
 
-        if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
-            return alert("Não há atividades carregadas para gerar o relatório.");
-        }
+    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
+        return alert("Não há atividades carregadas para gerar o relatório.");
+    }
 
-        let tarefasDoPDF = window.tarefasMonitoramento;
-        if (categoriaFiltroAtiva !== "Geral") {
-            tarefasDoPDF = tarefasDoPDF.filter(t => t.categoria === categoriaFiltroAtiva);
-        }
+    let tarefasDoPDF = window.tarefasMonitoramento;
+    if (categoriaFiltroAtiva !== "Geral") {
+        tarefasDoPDF = tarefasDoPDF.filter(t => t.categoria === categoriaFiltroAtiva);
+    }
 
-        if (tarefasDoPDF.length === 0) {
-            return alert("Não há atividades nesta categoria específica para gerar o relatório.");
-        }
+    if (tarefasDoPDF.length === 0) {
+        return alert("Não há atividades nesta categoria específica para gerar o relatório.");
+    }
 
-        const btn = evento.currentTarget;
-        const textoOriginal = btn.innerHTML;
-        btn.innerHTML = "⏳ Gerando...";
-        btn.disabled = true;
+    const btn = evento.currentTarget;
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳ Gerando...";
+    btn.disabled = true;
 
-        const relatorioTemp = document.createElement('div');
-        relatorioTemp.style.padding = '30px';
-        relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
-        relatorioTemp.style.color = '#1e293b';
+    // 1. CORREÇÃO DO PERÍODO DA SEMANA
+    let dataFiltroTexto = "";
+    if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
+        const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
+        const fim = window.arrayDiasSemana[6].split('-').reverse().join('/');
+        dataFiltroTexto = `${inicio} a ${fim}`;
+    } else {
+        const diaExato = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
+        dataFiltroTexto = diaExato;
+    }
 
-        let dataFiltroTexto = "";
-        if (tipoFiltroTempo === 'semana') {
-            const inicio = dataInicioSemana.split('-').reverse().join('/');
-            const fim = dataFimSemana.split('-').reverse().join('/');
-            dataFiltroTexto = `${inicio} a ${fim}`;
-        } else {
-            const diaExato = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
-            dataFiltroTexto = diaExato;
-        }
+    // 2. AGRUPANDO TAREFAS POR DIA
+    const tarefasPorDia = {};
+    tarefasDoPDF.forEach(t => {
+        if (!tarefasPorDia[t.dataString]) tarefasPorDia[t.dataString] = [];
+        tarefasPorDia[t.dataString].push(t);
+    });
+    const diasOrdenados = Object.keys(tarefasPorDia).sort();
+    const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
-        let htmlPdf = `
+    const relatorioTemp = document.createElement('div');
+    relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
+    relatorioTemp.style.color = '#1e293b';
+
+    // ==========================================
+    // 3. PÁGINA 1: RESUMO DO PERÍODO
+    // ==========================================
+    let htmlPdf = `
+        <div style="padding: 30px;">
             <div style="border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
-                <h1 style="margin: 0; font-size: 24px;">Relatório de Atividades</h1>
+                <h1 style="margin: 0; font-size: 26px;">Relatório de Atividades</h1>
                 <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
                     <strong>Categoria:</strong> ${categoriaFiltroAtiva} | <strong>Período:</strong> ${dataFiltroTexto}
                 </p>
             </div>
+            
+            <h2 style="font-size: 20px; color: #3b82f6; margin-bottom: 20px;">Resumo Executivo</h2>
+            <ul style="list-style-type: none; padding: 0;">
+    `;
+
+    diasOrdenados.forEach(dia => {
+        const dataObj = new Date(dia + 'T00:00:00');
+        const nomeDia = diasSemanaNomes[dataObj.getDay()];
+        const diaMes = dataObj.getDate();
+        const dataFormatada = dia.split('-').reverse().join('/');
+
+        htmlPdf += `
+            <li style="margin-bottom: 20px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                    ${diaMes}, ${nomeDia} (${dataFormatada})
+                </h3>
         `;
 
-        tarefasDoPDF.forEach(t => {
-            const dataFormatada = t.dataString.split('-').reverse().join('/');
+        tarefasPorDia[dia].forEach(t => {
+            htmlPdf += `
+                <div style="padding-left: 12px; border-left: 3px solid ${window.coresCategorias[t.categoria] || '#94a3b8'}; margin-bottom: 8px; font-size: 14px; color: #475569;">
+                    <strong>${t.hora || '--:--'}</strong> - ${t.descricao}
+                </div>
+            `;
+        });
+        htmlPdf += `</li>`;
+    });
+    htmlPdf += `</ul></div>`;
+
+    // ==========================================
+    // 4. PÁGINAS SEGUINTES: DETALHAMENTO DIÁRIO
+    // ==========================================
+    diasOrdenados.forEach(dia => {
+        const dataObj = new Date(dia + 'T00:00:00');
+        const nomeDia = diasSemanaNomes[dataObj.getDay()];
+        const diaMes = dataObj.getDate();
+
+        // Quebra de página automática do gerador
+        htmlPdf += `<div class="html2pdf__page-break"></div>`;
+
+        htmlPdf += `
+            <div style="padding: 30px;">
+                <h2 style="font-size: 28px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
+                    ${diaMes}, ${nomeDia}
+                </h2>
+        `;
+
+        tarefasPorDia[dia].forEach(t => {
             
+            // Lógica Espaço Fixo (Grid) para as Fotos
             let fotosHtml = '';
             if (t.fotos && t.fotos.length > 0) {
-                const qtd = t.fotos.length;
-                fotosHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">`;
+                const qtd = Math.min(t.fotos.length, 4); // Trava em 4 fotos no máximo para o documento
                 
-                t.fotos.forEach(foto => {
-                    let largura = "100%"; 
-                    let altura = "250px"; 
-
-                    if (qtd === 2) {
-                        largura = "calc(50% - 4px)"; 
-                        altura = "180px";
-                    } else if (qtd >= 3) {
-                        largura = "calc(50% - 4px)"; 
-                        altura = "140px";
-                    }
-
-                    fotosHtml += `<img src="${foto}" style="width: ${largura}; height: ${altura}; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">`;
-                });
+                // Container Mestre: tamanho fixo, as fotos se adaptam dentro dele
+                let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 350px; margin-top: 15px;';
                 
+                if (qtd === 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
+                else if (qtd === 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
+                else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; // 3 ou 4 ocupam o grid de 4 espaços
+
+                fotosHtml += `<div style="${gridStyles}">`;
+                
+                for(let i=0; i < qtd; i++) {
+                    fotosHtml += `
+                        <div style="width: 100%; height: 100%; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;">
+                            <img src="${t.fotos[i]}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    `;
+                }
                 fotosHtml += `</div>`;
             }
-            
+
             htmlPdf += `
-                <div style="margin-bottom: 20px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
-                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">
+                <div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
+                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">
                         ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
-                    </div>
-                    <div style="font-size: 12px; color: #64748b;">
-                        Data: ${dataFormatada}
                     </div>
                     ${fotosHtml}
                 </div>
             `;
         });
+        
+        htmlPdf += `</div>`; // Fecha a página diária
+    });
 
-        relatorioTemp.innerHTML = htmlPdf;
+    relatorioTemp.innerHTML = htmlPdf;
 
-        const opcoes = {
-            margin:       10,
-            filename:     `Relatorio_${categoriaFiltroAtiva}_${Date.now()}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true }, 
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opcoes).from(relatorioTemp).save().then(() => {
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        }).catch(err => {
-            console.error("Erro ao gerar PDF:", err);
-            alert("Ocorreu um erro ao gerar o documento. Verifique sua conexão.");
-            btn.innerHTML = textoOriginal;
-            btn.disabled = false;
-        });
+    // Configurações do Gerador
+    const opcoes = {
+        margin:       0, // Zerei a margem externa pois controlamos no padding interno
+        filename:     `Relatorio_Agenda_${Date.now()}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true }, 
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
+
+    html2pdf().set(opcoes).from(relatorioTemp).save().then(() => {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    }).catch(err => {
+        console.error("Erro ao gerar PDF:", err);
+        alert("Ocorreu um erro ao gerar o documento.");
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    });
+};
 
 // --- EDIÇÃO E SALVAMENTO ---
     window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
