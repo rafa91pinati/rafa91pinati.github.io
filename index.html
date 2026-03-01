@@ -206,7 +206,7 @@
         <span>📝 ADD Tarefa</span>
         <span id="setaAdd" class="seta-secao">▼</span>
     </div>
-    <div id="secaoAdd" class="secao-card escondido">
+<div id="secaoAdd" class="secao-card escondido">
         <input type="text" id="descTask" placeholder="O que agendar hoje?">
         <div id="previewFotosNovas" class="container-fotos"></div>
         <div class="grid-50">
@@ -214,7 +214,15 @@
             <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
             <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
         </div>
-        <button id="btnSalvar" onclick="salvarNovaTarefa()" style="background:#28a745; color:white; border:none; padding:15px; width:100%; border-radius:25px; font-weight:bold; margin-top:10px;">Salvar na Nuvem</button>
+        
+        <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
+            <button id="btnCancelarAdd" onclick="cancelarNovaTarefa()" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+                Cancelar
+            </button>
+            <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
+                Salvar
+            </button>
+        </div>
     </div>
 
 <div class="header-secao" onclick="toggleSecao('secaoArquivos', 'setaArq')">
@@ -512,6 +520,23 @@ const firebaseConfig = {
     window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
 
     // --- UPLOAD DE FOTOS E ARQUIVOS (STORAGE V2) ---
+	window.cancelarNovaTarefa = () => {
+        // Limpa os campos de texto e hora
+        document.getElementById('descTask').value = "";
+        document.getElementById('horaTask').value = "";
+        
+        // Limpa o input de arquivo e o preview visual na tela
+        document.getElementById('fotoTask').value = "";
+        document.getElementById('previewFotosNovas').innerHTML = "";
+        
+        // Esvazia o array de fotos em memória
+        fotosNovasArray = []; 
+        
+        // Recolhe a aba automaticamente para dar feedback visual
+        document.getElementById('secaoAdd').classList.add('escondido');
+        document.getElementById('setaAdd').classList.remove('seta-expandida');
+    };
+	
     window.salvarNovaTarefa = async () => {
         const desc = document.getElementById('descTask').value;
         if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
