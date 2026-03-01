@@ -7,41 +7,65 @@
     <title>Minha Agenda Inteligente - v2.1 </title>
     <style>
 /* --- NOVO VISUAL: GLASSMORPHISM --- */
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            /* Fundo gradiente animado (Azul escuro, Roxo e Violeta) */
-            background: linear-gradient(135deg, #0f172a, #334155, #1e293b);
-            background-size: 200% 200%; 
-            animation: gradientBG 15s ease infinite; 
-            padding: 10px; 
-            margin: 0; 
-            color: #f8fafc; /* Texto claro para contrastar */
-            min-height: 100vh; 
-        }
-        @keyframes gradientBG { 
-            0% { background-position: 0% 50%; } 
-            50% { background-position: 100% 50%; } 
-            100% { background-position: 0% 50%; } 
-        }
+        /* --- CSS FINAL CORRIGIDO: DESIGN REVERSO --- */
+    body { 
+        font-family: 'Segoe UI', sans-serif; 
+        background: #e2e8f0; /* Cinza Claro (Fundo da Foto) */
+        color: #1e293b; 
+        margin: 0; padding: 10px;
+    }
 
-        /* O "Vidro" flutuante */
-        .container { 
-            max-width: 480px; 
-            margin: auto; 
-            background: rgba(255, 255, 255, 0.03); /* Quase transparente */
-            backdrop-filter: blur(16px); /* O desfoque mágico do vidro */
-            -webkit-backdrop-filter: blur(16px); 
-            padding: 20px; 
-            border-radius: 24px; 
-            border: 1px solid rgba(255, 255, 255, 0.1); /* Borda sutil de luz */
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
-        }
-        
-        /* Botões de Data Premium */
-        .timeline-header { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; width: 100%; box-sizing: border-box; }
-        .btn-date { flex: 1; padding: 10px 2px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #cbd5e1; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; transition: all 0.3s ease; }
-        .btn-date.ativo { background: linear-gradient(135deg, #64748b, #475569); color: white; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); }
-		#dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none; }
+    .container { 
+        max-width: 480px; margin: auto; 
+        background: rgba(255, 255, 255, 0.3); 
+        backdrop-filter: blur(10px);
+        border-radius: 24px; padding: 20px;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    /* Cabeçalhos das Seções: Cinza Escuro com Texto Branco */
+    .header-secao { 
+        background: #334155 !important; 
+        color: #ffffff !important; 
+        padding: 15px; border-radius: 12px;
+        margin-top: 15px; font-weight: bold;
+        text-transform: uppercase; font-size: 0.8rem;
+        border-left: 5px solid #94a3b8;
+    }
+
+    /* Interior das Seções (ADD Tarefa e Arquivo Fixo): Cinza Escuro */
+    .secao-card, #secaoArquivos {
+        background: #334155 !important;
+        border-radius: 0 0 12px 12px;
+        padding: 15px; margin-top: -5px;
+    }
+
+    /* Inputs e Textos: Fundo claro com TEXTO PRETO */
+    input[type="text"], input[type="time"], textarea, select {
+        background: #f1f5f9 !important;
+        color: #000000 !important; /* TEXTO PRETO */
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px; padding: 12px;
+        margin-bottom: 10px; width: 100%; box-sizing: border-box;
+    }
+
+    /* Itens da Lista (Atividades e Arquivos): Fundo Claro e TEXTO PRETO */
+    .tarefa-item, .arquivo-item-lista {
+        background: #f8fafc !important; /* Card branquinho/cinza claro */
+        border-left: 5px solid #334155;
+        border-radius: 12px; padding: 15px;
+        margin-bottom: 10px; color: #000000 !important; /* TEXTO PRETO */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .tarefa-content, .tarefa-info, span, b, p {
+        color: #000000 !important; /* Garante que tudo dentro do card seja preto */
+    }
+
+    .btn-date.ativo {
+        background: #334155; color: white; border: none;
+    }
+	#dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none; }
         #dataSeletor::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; } /* Deixa o ícone do calendário branco */
 
         /* Abas de Categoria Modernas */
