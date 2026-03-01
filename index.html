@@ -650,7 +650,7 @@ window.gerarRelatorioPDF = (evento) => {
     htmlPdf += `</ul></div>`;
 
     // ==========================================
-    // PÁGINAS SEGUINTES: DETALHAMENTO DIÁRIO
+    // PÁGINAS SEGUINTES: DETALHAMENTO DIÁRIO COM PAGINAÇÃO INTELIGENTE
     // ==========================================
     diasOrdenados.forEach(dia => {
         const dataObj = new Date(dia + 'T00:00:00');
@@ -660,7 +660,6 @@ window.gerarRelatorioPDF = (evento) => {
         // Quebra de página para o novo dia
         htmlPdf += `<div class="html2pdf__page-break"></div>`;
 
-        // Título Gigante do Dia (Voltou para o corpo do texto para sabermos de quando é a tarefa)
         htmlPdf += `
             <div style="padding: 10px 30px 0 30px;">
                 <h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
@@ -668,9 +667,31 @@ window.gerarRelatorioPDF = (evento) => {
                 </h2>
         `;
 
+        // Variáveis da nossa calculadora de espaço
+        let alturaAtual = 40; // Espaço que o título acima já ocupou na folha
+        const ALTURA_MAXIMA = 240; // Limite seguro da folha A4 antes de cortar
+
         tarefasPorDia[dia].forEach(t => {
+            let temFoto = t.fotos && t.fotos.length > 0;
+            // Estima o tamanho que a tarefa vai ocupar (Fotos = ~135mm, Sem Foto = ~35mm)
+            let alturaTarefa = temFoto ? 135 : 35; 
+
+            // SE A TAREFA FOR ESTOURAR A PÁGINA: Força a quebra e repete o título!
+            if (alturaAtual + alturaTarefa > ALTURA_MAXIMA) {
+                htmlPdf += `</div>`; // Fecha o container atual
+                htmlPdf += `<div class="html2pdf__page-break"></div>`; // Quebra a página
+                htmlPdf += `
+                    <div style="padding: 10px 30px 0 30px;">
+                        <h2 style="font-size: 22px; color: #64748b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
+                            ${diaMes}, ${nomeDia} <span style="font-size: 14px; font-weight: normal;">(Continuação)</span>
+                        </h2>
+                `;
+                alturaAtual = 40; // Reseta o espaço ocupado para a nova folha
+            }
+
+            // Lógica das fotos
             let fotosHtml = '';
-            if (t.fotos && t.fotos.length > 0) {
+            if (temFoto) {
                 const qtd = Math.min(t.fotos.length, 4); 
                 
                 let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 350px; margin-top: 15px;';
@@ -679,7 +700,6 @@ window.gerarRelatorioPDF = (evento) => {
                 else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; 
 
                 fotosHtml += `<div style="${gridStyles}">`;
-                
                 for(let i=0; i < qtd; i++) {
                     fotosHtml += `
                         <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;">
@@ -690,6 +710,7 @@ window.gerarRelatorioPDF = (evento) => {
                 fotosHtml += `</div>`;
             }
 
+            // Adiciona a tarefa ao HTML
             htmlPdf += `
                 <div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
                     <div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">
@@ -698,6 +719,9 @@ window.gerarRelatorioPDF = (evento) => {
                     ${fotosHtml}
                 </div>
             `;
+
+            // Soma o espaço gasto na folha
+            alturaAtual += alturaTarefa;
         });
         
         htmlPdf += `</div>`; 
@@ -705,7 +729,6 @@ window.gerarRelatorioPDF = (evento) => {
 
     relatorioTemp.innerHTML = htmlPdf;
 
-    // Criamos um "sanduíche" de margens (15mm em cima, 15mm embaixo)
     const opcoes = {
         margin:       [15, 0, 15, 0], 
         filename:     `Relatorio_Agenda_${Date.now()}.pdf`,
@@ -716,7 +739,7 @@ window.gerarRelatorioPDF = (evento) => {
     };
 
     // ==========================================
-    // INJEÇÃO DE CABEÇALHO E RODAPÉ OFICIAIS
+    // INJEÇÃO DO CABEÇALHO E RODAPÉ FIXOS
     // ==========================================
     html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
         const totalPages = pdf.internal.getNumberOfPages();
@@ -727,24 +750,18 @@ window.gerarRelatorioPDF = (evento) => {
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(30, 41, 59); 
 
-            // --- CABEÇALHO (TOPO) ---
+            // CABEÇALHO FIXO
             pdf.setFontSize(11);
             pdf.text(`Relatório Técnico | Categoria: ${categoriaFiltroAtiva}`, 15, 10);
-            
-            // Período total alinhado no canto direito do cabeçalho
             pdf.text(dataFiltroTexto, 195, 10, { align: 'right' }); 
             
-            // Linha fina separadora no topo
             pdf.setDrawColor(203, 213, 225); 
             pdf.setLineWidth(0.5);
             pdf.line(15, 12, 195, 12);
 
-            // --- RODAPÉ (EMBAIXO) ---
+            // RODAPÉ FIXO (No canto inferior direito, como você pediu na penúltima mensagem)
             pdf.setFontSize(10);
-            // Numeração enviada para o canto inferior direito
             pdf.text(`Página ${i} de ${totalPages}`, 195, 287, { align: 'right' });
-            
-            // Linha separadora do rodapé
             pdf.line(15, 282, 195, 282);
         }
     }).save().then(() => {
