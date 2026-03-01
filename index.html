@@ -397,8 +397,8 @@ const firebaseConfig = {
 
 window.selecionarTag = (valor) => {
     tagFiltroAtiva = valor;
-    carregarTarefas();       // Atualiza a lista de atividades
-    carregarArquivosFixos(); // Atualiza a lista de arquivos
+    carregarTarefas(); 
+    carregarArquivosFixos(); 
 };
     window.usuarioLogado = null;
     window.tarefasMonitoramento = [];
@@ -468,21 +468,28 @@ window.selecionarTag = (valor) => {
     };
 
     // --- O CADEADO DE LOGIN CORRIGIDO ---
-    onAuthStateChanged(auth, (user) => {
-        const tela = document.getElementById('telaLogin');
-        if (user) {
-            window.usuarioLogado = user;
-            if(tela) tela.classList.add('escondido'); // Esconde login
-            carregarCategorias(); 
-            setarData('hoje', document.getElementById('btnHoje'));
-            carregarArquivosFixos();
-			atualizarSeletorMarcadores();
-            carregarPreferenciasNuvem();
-        } else {
-            window.usuarioLogado = null;
-            if(tela) tela.classList.remove('escondido'); // Mostra login
-        }
-    });
+onAuthStateChanged(auth, (user) => {
+    const tela = document.getElementById('telaLogin');
+    if (user) {
+        window.usuarioLogado = user;
+        if(tela) tela.classList.add('escondido'); // 1º Esconde o login para não travar a tela
+        
+        // 2º Carrega os dados
+        carregarCategorias(); 
+        setarData('hoje', document.getElementById('btnHoje'));
+        carregarArquivosFixos();
+        carregarPreferenciasNuvem();
+        
+        // 3º Carrega os novos Marcadores no filtro global
+        setTimeout(() => {
+            atualizarSeletorMarcadores();
+            carregarMarcadoresModal();
+        }, 500); // Um pequeno delay para garantir que o HTML já carregou
+    } else {
+        window.usuarioLogado = null;
+        if(tela) tela.classList.remove('escondido');
+    }
+});
 
     window.fazerLogin = () => {
         const e = document.getElementById('emailLogin').value;
@@ -501,25 +508,24 @@ window.selecionarTag = (valor) => {
     window.fazerLogout = () => { if(confirm("Deseja sair da agenda?")) signOut(auth); };
     
 	window.atualizarSeletorMarcadores = async () => {
-    const seletor = document.getElementById('seletorMarcadorTask');
-    if(!seletor || !window.usuarioLogado) return;
+    const seletor = document.getElementById('filtroTagGlobal');
+    // Se o seletor não existir na tela ainda, ele sai da função sem travar o script
+    if(!seletor || !window.usuarioLogado) return; 
 
     try {
         const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
         const snap = await getDocs(q);
         
-        // Mantém a opção padrão
-        seletor.innerHTML = '<option value="">Nenhuma Etapa</option>';
-        
+        seletor.innerHTML = '<option value="">Todas as Etapas</option>';
         snap.forEach(d => {
             const m = d.data();
             const opcao = document.createElement('option');
-            opcao.value = m.nome; // Salvamos o nome da etapa
+            opcao.value = m.nome;
             opcao.textContent = m.nome;
             seletor.appendChild(opcao);
         });
     } catch (e) {
-        console.error("Erro ao carregar seletor de marcadores:", e);
+        console.error("Erro ao carregar seletor:", e);
     }
 };
 
