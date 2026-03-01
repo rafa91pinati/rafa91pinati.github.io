@@ -452,8 +452,14 @@ const firebaseConfig = {
     window.fazerLogout = () => { if(confirm("Deseja sair da agenda?")) signOut(auth); };
     
     // --- FUNÇÕES DE UI E ALARME ---
-    window.abrirConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'flex'; carregarCategoriasModal(); };
-    window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
+    window.abrirConfig = () => { 
+    document.getElementById('modalConfiguracoes').style.display = 'flex'; 
+    carregarCategoriasModal(); // É essa linha que puxa a lista na hora que a tela abre!
+};
+
+window.fecharModalConfig = () => { 
+    document.getElementById('modalConfiguracoes').style.display = 'none'; 
+};
     window.abrirAba = (evt, nomeAba) => {
         let i, tabcontent, tablinks;
         tabcontent = document.getElementsByClassName("tabcontent");
@@ -862,9 +868,7 @@ window.selecionarCat = (nome, cor, el) => {
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
     window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
-    window.abrirConfig = () => document.getElementById('modalConfiguracoes').style.display = 'flex';
-    window.fecharModalConfig = () => document.getElementById('modalConfiguracoes').style.display = 'none';
-
+    
 
 </script>
 </body>
