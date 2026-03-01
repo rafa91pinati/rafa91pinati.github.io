@@ -592,7 +592,6 @@ window.gerarRelatorioPDF = (evento) => {
     btn.innerHTML = "⏳ Gerando...";
     btn.disabled = true;
 
-    // Cabeçalho: Início e Fim da semana ou o dia exato
     let dataFiltroTexto = "";
     if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
         const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
@@ -615,9 +614,6 @@ window.gerarRelatorioPDF = (evento) => {
     relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
     relatorioTemp.style.color = '#1e293b';
 
-    // ==========================================
-    // PÁGINA 1: RESUMO DO PERÍODO
-    // ==========================================
     let htmlPdf = `
         <div style="padding: 10px 30px;">
             <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
@@ -630,72 +626,41 @@ window.gerarRelatorioPDF = (evento) => {
         const dataObj = new Date(dia + 'T00:00:00');
         const nomeDia = diasSemanaNomes[dataObj.getDay()];
         const dataFormatada = dia.split('-').reverse().join('/');
-
         htmlPdf += `
             <li style="margin-bottom: 20px;">
                 <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                     ${nomeDia} (${dataFormatada})
                 </h3>
         `;
-
         tarefasPorDia[dia].forEach(t => {
-            htmlPdf += `
-                <div style="padding-left: 12px; border-left: 3px solid ${window.coresCategorias[t.categoria] || '#94a3b8'}; margin-bottom: 8px; font-size: 14px; color: #475569;">
-                    ${t.descricao}
-                </div>
-            `;
+            htmlPdf += `<div style="padding-left: 12px; border-left: 3px solid ${window.coresCategorias[t.categoria] || '#94a3b8'}; margin-bottom: 8px; font-size: 14px; color: #475569;">${t.descricao}</div>`;
         });
         htmlPdf += `</li>`;
     });
     htmlPdf += `</ul></div>`;
 
-    // ==========================================
-    // PÁGINAS SEGUINTES: DETALHAMENTO DIÁRIO COM PAGINAÇÃO INTELIGENTE
-    // ==========================================
     diasOrdenados.forEach(dia => {
         const dataObj = new Date(dia + 'T00:00:00');
         const nomeDia = diasSemanaNomes[dataObj.getDay()];
         const diaMes = dataObj.getDate();
-
-        // Quebra de página para o novo dia
         htmlPdf += `<div class="html2pdf__page-break"></div>`;
-
-        htmlPdf += `
-            <div style="padding: 10px 30px 0 30px;">
-                <h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
-                    ${diaMes} - ${nomeDia}
-                </h2>
-        `;
-
-        // Calculadora de espaço recalibrada
-        let alturaAtual = 40; // Espaço do título
-        const ALTURA_MAXIMA = 265; // Aumentamos o limite da página para caber mais itens
+        htmlPdf += `<div style="padding: 10px 30px 0 30px;"><h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">${diaMes} - ${nomeDia}</h2>`;
+        
+        let alturaAtual = 40;
+        const ALTURA_MAXIMA = 265;
 
         tarefasPorDia[dia].forEach(t => {
             let temFoto = t.fotos && t.fotos.length > 0;
-            // Reduzimos o "peso" da tarefa com foto na calculadora para forçar o encaixe de 2 na mesma página
             let alturaTarefa = temFoto ? 110 : 35; 
 
-            // SE A TAREFA FOR ESTOURAR A PÁGINA
             if (alturaAtual + alturaTarefa > ALTURA_MAXIMA) {
-                htmlPdf += `</div>`; // Fecha o container atual
-                htmlPdf += `<div class="html2pdf__page-break"></div>`; // Quebra a página
-                
-                // Repete exatamente o mesmo cabeçalho, sem o "continuação" e com a mesma cor/tamanho
-                htmlPdf += `
-                    <div style="padding: 10px 30px 0 30px;">
-                        <h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
-                            ${diaMes}, ${nomeDia}
-                        </h2>
-                `;
-                alturaAtual = 40; // Reseta o espaço para a nova folha
+                htmlPdf += `</div><div class="html2pdf__page-break"></div><div style="padding: 10px 30px 0 30px;"><h2 style="font-size: 26px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">${diaMes} - ${nomeDia}</h2>`;
+                alturaAtual = 40;
             }
 
             let fotosHtml = '';
             if (temFoto) {
                 const qtd = Math.min(t.fotos.length, 4); 
-                
-                // Reduzido de 350px para 280px para garantir o encaixe perfeito de 2 atividades por página
                 let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 280px; margin-top: 15px;';
                 if (qtd === 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
                 else if (qtd === 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
@@ -703,115 +668,78 @@ window.gerarRelatorioPDF = (evento) => {
 
                 fotosHtml += `<div style="${gridStyles}">`;
                 for(let i=0; i < qtd; i++) {
-                    fotosHtml += `
-                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;">
-                            <img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                        </div>
-                    `;
+                    fotosHtml += `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;"><img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>`;
                 }
                 fotosHtml += `</div>`;
             }
 
-            htmlPdf += `
-                <div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
-                    <div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">
-                        ${t.descricao}
-                    </div>
-                    ${fotosHtml}
-                </div>
-            `;
-
+            htmlPdf += `<div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;"><div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">${t.descricao}</div>${fotosHtml}</div>`;
             alturaAtual += alturaTarefa;
         });
-        
         htmlPdf += `</div>`; 
     });
 
     relatorioTemp.innerHTML = htmlPdf;
 
     const opcoes = {
-        margin:       [15, 0, 15, 0], 
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true }, 
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'] } 
+        margin: [15, 0, 15, 0], 
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true }, 
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] } 
     };
 
-    // 1. Formata o nome do arquivo exatamente como você pediu: Relatorio_Categoria_Periodo
-    // Trocamos as barras (/) por traços (-) para o Firebase não achar que são subpastas!
     const periodoFormatado = dataFiltroTexto.replace(/\//g, '-').replace(/ /g, '_');
     const nomeRelatorio = `Relatorio_${categoriaFiltroAtiva}_${periodoFormatado}`;
 
-    // ==========================================
-    // INJEÇÃO DO CABEÇALHO, RODAPÉ E UPLOAD PARA NUVEM
-    // ==========================================
     html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
         const totalPages = pdf.internal.getNumberOfPages();
-        
         for (let i = 1; i <= totalPages; i++) {
             pdf.setPage(i);
-            
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(30, 41, 59); 
-
-            // CABEÇALHO FIXO
             pdf.setFontSize(11);
             pdf.text(`Relatório Técnico | Categoria: ${categoriaFiltroAtiva}`, 15, 10);
             pdf.text(dataFiltroTexto, 195, 10, { align: 'right' }); 
-            
             pdf.setDrawColor(203, 213, 225); 
             pdf.setLineWidth(0.5);
             pdf.line(15, 12, 195, 12);
-
-            // RODAPÉ FIXO 
             pdf.setFontSize(10);
             pdf.text(`Página ${i} de ${totalPages}`, 195, 287, { align: 'right' });
             pdf.line(15, 282, 195, 282);
         }
-
-        // A MÁGICA ACONTECE AQUI: Em vez de salvar, exportamos como Blob (arquivo bruto)
         return pdf.output('blob');
-
-}).then(async (pdfBlob) => {
-        
-        btn.innerHTML = "☁️ Salvando na nuvem...";
-
+    }).then(async (pdfBlob) => {
+        btn.innerHTML = "☁️ Salvando...";
         try {
-            const caminhoStorage = `arquivos_fixos/${categoriaFiltroAtiva}/${nomeRelatorio}.pdf`;
-            
-            // CORREÇÃO: Usando a sua variável 'storage' exatamente como declarada no topo!
+            // Caminho padronizado com o UID do usuário
+            const caminhoStorage = `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`;
             const storageRef = ref(storage, caminhoStorage); 
             
             await uploadBytes(storageRef, pdfBlob);
             const urlArquivo = await getDownloadURL(storageRef);
 
-            // CORREÇÃO: Usando a sua variável 'db' também diretamente!
+            // SALVAMENTO COM OS CAMPOS CORRETOS PARA APARECER NA LISTA
             await addDoc(collection(db, "arquivos_fixos"), {
-                nome: `${nomeRelatorio}.pdf`,
+                uid: window.usuarioLogado.uid,
+                Nomearquivo: nomeRelatorio, // Campo usado na sua função 'carregarArquivosFixos'
                 categoria: categoriaFiltroAtiva,
-                url: urlArquivo,
-                dataCriacao: new Date().toISOString(),
-                tipo: "relatorio_pdf"
+                link: urlArquivo,          // Campo usado no seu 'a href' da lista
+                dataUpload: new Date()     // Campo usado no seu subirArquivoFixo
             });
 
-            alert(`Relatório "${nomeRelatorio}" gerado e salvo com sucesso nos Arquivos Fixos!`);
+            alert(`Relatório salvo com sucesso em Arquivos Fixos!`);
+            carregarArquivosFixos(); // Atualiza a lista na tela imediatamente
 
         } catch (error) {
-            console.error("Erro ao salvar relatório no Firebase:", error);
-            alert("Erro ao salvar o documento na nuvem. Verifique a conexão.");
+            console.error("Erro no Firebase:", error);
+            alert("Erro ao salvar na nuvem.");
         } finally {
             btn.innerHTML = textoOriginal;
             btn.disabled = false;
         }
-
-    }).catch(err => {
-        console.error("Erro ao processar PDF:", err);
-        alert("Ocorreu um erro ao gerar o documento.");
-        btn.innerHTML = textoOriginal;
-        btn.disabled = false;
     });
 };
-
 // --- EDIÇÃO E SALVAMENTO ---
     window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
     window.removerFotoTemporaria = (idx) => { fotosTemporarias.splice(idx, 1); renderizarFotosEdicao(); };
