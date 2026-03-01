@@ -693,24 +693,23 @@ window.excluirCategoria = async (id) => {
 
 // --- GERENCIAMENTO DE MARCADORES (ETAPAS) ---
 // --- GERENCIAMENTO DE MARCADORES SIMPLIFICADO ---
-
 window.adicionarMarcador = async () => {
-    const nome = document.getElementById('nomeNovoMarcador').value;
-    if(!nome) return alert("Digite o nome do marcador!");
+    const nome = document.getElementById('nomeNovoMarcador').value;
+    if(!nome) return alert("Digite o nome do marcador!");
 
-    try {
-        await addDoc(collection(db, "marcadores"), {
-            nome: nome,
-            uid: window.usuarioLogado.uid,
-            criadoEm: new Date()
-        });
+    try {
+        await addDoc(collection(db, "marcadores"), {
+            nome: nome,
+            uid: window.usuarioLogado.uid,
+            criadoEm: new Date()
+        });
 
-        document.getElementById('nomeNovoMarcador').value = "";
-        carregarMarcadoresModal();
-        atualizarSeletorMarcadores(); // Atualiza o drop down na hora
-    } catch (e) {
-        console.error("Erro ao salvar:", e);
-    }
+        document.getElementById('nomeNovoMarcador').value = "";
+        carregarMarcadoresModal();
+        await atualizarSeletorMarcadores(); // Força a atualização imediata no drop-down
+    } catch (e) {
+        console.error("Erro ao salvar:", e);
+    }
 };
 
 window.carregarMarcadoresModal = async () => {
@@ -1112,94 +1111,88 @@ window.setarData = (tipo, el) => {
 };
 
  window.carregarTarefas = async () => {
-    if (!window.usuarioLogado) return; 
-    const lista = document.getElementById('listaTarefas');
-    const dataFiltro = document.getElementById('dataSeletor').value;
-    let q;
+    if (!window.usuarioLogado) return; 
+    const lista = document.getElementById('listaTarefas');
+    const dataFiltro = document.getElementById('dataSeletor').value;
+    let q;
 
-    try {
-        if (tipoFiltroTempo === 'semana') {
-            // Usa a regra "in" com o array. Funciona de primeira sem precisar ir no console do Firebase!
-            q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "in", window.arrayDiasSemana));
-        } else {
-            q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
-        }
+    try {
+        if (tipoFiltroTempo === 'semana') {
+            q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "in", window.arrayDiasSemana));
+        } else {
+            q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
+        }
 
-        const snap = await getDocs(q);
-        lista.innerHTML = "";
-        let tarefas = [];
-        snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
+        const snap = await getDocs(q);
+        lista.innerHTML = "";
+        let tarefas = [];
+        snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
 
-        window.tarefasMonitoramento = tarefas;
+        window.tarefasMonitoramento = tarefas;
 
-        // Como tiramos o orderBy da semana para evitar erro no banco, o JavaScript organiza os horários da semana sozinho:
-        if (tipoFiltroTempo === 'semana') {
-            tarefas.sort((a, b) => { 
-                if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); 
-                return a.dataString.localeCompare(b.dataString); 
-            });
-        }
+        if (tipoFiltroTempo === 'semana') {
+            tarefas.sort((a, b) => { 
+                if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); 
+                return a.dataString.localeCompare(b.dataString); 
+            });
+        }
 
-        // Aplica o filtro da aba de categoria
-// Dentro da função carregarTarefas, procure os filtros e deixe assim:
-if (categoriaFiltroAtiva !== "Geral") {
-    tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
-}
-if (tagFiltroAtiva !== "") {
-    tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
-}
+        // Filtros 100% calibrados:
+        if (categoriaFiltroAtiva !== "Geral") {
+            tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
+        }
+        if (tagFiltroAtiva !== "") {
+            tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
+        }
 
-        // Renderiza as tarefas na tela
-        tarefas.forEach(t => {
-            const isEditando = idEmEdicao === t.id; 
-            const listaFotos = t.fotos || [];
-            const dataObj = new Date(t.dataString + 'T00:00:00'); 
-            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-            const corDaBorda = window.coresCategorias[t.categoria] || "#94a3b8";
+        tarefas.forEach(t => {
+            const isEditando = idEmEdicao === t.id; 
+            const listaFotos = t.fotos || [];
+            const dataObj = new Date(t.dataString + 'T00:00:00'); 
+            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+            const corDaBorda = window.coresCategorias[t.categoria] || "#94a3b8";
 
-            lista.innerHTML += `
-                <div class="tarefa-item" style="border-left-color: ${corDaBorda}; border-left-width: 6px;">
-                    <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${JSON.stringify(listaFotos).replace(/"/g, '&quot;')})">
-                        <div class="dia-badge">${dataObj.getDate()}<span>${diasSemana[dataObj.getDay()]}</span></div>
-                        <div class="tarefa-info" style="flex:1;">
-                            ${isEditando ? `
-                                <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
-                                <div id="container-fotos-edit-${t.id}" class="container-fotos"></div>
-                                <div class="area-edicao" onclick="event.stopPropagation()">
-                                    <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}">
-                                    <div class="btn-grupo-edicao-final">
-                                        <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('edit-foto-${t.id}').click()">📷 ARQUIVO</button>
-                                        <button class="btn-acao-edit btn-salvar-azul" onclick="salvarAlteracoes('${t.id}')">SALVAR</button>
-                                    </div>
-                                    <input type="file" id="edit-foto-${t.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
-                                </div>
-                            ` : `
-							
-							<div style="font-size: 0.7rem; color: #64748b; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">
-    <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
-        🏷️ ${t.marcador || 'Sem Etapa'}
-    </span>
-</div>
-
-                                <div style="font-weight:bold; padding-right: 35px; word-wrap: break-word; color: #1e293b;">
-                                    ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
-                                </div>
-                                <div class="container-fotos">
-                                    ${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}
-                                </div>
-                                <button class="btn-excluir-task" title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')">✕</button>
-                            `}
-                        </div>
-                    </div>
-                </div>`;
-            if(isEditando) renderizarFotosEdicao();
-        });
-        
-        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
-    } catch (error) {
-        console.error("Erro ao carregar tarefas:", error);
-        lista.innerHTML = "<p style='text-align:center; color: #ef4444; margin-top:20px;'>Erro de conexão com o banco de dados.</p>";
-    }
+            lista.innerHTML += `
+                <div class="tarefa-item" style="border-left-color: ${corDaBorda}; border-left-width: 6px;">
+                    <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${JSON.stringify(listaFotos).replace(/"/g, '&quot;')})">
+                        <div class="dia-badge">${dataObj.getDate()}<span>${diasSemana[dataObj.getDay()]}</span></div>
+                        <div class="tarefa-info" style="flex:1;">
+                            ${isEditando ? `
+                                <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
+                                <div id="container-fotos-edit-${t.id}" class="container-fotos"></div>
+                                <div class="area-edicao" onclick="event.stopPropagation()">
+                                    <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}">
+                                    <div class="btn-grupo-edicao-final">
+                                        <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('edit-foto-${t.id}').click()">📷 ARQUIVO</button>
+                                        <button class="btn-acao-edit btn-salvar-azul" onclick="salvarAlteracoes('${t.id}')">SALVAR</button>
+                                    </div>
+                                    <input type="file" id="edit-foto-${t.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
+                                </div>
+                            ` : `
+                                <div style="font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">
+                                    <span style="background: rgba(30, 41, 59, 0.8); color: #ffffff; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                                        🏷️ ${t.marcador || 'Sem Etapa'}
+                                    </span>
+                                </div>
+                                <div style="font-weight:bold; padding-right: 35px; word-wrap: break-word; color: #1e293b;">
+                                    ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
+                                </div>
+                                <div class="container-fotos">
+                                    ${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}
+                                </div>
+                                <button class="btn-excluir-task" title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')">✕</button>
+                            `}
+                        </div>
+                    </div>
+                </div>`;
+            if(isEditando) renderizarFotosEdicao();
+        });
+        
+        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
+    } catch (error) {
+        console.error("Erro ao carregar tarefas:", error);
+        lista.innerHTML = "<p style='text-align:center; color: #ef4444; margin-top:20px;'>Erro de conexão com o banco de dados.</p>";
+    }
 };
     
     window.carregarArquivosFixos = async () => {
