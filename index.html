@@ -619,7 +619,7 @@ window.gerarRelatorioPDF = (evento) => {
     // PÁGINA 1: RESUMO DO PERÍODO
     // ==========================================
     let htmlPdf = `
-        <div style="padding: 30px;">
+        <div style="padding: 15px 30px;">
             <div style="border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px;">
                 <h1 style="margin: 0; font-size: 26px;">Relatório de Atividades</h1>
                 <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
@@ -636,7 +636,6 @@ window.gerarRelatorioPDF = (evento) => {
         const nomeDia = diasSemanaNomes[dataObj.getDay()];
         const dataFormatada = dia.split('-').reverse().join('/');
 
-        // Resumo: Sem o número solto do dia, sem a hora
         htmlPdf += `
             <li style="margin-bottom: 20px;">
                 <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
@@ -663,11 +662,11 @@ window.gerarRelatorioPDF = (evento) => {
         const nomeDia = diasSemanaNomes[dataObj.getDay()];
         const diaMes = dataObj.getDate();
 
-        // Força a quebra de página antes de começar o novo dia
+        // Quebra de página para o novo dia
         htmlPdf += `<div class="html2pdf__page-break"></div>`;
 
         htmlPdf += `
-            <div style="padding: 30px;">
+            <div style="padding: 0 30px;">
                 <h2 style="font-size: 28px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
                     ${diaMes}, ${nomeDia}
                 </h2>
@@ -686,7 +685,6 @@ window.gerarRelatorioPDF = (evento) => {
                 fotosHtml += `<div style="${gridStyles}">`;
                 
                 for(let i=0; i < qtd; i++) {
-                    // Fotos centralizadas e sem perder proporção (object-fit: contain)
                     fotosHtml += `
                         <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;">
                             <img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
@@ -696,9 +694,14 @@ window.gerarRelatorioPDF = (evento) => {
                 fotosHtml += `</div>`;
             }
 
-            // O 'page-break-inside: avoid' garante que se a atividade não couber inteira na página atual, ela vai automaticamente pra próxima
+            // O 'page-break-inside: avoid' com o identificador de data dentro da tarefa
             htmlPdf += `
-                <div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
+                <div style="margin-bottom: 25px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;">
+                    
+                    <div style="font-size: 11px; color: #64748b; margin-bottom: 5px; font-weight: bold; text-transform: uppercase;">
+                        📅 ${diaMes}, ${nomeDia}
+                    </div>
+                    
                     <div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">
                         ${t.descricao}
                     </div>
@@ -712,12 +715,14 @@ window.gerarRelatorioPDF = (evento) => {
 
     relatorioTemp.innerHTML = htmlPdf;
 
+    // Novas Configurações do Gerador com Margens Universais e Quebra CSS
     const opcoes = {
-        margin:       0,
+        margin:       [15, 0, 15, 0], // Margens: Topo, Direita, Fundo, Esquerda (em mm)
         filename:     `Relatorio_Agenda_${Date.now()}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true }, 
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['css', 'legacy'] } // Força a respeitar a quebra sem amassar
     };
 
     html2pdf().set(opcoes).from(relatorioTemp).save().then(() => {
