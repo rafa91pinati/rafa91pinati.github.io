@@ -4,47 +4,70 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minha Agenda Inteligente - v1.0 (Final)</title>
+    <title>Minha Agenda Inteligente - v2.0 </title>
     <style>
 /* --- NOVO VISUAL: GLASSMORPHISM --- */
         /* --- PASSO 4: PALETA REVERSA (Fundo Claro / Seções Escuras / Texto Preto) --- */
         
         /* O Fundo Geral - Agora Cinza Claro Sólido */
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            background: #f1f5f9; /* Slate 100 - Um Cinza Claro sofisticado */
-            padding: 10px; 
-            margin: 0; 
-            color: #1e293b; /* Texto carvão escuro para as áreas gerais */
-            min-height: 100vh; 
-        }
+        /* --- CSS FINAL CORRIGIDO: DESIGN REVERSO --- */
+    body { 
+        font-family: 'Segoe UI', sans-serif; 
+        background: #e2e8f0; /* Cinza Claro (Fundo da Foto) */
+        color: #1e293b; 
+        margin: 0; padding: 10px;
+    }
 
-        /* O Contêiner Glass - Mais blur e borda para destacar no fundo claro */
-        .container { 
-            max-width: 480px; 
-            margin: auto; 
-            background: rgba(255, 255, 255, 0.2); /* Vidro mais opaco */
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
-            padding: 20px; 
-            border-radius: 24px; 
-            border: 1px solid rgba(148, 163, 184, 0.2); /* Borda mais definida */
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); 
-        }
-        
-        /* Ajuste dos botões de data e abas (que não são sessões) */
-        .timeline-header { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; width: 100%; box-sizing: border-box; }
-        .btn-date, .category-tab { 
-            flex: 1; padding: 10px 2px; border-radius: 20px; border: 1px solid rgba(148, 163, 184, 0.2); 
-            background: rgba(148, 163, 184, 0.1); /* Vidro mais escuro sobre o fundo claro */
-            color: #475569; /* Texto cinza médio */
-            cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; transition: 0.3s; 
-        }
-        .btn-date.ativo { 
-            background: #475569; /* Cinza Escuro para o ativo */
-            color: white; 
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); 
-        }
+    .container { 
+        max-width: 480px; margin: auto; 
+        background: rgba(255, 255, 255, 0.3); 
+        backdrop-filter: blur(10px);
+        border-radius: 24px; padding: 20px;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    /* Cabeçalhos das Seções: Cinza Escuro com Texto Branco */
+    .header-secao { 
+        background: #334155 !important; 
+        color: #ffffff !important; 
+        padding: 15px; border-radius: 12px;
+        margin-top: 15px; font-weight: bold;
+        text-transform: uppercase; font-size: 0.8rem;
+        border-left: 5px solid #94a3b8;
+    }
+
+    /* Interior das Seções (ADD Tarefa e Arquivo Fixo): Cinza Escuro */
+    .secao-card, #secaoArquivos {
+        background: #334155 !important;
+        border-radius: 0 0 12px 12px;
+        padding: 15px; margin-top: -5px;
+    }
+
+    /* Inputs e Textos: Fundo claro com TEXTO PRETO */
+    input[type="text"], input[type="time"], textarea, select {
+        background: #f1f5f9 !important;
+        color: #000000 !important; /* TEXTO PRETO */
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px; padding: 12px;
+        margin-bottom: 10px; width: 100%; box-sizing: border-box;
+    }
+
+    /* Itens da Lista (Atividades e Arquivos): Fundo Claro e TEXTO PRETO */
+    .tarefa-item, .arquivo-item-lista {
+        background: #f8fafc !important; /* Card branquinho/cinza claro */
+        border-left: 5px solid #334155;
+        border-radius: 12px; padding: 15px;
+        margin-bottom: 10px; color: #000000 !important; /* TEXTO PRETO */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .tarefa-content, .tarefa-info, span, b, p {
+        color: #000000 !important; /* Garante que tudo dentro do card seja preto */
+    }
+
+    .btn-date.ativo {
+        background: #334155; color: white; border: none;
+    }
         #dataSeletor { 
             flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(148, 163, 184, 0.2); 
             background: rgba(255, 255, 255, 0.5); color: black; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none; 
