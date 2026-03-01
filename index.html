@@ -331,17 +331,20 @@ const firebaseConfig = {
         appId: "1:299659202964:web:e358210feb4d7784f63f81",
         messagingSenderId: "299659202964" 
     };
-
+	
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
     const messaging = getMessaging(app);
     const storage = getStorage(app);
-
-    let idEmEdicao = null;
+	
+	// Já puxa da memória do celular no exato momento que o app abre
+	let categoriaFiltroAtiva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
+    
+	let idEmEdicao = null;
     let fotosTemporarias = []; 
     let fotosNovasArray = [];  
-    let categoriaFiltroAtiva = "Geral";
+    
     let tipoFiltroTempo = 'dia'; 
     let dataInicioSemana = '';
     let dataFimSemana = '';
@@ -704,42 +707,59 @@ window.prepararFotosNovas = (input) => {
 // Dicionário global para guardar as cores
 window.coresCategorias = { "Geral": "#94a3b8" }; 
 
-		window.carregarCategorias = async () => { 
-			const c = document.getElementById('listaCategorias'); 
-			const s = await getDocs(collection(db, "categorias")); 
-			
-			c.innerHTML = `<div class="category-tab ativo" onclick="selecionarCat('Geral', '#333', this)">Geral</div>`; 
-			
-			s.forEach(d => { 
-				const cat = d.data();
-				// Salva a cor vinculada ao nome da categoria
-				window.coresCategorias[cat.nome] = cat.cor; 
-				c.innerHTML += `<div class="category-tab" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
-			}); 
-		};
-		
-			window.selecionarCat = (nome, cor, el) => { 
-				categoriaFiltroAtiva = nome; 
-				
-				// Salva a escolha na memória do navegador
-				localStorage.setItem('ultimaCategoriaAgenda', nome);
-				localStorage.setItem('ultimaCorCategoria', cor);
-			
-				// Volta os botões não selecionados para o visual de "vidro" padrão
-				document.querySelectorAll('.category-tab').forEach(b => { 
-					b.style.backgroundColor = 'rgba(255,255,255,0.05)'; 
-					b.style.color = '#cbd5e1'; 
-				}); 
-				
-				// Aplica a cor na aba que acabou de ser clicada
-				if(el) { 
-					el.style.backgroundColor = cor; 
-					el.style.color = 'white'; 
-				} 
-				
-				carregarTarefas(); 
-				carregarArquivosFixos(); 
-			};
+window.carregarCategorias = async () => { 
+    const c = document.getElementById('listaCategorias'); 
+    const s = await getDocs(collection(db, "categorias")); 
+    
+    // Confirma a categoria e a cor salvas
+    const catSalva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
+    const corSalva = localStorage.getItem('ultimaCorCategoria') || "#94a3b8";
+
+    // Monta a aba "Geral" já pintando ela se for a ativa
+    const corGeral = catSalva === "Geral" ? "#94a3b8" : "rgba(255,255,255,0.05)";
+    const textoGeral = catSalva === "Geral" ? "white" : "#cbd5e1";
+    let htmlTabs = `<div class="category-tab" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8', this)">Geral</div>`; 
+    
+    // Monta as demais abas puxando do Firebase
+    s.forEach(d => { 
+        const cat = d.data();
+        window.coresCategorias[cat.nome] = cat.cor; 
+        
+        const corFundo = catSalva === cat.nome ? cat.cor : "rgba(255,255,255,0.05)";
+        const corTexto = catSalva === cat.nome ? "white" : "#cbd5e1";
+        
+        htmlTabs += `<div class="category-tab" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
+    }); 
+    
+    c.innerHTML = htmlTabs;
+    
+    // Garante que as listas vão dar um refresh final na categoria certa
+    carregarTarefas();
+    carregarArquivosFixos();
+};
+
+window.selecionarCat = (nome, cor, el) => { 
+    categoriaFiltroAtiva = nome; 
+    
+    // Salva na memória do navegador
+    localStorage.setItem('ultimaCategoriaAgenda', nome);
+    localStorage.setItem('ultimaCorCategoria', cor);
+
+    // Reseta o estilo de todos os botões para o "vidro" padrão
+    document.querySelectorAll('.category-tab').forEach(b => { 
+        b.style.backgroundColor = 'rgba(255,255,255,0.05)'; 
+        b.style.color = '#cbd5e1'; 
+    }); 
+    
+    // Aplica a cor no botão recém-clicado
+    if(el) { 
+        el.style.backgroundColor = cor; 
+        el.style.color = 'white'; 
+    } 
+    
+    carregarTarefas(); 
+    carregarArquivosFixos(); 
+};
 	window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
     window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
     window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
