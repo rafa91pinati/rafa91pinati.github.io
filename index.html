@@ -876,6 +876,9 @@
     window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
     // --- ARQUIVOS E PDF ---
+    // --- ARQUIVOS E PDF ---
+    
+    // 1. Função de subir arquivo manual (Agora inteligente: Atualiza se tiver o mesmo nome)
     window.subirArquivoFixo = async () => {
         const file = document.getElementById('inputArquivoFixo').files[0];
         const nome = document.getElementById('nomeArquivoFixo').value;
@@ -884,16 +887,49 @@
         const btn = document.getElementById('btnSubirFixo');
         btn.innerHTML = "⏳ Enviando..."; btn.disabled = true;
         try {
+            // Sobe pro Storage (O Firebase já sobrescreve automaticamente se o arquivo tiver o mesmo nome)
             const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
             const snap = await uploadBytes(sRef, file);
             const url = await getDownloadURL(snap.ref);
-            await addDoc(collection(db, "arquivos_fixos"), { uid: window.usuarioLogado.uid, Nomearquivo: nome, categoria: categoriaFiltroAtiva, link: url, dataUpload: new Date() });
-            alert("Arquivo Fixo salvo!"); 
+            
+            // Verifica se esse NOME de arquivo já existe no banco de dados para essa categoria
+            const q = query(collection(db, "arquivos_fixos"), 
+                where("uid", "==", window.usuarioLogado.uid),
+                where("Nomearquivo", "==", nome),
+                where("categoria", "==", categoriaFiltroAtiva)
+            );
+            const busca = await getDocs(q);
+
+            if (!busca.empty) {
+                // Se já existe, ATUALIZA o arquivo antigo!
+                const idDocExistente = busca.docs[0].id;
+                await updateDoc(doc(db, "arquivos_fixos", idDocExistente), {
+                    link: url, 
+                    dataUpload: new Date()
+                });
+                alert("Arquivo Fixo atualizado com sucesso!"); 
+            } else {
+                // Se não existe, CRIA um novo!
+                await addDoc(collection(db, "arquivos_fixos"), { 
+                    uid: window.usuarioLogado.uid, 
+                    Nomearquivo: nome, 
+                    categoria: categoriaFiltroAtiva, 
+                    link: url, 
+                    dataUpload: new Date() 
+                });
+                alert("Novo Arquivo Fixo salvo!"); 
+            }
+
             carregarArquivosFixos();
-            document.getElementById('nomeArquivoFixo').value = ""; document.getElementById('inputArquivoFixo').value = "";
-        } catch (e) { alert("Erro no upload."); } finally { btn.innerHTML = "📤 Subir Arquivo Fixo"; btn.disabled = false; }
+            // Limpa os campos da tela
+            document.getElementById('nomeArquivoFixo').value = ""; 
+            document.getElementById('inputArquivoFixo').value = "";
+            document.getElementById('file-label').innerText = '📁 Escolher Arquivo';
+        } catch (e) { console.error(e); alert("Erro no upload."); } 
+        finally { btn.innerHTML = "📤 Subir"; btn.disabled = false; }
     };
 
+    // 2. Carregar arquivos na tela (Agora com botão de Excluir)
     window.carregarArquivosFixos = async () => {
         if (!window.usuarioLogado) return;
         const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
@@ -908,14 +944,29 @@
         if (tagFiltroAtiva !== "") arquivos = arquivos.filter(a => a.marcador === tagFiltroAtiva);
 
         arquivos.forEach(a => {
-            lista.innerHTML += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items: center;">
-                <span style="font-size:0.9rem;"><b>[${a.categoria}]</b> ${a.Nomearquivo}</span>
-                <a href="${a.link}" target="_blank" style="color:white; background:#007bff; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-weight:bold; font-size: 0.8rem;">ABRIR</a>
+            lista.innerHTML += `
+            <div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items: center; gap: 8px;">
+                <span style="font-size:0.9rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <b>[${a.categoria}]</b> ${a.Nomearquivo}
+                </span>
+                <div style="display: flex; gap: 5px;">
+                    <a href="${a.link}" target="_blank" style="color:white; background:#007bff; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight:bold; font-size: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">ABRIR</a>
+                    <button onclick="excluirArquivoFixo('${a.id}')" style="color:white; background:#ef4444; border:none; padding: 6px 12px; border-radius: 6px; font-weight:bold; font-size: 0.75rem; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">EXCLUIR</button>
+                </div>
             </div>`;
         });
         if(arquivos.length === 0) lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhum arquivo nesta categoria.</p>";
     };
 
+    // 3. Nova função para deletar o arquivo
+    window.excluirArquivoFixo = async (id) => { 
+        if(confirm("Tem certeza que deseja apagar este arquivo?")) { 
+            await deleteDoc(doc(db, "arquivos_fixos", id)); 
+            carregarArquivosFixos(); 
+        } 
+    };
+
+    // 4. Função do PDF
     window.gerarRelatorioPDF = (evento) => {
         evento.stopPropagation();
         if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) return alert("Não há atividades para gerar.");
@@ -1017,7 +1068,6 @@
 
         const opcoes = { margin: [15, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } };
         
-        // Formatação do nome de arquivo sem Regex para segurança total
         const periodoSeguro = dataFiltroTexto.split('/').join('-').split(' ').join('_');
         const nomeRelatorio = `Relatorio_${categoriaFiltroAtiva}_${periodoSeguro}`;
 
@@ -1037,9 +1087,34 @@
                 const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`); 
                 await uploadBytes(sRef, pdfBlob);
                 const urlArquivo = await getDownloadURL(sRef);
-                await addDoc(collection(db, "arquivos_fixos"), { uid: window.usuarioLogado.uid, Nomearquivo: nomeRelatorio, categoria: categoriaFiltroAtiva, link: urlArquivo, dataUpload: new Date() });
-                alert(`Relatório salvo em Arquivos Fixos!`); carregarArquivosFixos(); 
-            } catch (error) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+                
+                // LÓGICA INTELIGENTE APLICADA AO PDF TAMBÉM!
+                const q = query(collection(db, "arquivos_fixos"), 
+                    where("uid", "==", window.usuarioLogado.uid),
+                    where("Nomearquivo", "==", nomeRelatorio)
+                );
+                const busca = await getDocs(q);
+
+                if (!busca.empty) {
+                    const idDocExistente = busca.docs[0].id;
+                    await updateDoc(doc(db, "arquivos_fixos", idDocExistente), {
+                        link: urlArquivo,
+                        dataUpload: new Date()
+                    });
+                } else {
+                    await addDoc(collection(db, "arquivos_fixos"), { 
+                        uid: window.usuarioLogado.uid, 
+                        Nomearquivo: nomeRelatorio, 
+                        categoria: categoriaFiltroAtiva, 
+                        link: urlArquivo, 
+                        dataUpload: new Date() 
+                    });
+                }
+                
+                alert(`Relatório atualizado e salvo nos Arquivos Fixos!`); 
+                carregarArquivosFixos(); 
+            } catch (error) { alert("Erro ao salvar."); console.error(error); } 
+            finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
         });
     };
 
