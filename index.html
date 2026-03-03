@@ -1446,65 +1446,124 @@ const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : catego
 
 // --- FINANCEIRO ---
 
-window.adicionarTransacao = async () => {
-    const desc = document.getElementById('descFinanceiro').value;
-    const valor = parseFloat(document.getElementById('valorFinanceiro').value);
-    const tipo = document.getElementById('tipoFinanceiro').value;
-    
-    // Pega a data de HOJE automaticamente no formato YYYY-MM-DD
-    const hoje = new Date();
-    const dataHojeStr = hoje.toLocaleDateString('en-CA'); 
-
-    // Pega o arquivo anexado (se houver)
-    const arquivoInput = document.getElementById('arquivoFinanceiro');
-    const arquivoFile = arquivoInput.files[0];
-
-    if (!desc || isNaN(valor)) return alert("Preencha a descrição e o valor!");
-    if (!window.usuarioLogado) return alert("Faça login primeiro!");
-
-    const btn = document.getElementById('btnSalvarFinanceiro');
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳..."; btn.disabled = true;
-
-    const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
-    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
-
-    try {
-        let linkComprovante = "";
-
-        // Se o usuário anexou um arquivo, sobe para o Storage do Firebase
-        if (arquivoFile) {
-            const sRef = ref(storage, `financeiro/${window.usuarioLogado.uid}/${Date.now()}-${arquivoFile.name}`);
-            const snap = await uploadBytes(sRef, arquivoFile);
-            linkComprovante = await getDownloadURL(snap.ref);
-        }
-
-        // Salva tudo no banco de dados
-        await addDoc(collection(db, "financeiro"), {
-            uid: window.usuarioLogado.uid,
-            timeId: idDoTimeDaCategoria,
-            categoria: categoriaPrincipal,
-            descricao: desc,
-            valor: valor,
-            tipo: tipo,
-            dataStr: dataHojeStr, // Data automática
-            comprovanteUrl: linkComprovante, // Link do anexo
-            criadoEm: new Date()
-        });
-
-        // Limpa os campos para a próxima transação
-        document.getElementById('descFinanceiro').value = "";
-        document.getElementById('valorFinanceiro').value = "";
-        arquivoInput.value = ""; 
-        document.getElementById('btnArquivoFinanceiro').innerText = "📎 Anexar Recibo"; 
-        
-        carregarFinanceiro();
-    } catch (e) {
-        console.error("Erro ao salvar transação:", e);
-        alert("Erro ao salvar financeiro.");
-    } finally {
-        btn.innerHTML = textoOriginal; btn.disabled = false;
-    }
+window.adicionarTransacao = async () => {
+
+    const desc = document.getElementById('descFinanceiro').value;
+
+    const valor = parseFloat(document.getElementById('valorFinanceiro').value);
+
+    const tipo = document.getElementById('tipoFinanceiro').value;
+
+    
+
+    // Pega a data de HOJE automaticamente no formato YYYY-MM-DD
+
+    const hoje = new Date();
+
+    const dataHojeStr = hoje.toLocaleDateString('en-CA'); 
+
+
+
+    // Pega o arquivo anexado (se houver)
+
+    const arquivoInput = document.getElementById('arquivoFinanceiro');
+
+    const arquivoFile = arquivoInput.files[0];
+
+
+
+    if (!desc || isNaN(valor)) return alert("Preencha a descrição e o valor!");
+
+    if (!window.usuarioLogado) return alert("Faça login primeiro!");
+
+
+
+    const btn = document.getElementById('btnSalvarFinanceiro');
+
+    const textoOriginal = btn.innerHTML;
+
+    btn.innerHTML = "⏳..."; btn.disabled = true;
+
+
+
+    const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
+
+    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
+
+
+
+    try {
+
+        let linkComprovante = "";
+
+
+
+        // Se o usuário anexou um arquivo, sobe para o Storage do Firebase
+
+        if (arquivoFile) {
+
+            const sRef = ref(storage, `financeiro/${window.usuarioLogado.uid}/${Date.now()}-${arquivoFile.name}`);
+
+            const snap = await uploadBytes(sRef, arquivoFile);
+
+            linkComprovante = await getDownloadURL(snap.ref);
+
+        }
+
+
+
+        // Salva tudo no banco de dados
+
+        await addDoc(collection(db, "financeiro"), {
+
+            uid: window.usuarioLogado.uid,
+
+            timeId: idDoTimeDaCategoria,
+
+            categoria: categoriaPrincipal,
+
+            descricao: desc,
+
+            valor: valor,
+
+            tipo: tipo,
+
+            dataStr: dataHojeStr, // Data automática
+
+            comprovanteUrl: linkComprovante, // Link do anexo
+
+            criadoEm: new Date()
+
+        });
+
+
+
+        // Limpa os campos para a próxima transação
+
+        document.getElementById('descFinanceiro').value = "";
+
+        document.getElementById('valorFinanceiro').value = "";
+
+        arquivoInput.value = ""; 
+
+        document.getElementById('btnArquivoFinanceiro').innerText = "📎 Anexar Recibo"; 
+
+        
+
+        carregarFinanceiro();
+
+    } catch (e) {
+
+        console.error("Erro ao salvar transação:", e);
+
+        alert("Erro ao salvar financeiro.");
+
+    } finally {
+
+        btn.innerHTML = textoOriginal; btn.disabled = false;
+
+    }
+
 };
 
 window.carregarFinanceiro = async () => {
@@ -1803,24 +1862,27 @@ window.carregarFinanceiro = async () => {
         let somaDespesas = 0;
 
         lista.innerHTML = "";
-        transacoes.forEach(t => {
-            if (t.tipo === 'receita') somaReceitas += t.valor;
-            else somaDespesas += t.valor;
-
-            const corValor = t.tipo === 'receita' ? '#10b981' : '#ef4444';
-            const dataFormatada = t.dataStr.split('-').reverse().join('/');
-
-            lista.innerHTML += `
-            <div style="background:rgba(255,255,255,0.8); padding:10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items: center; border-left: 4px solid ${corValor};">
-                <div style="flex: 1;">
-                    <div style="font-weight: bold; font-size: 0.85rem; color: #1e293b;">${t.descricao}</div>
-                    <div style="font-size: 0.7rem; color: #64748b;">${dataFormatada} • [${t.categoria}]</div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-weight: 900; color: ${corValor};">R$ ${t.valor.toFixed(2)}</span>
-                    <button onclick="excluirTransacao('${t.id}')" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size: 1.1rem;" title="Excluir">✕</button>
-                </div>
-            </div>`;
+transacoes.forEach(t => {
+            if (t.tipo === 'receita') somaReceitas += t.valor;
+            else somaDespesas += t.valor;
+
+            const corValor = t.tipo === 'receita' ? '#10b981' : '#ef4444';
+            const dataFormatada = t.dataStr.split('-').reverse().join('/');
+            
+            // Cria um botãozinho azul se a transação tiver um anexo
+            const btnComprovante = t.comprovanteUrl ? `<a href="${t.comprovanteUrl}" target="_blank" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 0.65rem; font-weight: bold; margin-left: 5px;">📄 RECIBO</a>` : '';
+
+            lista.innerHTML += `
+            <div style="background:rgba(255,255,255,0.8); padding:10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items: center; border-left: 4px solid ${corValor};">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; font-size: 0.85rem; color: #1e293b; display: flex; align-items: center;">${t.descricao} ${btnComprovante}</div>
+                    <div style="font-size: 0.7rem; color: #64748b;">${dataFormatada} • [${t.categoria}]</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 900; color: ${corValor};">R$ ${t.valor.toFixed(2)}</span>
+                    <button onclick="excluirTransacao('${t.id}')" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size: 1.1rem;" title="Excluir">✕</button>
+                </div>
+            </div>`;
         });
 
         if (transacoes.length === 0) {
