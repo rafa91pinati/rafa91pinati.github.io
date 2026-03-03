@@ -1533,34 +1533,25 @@ const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : catego
 // --- FINANCEIRO ---
 
 window.adicionarTransacao = async () => {
-    // Busca os elementos no HTML
-    const descEl = document.getElementById('descFinanceiro');
-    const valorEl = document.getElementById('valorFinanceiro');
-    const tipoEl = document.getElementById('tipoFinanceiro');
-    const arquivoInput = document.getElementById('arquivoFinanceiro');
-
-    // Trava de segurança: se faltar algo no HTML, o JS não quebra, ele avisa.
-    if (!descEl || !valorEl || !tipoEl || !arquivoInput) {
-        console.error("Erro: Falta algum ID no HTML da seção Financeiro.");
-        return;
-    }
-
-    const desc = descEl.value;
-    const valor = parseFloat(valorEl.value);
-    const tipo = tipoEl.value;
-    const arquivoFile = arquivoInput.files[0];
+    // 1. Pega os valores direto do HTML (sem o dataFinanceiro)
+    const desc = document.getElementById('descFinanceiro').value;
+    const valor = parseFloat(document.getElementById('valorFinanceiro').value);
+    const tipo = document.getElementById('tipoFinanceiro').value;
     
-    // Pega a data de HOJE automaticamente
+    // 2. Cria a data de hoje automaticamente
     const hoje = new Date();
     const dataHojeStr = hoje.toLocaleDateString('en-CA'); 
+
+    // 3. Pega o arquivo do botão de anexo (se existir)
+    const arquivoInput = document.getElementById('arquivoFinanceiro');
+    const arquivoFile = arquivoInput ? arquivoInput.files[0] : null;
 
     if (!desc || isNaN(valor)) return alert("Preencha a descrição e o valor!");
     if (!window.usuarioLogado) return alert("Faça login primeiro!");
 
     const btn = document.getElementById('btnSalvarFinanceiro');
     const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Salvando..."; 
-    btn.disabled = true;
+    btn.innerHTML = "⏳ Salvando..."; btn.disabled = true;
 
     const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
     const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
@@ -1568,14 +1559,14 @@ window.adicionarTransacao = async () => {
     try {
         let linkComprovante = "";
 
-        // Se tiver arquivo, sobe pro Storage primeiro
+        // Se tiver foto/PDF anexado, sobe pro banco primeiro
         if (arquivoFile) {
             const sRef = ref(storage, `financeiro/${window.usuarioLogado.uid}/${Date.now()}-${arquivoFile.name}`);
             const snap = await uploadBytes(sRef, arquivoFile);
             linkComprovante = await getDownloadURL(snap.ref);
         }
 
-        // Salva tudo no banco
+        // Salva tudo bonitinho no Firebase
         await addDoc(collection(db, "financeiro"), {
             uid: window.usuarioLogado.uid,
             timeId: idDoTimeDaCategoria,
@@ -1588,20 +1579,19 @@ window.adicionarTransacao = async () => {
             criadoEm: new Date()
         });
 
-        // Limpa a tela para a próxima
-        descEl.value = "";
-        valorEl.value = "";
-        arquivoInput.value = ""; 
+        // Limpa a tela para a próxima transação
+        document.getElementById('descFinanceiro').value = "";
+        document.getElementById('valorFinanceiro').value = "";
+        if (arquivoInput) arquivoInput.value = ""; 
         const btnArquivo = document.getElementById('btnArquivoFinanceiro');
         if (btnArquivo) btnArquivo.innerText = "📎 Anexar Recibo"; 
         
         carregarFinanceiro();
     } catch (e) {
-        console.error("Erro ao salvar transação:", e);
+        console.error("Erro ao salvar:", e);
         alert("Erro ao salvar financeiro.");
     } finally {
-        btn.innerHTML = textoOriginal; 
-        btn.disabled = false;
+        btn.innerHTML = textoOriginal; btn.disabled = false;
     }
 };
 
