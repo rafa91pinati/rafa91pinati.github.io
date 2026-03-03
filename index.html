@@ -693,6 +693,7 @@ onAuthStateChanged(auth, async (user) => {
         
         await carregarTarefas();
         carregarArquivosFixos();
+		carregarFinanceiro();
         // -------------------------------------------------------------
     } catch (e) {
         console.error("Erro nas categorias:", e);
@@ -734,7 +735,8 @@ window.selecionarCat = (nome, cor) => {
 
     carregarTarefas();
     carregarArquivosFixos();
-};0
+	carregarFinanceiro();
+};
 
     window.adicionarCategoria = async () => {
     const nome = document.getElementById('novaCategoria').value;
@@ -1678,6 +1680,144 @@ window.carregarArquivosFixos = async () => {
     }
 };
     window.excluirArquivoFixo = async (id) => { if(confirm("Apagar arquivo?")) { await deleteDoc(doc(db, "arquivos_fixos", id)); carregarArquivosFixos(); } };
+	
+	
+	
+	// --- FINANCEIRO ---
+
+window.adicionarTransacao = async () => {
+    const desc = document.getElementById('descFinanceiro').value;
+    const valor = parseFloat(document.getElementById('valorFinanceiro').value);
+    const tipo = document.getElementById('tipoFinanceiro').value;
+    const data = document.getElementById('dataFinanceiro').value;
+
+    if (!desc || isNaN(valor) || !data) return alert("Preencha descrição, valor e data!");
+    if (!window.usuarioLogado) return alert("Faça login primeiro!");
+
+    const btn = document.getElementById('btnSalvarFinanceiro');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳..."; btn.disabled = true;
+
+    const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
+    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
+
+    try {
+        await addDoc(collection(db, "financeiro"), {
+            uid: window.usuarioLogado.uid,
+            timeId: idDoTimeDaCategoria,
+            categoria: categoriaPrincipal,
+            descricao: desc,
+            valor: valor,
+            tipo: tipo,
+            dataStr: data,
+            criadoEm: new Date()
+        });
+
+        document.getElementById('descFinanceiro').value = "";
+        document.getElementById('valorFinanceiro').value = "";
+        
+        carregarFinanceiro();
+    } catch (e) {
+        console.error("Erro ao salvar transação:", e);
+        alert("Erro ao salvar financeiro.");
+    } finally {
+        btn.innerHTML = textoOriginal; btn.disabled = false;
+    }
+};
+
+window.carregarFinanceiro = async () => {
+    if (!window.usuarioLogado) return;
+    const lista = document.getElementById('listaFinanceiro');
+    lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando caixa...</p>";
+
+    try {
+        let transacoes = [];
+        
+        const qPessoal = query(collection(db, "financeiro"), where("uid", "==", window.usuarioLogado.uid));
+        const snapPessoal = await getDocs(qPessoal);
+        snapPessoal.forEach(d => transacoes.push({ id: d.id, ...d.data() }));
+
+        let timesIdsBuscados = [];
+        categoriasAtivas.forEach(cat => {
+            if (cat !== "Geral" && window.timesDasCategorias[cat]) {
+                timesIdsBuscados.push(window.timesDasCategorias[cat]);
+            }
+        });
+        timesIdsBuscados = [...new Set(timesIdsBuscados)];
+
+        if (timesIdsBuscados.length > 0) {
+            for (let idTime of timesIdsBuscados) {
+                const qTime = query(collection(db, "financeiro"), where("timeId", "==", idTime));
+                const snapTime = await getDocs(qTime);
+                snapTime.forEach(d => {
+                    if (!transacoes.some(t => t.id === d.id)) transacoes.push({ id: d.id, ...d.data() });
+                });
+            }
+        }
+
+        if (categoriasAtivas.includes("Geral")) {
+            transacoes = transacoes.filter(t => t.categoria !== "Pessoal");
+        } else {
+            transacoes = transacoes.filter(t => categoriasAtivas.includes(t.categoria));
+        }
+
+        if (tagFiltroAtiva !== "") {
+            transacoes = transacoes.filter(t => t.marcador === tagFiltroAtiva);
+        }
+
+        transacoes.sort((a, b) => b.dataStr.localeCompare(a.dataStr));
+
+        let somaReceitas = 0;
+        let somaDespesas = 0;
+
+        lista.innerHTML = "";
+        transacoes.forEach(t => {
+            if (t.tipo === 'receita') somaReceitas += t.valor;
+            else somaDespesas += t.valor;
+
+            const corValor = t.tipo === 'receita' ? '#10b981' : '#ef4444';
+            const dataFormatada = t.dataStr.split('-').reverse().join('/');
+
+            lista.innerHTML += `
+            <div style="background:rgba(255,255,255,0.8); padding:10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items: center; border-left: 4px solid ${corValor};">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; font-size: 0.85rem; color: #1e293b;">${t.descricao}</div>
+                    <div style="font-size: 0.7rem; color: #64748b;">${dataFormatada} • [${t.categoria}]</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 900; color: ${corValor};">R$ ${t.valor.toFixed(2)}</span>
+                    <button onclick="excluirTransacao('${t.id}')" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size: 1.1rem;" title="Excluir">✕</button>
+                </div>
+            </div>`;
+        });
+
+        if (transacoes.length === 0) {
+            lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhuma movimentação nesta categoria.</p>";
+        }
+
+        const saldo = somaReceitas - somaDespesas;
+        document.getElementById('totalReceitas').innerText = `R$ ${somaReceitas.toFixed(2)}`;
+        document.getElementById('totalDespesas').innerText = `R$ ${somaDespesas.toFixed(2)}`;
+        document.getElementById('saldoTotal').innerText = `R$ ${saldo.toFixed(2)}`;
+        document.getElementById('saldoTotal').style.color = saldo >= 0 ? '#3b82f6' : '#ef4444';
+
+    } catch (e) {
+        console.error(e);
+        lista.innerHTML = "<p style='text-align:center; color:#ef4444;'>Erro ao carregar finanças.</p>";
+    }
+};
+
+window.excluirTransacao = async (id) => {
+    if (confirm("Apagar transação?")) {
+        await deleteDoc(doc(db, "financeiro", id));
+        carregarFinanceiro();
+    }
+};
+
+
+
+
+
 
     // --- GRÁFICO GANTT ---
     window.abrirCronogramaVisual = async (evento) => {
