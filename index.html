@@ -259,15 +259,24 @@
         </select>
     </div>
     
-<div class="grid-50">
-        <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: rgba(255,255,255,0.7); color: #334155; border: 1px dashed #94a3b8; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-sizing: border-box; width: 100%;">
-            📎 Anexar Recibo
-        </button>
-        <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '📎 ' + this.files[0].name : '📎 Anexar Recibo'">
-        
-        <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); box-sizing: border-box; width: 100%;">
-            Adicionar
-        </button>
+<div class="grid-50">
+
+        <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: rgba(255,255,255,0.7); color: #334155; border: 1px dashed #94a3b8; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-sizing: border-box; width: 100%;">
+
+            📎 Anexar Recibo
+
+        </button>
+
+        <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '📎 ' + this.files[0].name : '📎 Anexar Recibo'">
+
+        
+
+        <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); box-sizing: border-box; width: 100%;">
+
+            Adicionar
+
+        </button>
+
     </div>
 
     <div id="listaFinanceiro" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;"></div>
@@ -1437,46 +1446,65 @@ const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : catego
 
 // --- FINANCEIRO ---
 
-window.adicionarTransacao = async () => {
-    const desc = document.getElementById('descFinanceiro').value;
-    const valor = parseFloat(document.getElementById('valorFinanceiro').value);
-    const tipo = document.getElementById('tipoFinanceiro').value;
-    const data = document.getElementById('dataFinanceiro').value;
-
-    if (!desc || isNaN(valor) || !data) return alert("Preencha descrição, valor e data!");
-    if (!window.usuarioLogado) return alert("Faça login primeiro!");
-
-    const btn = document.getElementById('btnSalvarFinanceiro');
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳..."; btn.disabled = true;
-
-    // Pega a categoria atual selecionada na interface
-    const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
-    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
-
-    try {
-        await addDoc(collection(db, "financeiro"), {
-            uid: window.usuarioLogado.uid,
-            timeId: idDoTimeDaCategoria,
-            categoria: categoriaPrincipal,
-            descricao: desc,
-            valor: valor,
-            tipo: tipo,
-            dataStr: data,
-            criadoEm: new Date()
-        });
-
-        // Limpa os campos
-        document.getElementById('descFinanceiro').value = "";
-        document.getElementById('valorFinanceiro').value = "";
-        
-        carregarFinanceiro();
-    } catch (e) {
-        console.error("Erro ao salvar transação:", e);
-        alert("Erro ao salvar financeiro.");
-    } finally {
-        btn.innerHTML = textoOriginal; btn.disabled = false;
-    }
+window.adicionarTransacao = async () => {
+    const desc = document.getElementById('descFinanceiro').value;
+    const valor = parseFloat(document.getElementById('valorFinanceiro').value);
+    const tipo = document.getElementById('tipoFinanceiro').value;
+    
+    // Pega a data de HOJE automaticamente no formato YYYY-MM-DD
+    const hoje = new Date();
+    const dataHojeStr = hoje.toLocaleDateString('en-CA'); 
+
+    // Pega o arquivo anexado (se houver)
+    const arquivoInput = document.getElementById('arquivoFinanceiro');
+    const arquivoFile = arquivoInput.files[0];
+
+    if (!desc || isNaN(valor)) return alert("Preencha a descrição e o valor!");
+    if (!window.usuarioLogado) return alert("Faça login primeiro!");
+
+    const btn = document.getElementById('btnSalvarFinanceiro');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳..."; btn.disabled = true;
+
+    const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
+    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
+
+    try {
+        let linkComprovante = "";
+
+        // Se o usuário anexou um arquivo, sobe para o Storage do Firebase
+        if (arquivoFile) {
+            const sRef = ref(storage, `financeiro/${window.usuarioLogado.uid}/${Date.now()}-${arquivoFile.name}`);
+            const snap = await uploadBytes(sRef, arquivoFile);
+            linkComprovante = await getDownloadURL(snap.ref);
+        }
+
+        // Salva tudo no banco de dados
+        await addDoc(collection(db, "financeiro"), {
+            uid: window.usuarioLogado.uid,
+            timeId: idDoTimeDaCategoria,
+            categoria: categoriaPrincipal,
+            descricao: desc,
+            valor: valor,
+            tipo: tipo,
+            dataStr: dataHojeStr, // Data automática
+            comprovanteUrl: linkComprovante, // Link do anexo
+            criadoEm: new Date()
+        });
+
+        // Limpa os campos para a próxima transação
+        document.getElementById('descFinanceiro').value = "";
+        document.getElementById('valorFinanceiro').value = "";
+        arquivoInput.value = ""; 
+        document.getElementById('btnArquivoFinanceiro').innerText = "📎 Anexar Recibo"; 
+        
+        carregarFinanceiro();
+    } catch (e) {
+        console.error("Erro ao salvar transação:", e);
+        alert("Erro ao salvar financeiro.");
+    } finally {
+        btn.innerHTML = textoOriginal; btn.disabled = false;
+    }
 };
 
 window.carregarFinanceiro = async () => {
