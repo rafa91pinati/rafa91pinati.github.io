@@ -444,75 +444,144 @@
 
 
 
-<div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px;"></div>
-    </div>
-
-    <div class="header-secao" onclick="toggleSecao('secaoFinanceiro', 'setaFin')">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado" style="background-color: #10b981;"></div> FINANCEIRO
-        </span>
-        <span id="setaFin" class="seta-secao">▼</span>
-    </div>
-
-    <div id="secaoFinanceiro" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
-        
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; text-align: center;">
-            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #10b981;">
-                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">RECEITAS</div>
-                <div id="totalReceitas" style="color: #10b981; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-            </div>
-            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #ef4444;">
-                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">DESPESAS</div>
-                <div id="totalDespesas" style="color: #ef4444; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-            </div>
-            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #3b82f6;">
-                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">SALDO</div>
-                <div id="saldoTotal" style="color: #3b82f6; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-            </div>
-        </div>
-
-        <input type="text" id="descFinanceiro" placeholder="Descrição (ex: Compra de material)" style="width: 100%; box-sizing: border-box;">
-        
-        <div class="grid-50">
-            <input type="number" id="valorFinanceiro" placeholder="Valor (R$)" step="0.01" style="box-sizing: border-box;">
-            <select id="tipoFinanceiro" style="box-sizing: border-box;">
-                <option value="despesa">Despesa (-)</option>
-                <option value="receita">Receita (+)</option>
-            </select>
-        </div>
-        
-        <div class="grid-50">
-            <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: rgba(255,255,255,0.7); color: #334155; border: 1px dashed #94a3b8; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-sizing: border-box; width: 100%;">
-                📎 Anexar Recibo
-            </button>
-            <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '📎 ' + this.files[0].name : '📎 Anexar Recibo'">
-            
-            <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); box-sizing: border-box; width: 100%;">
-                Adicionar
-            </button>
-        </div>
-
-        <div id="listaFinanceiro" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;"></div>
-    </div>
-
-    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
-        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
-            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
-                <div class="icone-quadrado"></div> ATIVIDADES
-            </span>
-            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
-        </div>
-        
-        <div style="display: flex; gap: 8px;">
-            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📊 Gráfico
-            </button>
-            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📄 PDF
-            </button>
-        </div>
-    </div>
-    
+<div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px;"></div>
+
+    </div>
+
+
+
+    <div class="header-secao" onclick="toggleSecao('secaoFinanceiro', 'setaFin')">
+
+        <span style="display: flex; align-items: center; gap: 10px;">
+
+            <div class="icone-quadrado" style="background-color: #10b981;"></div> FINANCEIRO
+
+        </span>
+
+        <span id="setaFin" class="seta-secao">▼</span>
+
+    </div>
+
+
+
+    <div id="secaoFinanceiro" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
+
+        
+
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; text-align: center;">
+
+            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #10b981;">
+
+                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">RECEITAS</div>
+
+                <div id="totalReceitas" style="color: #10b981; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+
+            </div>
+
+            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #ef4444;">
+
+                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">DESPESAS</div>
+
+                <div id="totalDespesas" style="color: #ef4444; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+
+            </div>
+
+            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #3b82f6;">
+
+                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">SALDO</div>
+
+                <div id="saldoTotal" style="color: #3b82f6; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+
+            </div>
+
+        </div>
+
+
+
+        <input type="text" id="descFinanceiro" placeholder="Descrição (ex: Compra de material)" style="width: 100%; box-sizing: border-box;">
+
+        
+
+        <div class="grid-50">
+
+            <input type="number" id="valorFinanceiro" placeholder="Valor (R$)" step="0.01" style="box-sizing: border-box;">
+
+            <select id="tipoFinanceiro" style="box-sizing: border-box;">
+
+                <option value="despesa">Despesa (-)</option>
+
+                <option value="receita">Receita (+)</option>
+
+            </select>
+
+        </div>
+
+        
+
+        <div class="grid-50">
+
+            <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: rgba(255,255,255,0.7); color: #334155; border: 1px dashed #94a3b8; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-sizing: border-box; width: 100%;">
+
+                📎 Anexar Recibo
+
+            </button>
+
+            <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '📎 ' + this.files[0].name : '📎 Anexar Recibo'">
+
+            
+
+            <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); box-sizing: border-box; width: 100%;">
+
+                Adicionar
+
+            </button>
+
+        </div>
+
+
+
+        <div id="listaFinanceiro" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;"></div>
+
+    </div>
+
+
+
+    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
+
+        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
+
+            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
+
+                <div class="icone-quadrado"></div> ATIVIDADES
+
+            </span>
+
+            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
+
+        </div>
+
+        
+
+        <div style="display: flex; gap: 8px;">
+
+            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+
+                📊 Gráfico
+
+            </button>
+
+            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+
+                📄 PDF
+
+            </button>
+
+        </div>
+
+    </div>
+
+    
+
     <div id="listaTarefas">Carregando atividades...</div>
 
 </div>
@@ -3015,235 +3084,170 @@ const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : catego
 
 
 
-// --- FINANCEIRO ---
-
-
-
-window.adicionarTransacao = async () => {
-
-
-    console.log("--- DIAGNÓSTICO DO FINANCEIRO ---");
-
-
-    
-
-
-    // 1. O código vai tentar achar os 3 campos principais:
-
-
-    const descEl = document.getElementById('descFinanceiro');
-
-
-    console.log("1. Achou Descrição?", descEl);
-
-
-    
-
-
-    const valorEl = document.getElementById('valorFinanceiro');
-
-
-    console.log("2. Achou Valor?", valorEl);
-
-
-    
-
-
-    const tipoEl = document.getElementById('tipoFinanceiro');
-
-
-    console.log("3. Achou Tipo?", tipoEl);
-
-
-
-
-
-    // Se algum deles for nulo, ele para aqui e te avisa na tela!
-
-
-    if (!descEl) return alert("ERRO: O input com id 'descFinanceiro' sumiu do HTML!");
-
-
-    if (!valorEl) return alert("ERRO: O input com id 'valorFinanceiro' sumiu do HTML!");
-
-
-    if (!tipoEl) return alert("ERRO: O select com id 'tipoFinanceiro' sumiu do HTML!");
-
-
-
-
-
-    // Se passou do teste, ele pega os valores
-
-
-    const desc = descEl.value;
-
-
-    const valor = parseFloat(valorEl.value);
-
-
-    const tipo = tipoEl.value;
-
-
-    
-
-
-    const arquivoInput = document.getElementById('arquivoFinanceiro');
-
-
-    const arquivoFile = arquivoInput ? arquivoInput.files[0] : null;
-
-
-
-
-
-    const hoje = new Date();
-
-
-    const dataHojeStr = hoje.toLocaleDateString('en-CA'); 
-
-
-
-
-
-    if (!desc || isNaN(valor)) return alert("Preencha a descrição e o valor!");
-
-
-    if (!window.usuarioLogado) return alert("Faça login primeiro!");
-
-
-
-
-
-    const btn = document.getElementById('btnSalvarFinanceiro');
-
-
-    const textoOriginal = btn ? btn.innerHTML : "Adicionar";
-
-
-    if (btn) { btn.innerHTML = "⏳ Salvando..."; btn.disabled = true; }
-
-
-
-
-
-    const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
-
-
-    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
-
-
-
-
-
-    try {
-
-
-        let linkComprovante = "";
-
-
-
-
-
-        if (arquivoFile) {
-
-
-            const sRef = ref(storage, `financeiro/${window.usuarioLogado.uid}/${Date.now()}-${arquivoFile.name}`);
-
-
-            const snap = await uploadBytes(sRef, arquivoFile);
-
-
-            linkComprovante = await getDownloadURL(snap.ref);
-
-
-        }
-
-
-
-
-
-        await addDoc(collection(db, "financeiro"), {
-
-
-            uid: window.usuarioLogado.uid,
-
-
-            timeId: idDoTimeDaCategoria,
-
-
-            categoria: categoriaPrincipal,
-
-
-            descricao: desc,
-
-
-            valor: valor,
-
-
-            tipo: tipo,
-
-
-            dataStr: dataHojeStr, 
-
-
-            comprovanteUrl: linkComprovante, 
-
-
-            criadoEm: new Date()
-
-
-        });
-
-
-
-
-
-        // Limpa a tela
-
-
-        descEl.value = "";
-
-
-        valorEl.value = "";
-
-
-        if (arquivoInput) arquivoInput.value = ""; 
-
-
-        const btnArquivo = document.getElementById('btnArquivoFinanceiro');
-
-
-        if (btnArquivo) btnArquivo.innerText = "📎 Anexar Recibo"; 
-
-
-        
-
-
-        carregarFinanceiro();
-
-
-        console.log("✅ Salvo com sucesso no Firestore!");
-
-
-    } catch (e) {
-
-
-        console.error("Erro no Firebase:", e);
-
-
-        alert("Erro ao salvar financeiro.");
-
-
-    } finally {
-
-
-        if (btn) { btn.innerHTML = textoOriginal; btn.disabled = false; }
-
-
-    }
-
-
+// --- FINANCEIRO ---
+window.adicionarTransacao = async () => {
+    const descEl = document.getElementById('descFinanceiro');
+    const valorEl = document.getElementById('valorFinanceiro');
+    const tipoEl = document.getElementById('tipoFinanceiro');
+    const arquivoInput = document.getElementById('arquivoFinanceiro');
+
+    if (!descEl || !valorEl || !tipoEl) {
+        alert("Erro no HTML: Campos do financeiro não encontrados!");
+        return;
+    }
+
+    const desc = descEl.value;
+    const valor = parseFloat(valorEl.value);
+    const tipo = tipoEl.value;
+    const arquivoFile = arquivoInput ? arquivoInput.files[0] : null;
+
+    const hoje = new Date();
+    const dataHojeStr = hoje.toLocaleDateString('en-CA'); 
+
+    if (!desc || isNaN(valor)) return alert("Preencha a descrição e o valor!");
+    if (!window.usuarioLogado) return alert("Faça login primeiro!");
+
+    const btn = document.getElementById('btnSalvarFinanceiro');
+    const textoOriginal = btn ? btn.innerHTML : "Adicionar";
+    if (btn) { btn.innerHTML = "⏳ Salvando..."; btn.disabled = true; }
+
+    const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
+    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
+
+    try {
+        let linkComprovante = "";
+
+        if (arquivoFile) {
+            const sRef = ref(storage, `financeiro/${window.usuarioLogado.uid}/${Date.now()}-${arquivoFile.name}`);
+            const snap = await uploadBytes(sRef, arquivoFile);
+            linkComprovante = await getDownloadURL(snap.ref);
+        }
+
+        await addDoc(collection(db, "financeiro"), {
+            uid: window.usuarioLogado.uid,
+            timeId: idDoTimeDaCategoria,
+            categoria: categoriaPrincipal,
+            descricao: desc,
+            valor: valor,
+            tipo: tipo,
+            dataStr: dataHojeStr, 
+            comprovanteUrl: linkComprovante, 
+            criadoEm: new Date()
+        });
+
+        // Limpa os campos
+        descEl.value = "";
+        valorEl.value = "";
+        if (arquivoInput) arquivoInput.value = ""; 
+        const btnArquivo = document.getElementById('btnArquivoFinanceiro');
+        if (btnArquivo) btnArquivo.innerText = "📎 Anexar Recibo"; 
+        
+        carregarFinanceiro();
+    } catch (e) {
+        console.error("Erro no Firebase:", e);
+        alert("Erro ao salvar financeiro.");
+    } finally {
+        if (btn) { btn.innerHTML = textoOriginal; btn.disabled = false; }
+    }
+};
+
+window.carregarFinanceiro = async () => {
+    if (!window.usuarioLogado) return;
+    const lista = document.getElementById('listaFinanceiro');
+    if (!lista) return;
+
+    lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando caixa...</p>";
+
+    try {
+        let transacoes = [];
+        
+        const qPessoal = query(collection(db, "financeiro"), where("uid", "==", window.usuarioLogado.uid));
+        const snapPessoal = await getDocs(qPessoal);
+        snapPessoal.forEach(d => transacoes.push({ id: d.id, ...d.data() }));
+
+        let timesIdsBuscados = [];
+        categoriasAtivas.forEach(cat => {
+            if (cat !== "Geral" && window.timesDasCategorias[cat]) {
+                timesIdsBuscados.push(window.timesDasCategorias[cat]);
+            }
+        });
+        timesIdsBuscados = [...new Set(timesIdsBuscados)];
+
+        if (timesIdsBuscados.length > 0) {
+            for (let idTime of timesIdsBuscados) {
+                const qTime = query(collection(db, "financeiro"), where("timeId", "==", idTime));
+                const snapTime = await getDocs(qTime);
+                snapTime.forEach(d => {
+                    if (!transacoes.some(t => t.id === d.id)) transacoes.push({ id: d.id, ...d.data() });
+                });
+            }
+        }
+
+        if (categoriasAtivas.includes("Geral")) {
+            transacoes = transacoes.filter(t => t.categoria !== "Pessoal");
+        } else {
+            transacoes = transacoes.filter(t => categoriasAtivas.includes(t.categoria));
+        }
+
+        if (tagFiltroAtiva !== "") {
+            transacoes = transacoes.filter(t => t.marcador === tagFiltroAtiva);
+        }
+
+        transacoes.sort((a, b) => b.dataStr.localeCompare(a.dataStr));
+
+        let somaReceitas = 0;
+        let somaDespesas = 0;
+
+        lista.innerHTML = "";
+        transacoes.forEach(t => {
+            if (t.tipo === 'receita') somaReceitas += t.valor;
+            else somaDespesas += t.valor;
+
+            const corValor = t.tipo === 'receita' ? '#10b981' : '#ef4444';
+            const dataFormatada = t.dataStr.split('-').reverse().join('/');
+            
+            const btnComprovante = t.comprovanteUrl ? `<a href="${t.comprovanteUrl}" target="_blank" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 0.65rem; font-weight: bold; margin-left: 5px;">📄 RECIBO</a>` : '';
+
+            lista.innerHTML += `
+            <div style="background:rgba(255,255,255,0.8); padding:10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items: center; border-left: 4px solid ${corValor};">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; font-size: 0.85rem; color: #1e293b; display: flex; align-items: center;">${t.descricao} ${btnComprovante}</div>
+                    <div style="font-size: 0.7rem; color: #64748b;">${dataFormatada} • [${t.categoria}]</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 900; color: ${corValor};">R$ ${t.valor.toFixed(2)}</span>
+                    <button onclick="excluirTransacao('${t.id}')" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size: 1.1rem;" title="Excluir">✕</button>
+                </div>
+            </div>`;
+        });
+
+        if (transacoes.length === 0) {
+            lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhuma movimentação nesta categoria.</p>";
+        }
+
+        const saldo = somaReceitas - somaDespesas;
+        const totalRecEl = document.getElementById('totalReceitas');
+        const totalDespEl = document.getElementById('totalDespesas');
+        const saldoTotalEl = document.getElementById('saldoTotal');
+
+        if(totalRecEl) totalRecEl.innerText = `R$ ${somaReceitas.toFixed(2)}`;
+        if(totalDespEl) totalDespEl.innerText = `R$ ${somaDespesas.toFixed(2)}`;
+        if(saldoTotalEl) {
+            saldoTotalEl.innerText = `R$ ${saldo.toFixed(2)}`;
+            saldoTotalEl.style.color = saldo >= 0 ? '#3b82f6' : '#ef4444';
+        }
+
+    } catch (e) {
+        console.error(e);
+        lista.innerHTML = "<p style='text-align:center; color:#ef4444;'>Erro ao carregar finanças.</p>";
+    }
+};
+
+window.excluirTransacao = async (id) => {
+    if (confirm("Apagar transação?")) {
+        await deleteDoc(doc(db, "financeiro", id));
+        carregarFinanceiro();
+    }
 };
 
 
