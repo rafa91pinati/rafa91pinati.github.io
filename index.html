@@ -155,16 +155,11 @@
         
     </div>
 
-<div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
-
+    <div class="header-secao" onclick="toggleSecao('secaoAdd', <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
         <span style="display: flex; align-items: center; gap: 10px;">
-
             <div class="icone-quadrado"></div> ADD TAREFA
-
         </span>
-
         <span id="setaAdd" class="seta-secao">▼</span>
-
     </div>
     
     <div id="secaoAdd" class="secao-card escondido">
@@ -196,8 +191,7 @@
         </div>
         
         <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
-            <button id="btnCancelarAdd" onclick="cancelarNovaTarefa()" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 1
-2px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            <button id="btnCancelarAdd" onclick="cancelarNovaTarefa()" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">
                 Cancelar
             </button>
             <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
@@ -206,11 +200,11 @@
         </div>
     </div>
 
-<div class="header-secao" onclick="toggleSecao('secaoArquivos', 'setaArq')">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado"></div> ARQUIVOS
-        </span>
-        <span id="setaArq" class="seta-secao">▼</span>
+<div class="header-secao" onclick="toggleSecao('secaoArquivos', 'setaArq')">
+        <span style="display: flex; align-items: center; gap: 10px;">
+            <div class="icone-quadrado"></div> ARQUIVOS FIXOS
+        </span>
+        <span id="setaArq" class="seta-secao">▼</span>
     </div>
 
     <div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
@@ -232,7 +226,7 @@
 
    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
         <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
-            <span id="" style="display: flex; align-items: center; gap: 10px;">
+            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
                 <div class="icone-quadrado"></div> ATIVIDADES
             </span>
             <span id="setaLista" class="seta-secao seta-expandida">▼</span>
