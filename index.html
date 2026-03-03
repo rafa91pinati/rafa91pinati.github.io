@@ -259,11 +259,15 @@
         </select>
     </div>
     
-    <div class="grid-50">
-        <input type="date" id="dataFinanceiro" style="box-sizing: border-box;">
-        <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
-            Adicionar
-        </button>
+<div class="grid-50">
+        <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: rgba(255,255,255,0.7); color: #334155; border: 1px dashed #94a3b8; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-sizing: border-box; width: 100%;">
+            📎 Anexar Recibo
+        </button>
+        <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '📎 ' + this.files[0].name : '📎 Anexar Recibo'">
+        
+        <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); box-sizing: border-box; width: 100%;">
+            Adicionar
+        </button>
     </div>
 
     <div id="listaFinanceiro" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;"></div>
