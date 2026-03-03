@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minha Agenda Inteligente - v3.2 </title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+/* --- NOVO VISUAL: GLASSMORPHISM --- */
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            /* Fundo gradiente animado (Azul escuro, Roxo e Violeta) */
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+            background-size: 200% 200%; 
+            animation: gradientBG 15s ease infinite; 
+            padding: 10px; 
+            margin: 0; 
+            color: #000000; /* Texto claro para contrastar */
+            min-height: 100vh; 
+        }
+        @keyframes gradientBG { 
+            0% { background-position: 0% 50%; } 
+            50% { background-position: 100% 50%; } 
+            100% { background-position: 0% 50%; } 
+        }
+
+        /* O "Vidro" flutuante */
+        .container { 
+            max-width: 480px; 
+            margin: auto; 
+            background: rgba(255, 255, 255, 0.03); /* Quase transparente */
+            backdrop-filter: blur(16px); /* O desfoque mágico do vidro */
+            -webkit-backdrop-filter: blur(16px); 
+            padding: 20px; 
+            border-radius: 24px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Borda sutil de luz */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
+        }
+        
+        /* Botões de Data Premium */
+        .timeline-header { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; width: 100%; box-sizing: border-box; }
+        .btn-date { flex: 1; padding: 10px 2px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #334155; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; transition: all 0.3s ease; }
+        .btn-date.ativo { background: linear-gradient(135deg, #64748b, #334155); color: white; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); }
+		#dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: #000000; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none; }
+        #dataSeletor::-webkit-calendar-picker-indicator { filter: invert(0); cursor: pointer; } /* Deixa o ícone do calendário branco */
+
+        /* Abas de Categoria Modernas */
+        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); scrollbar-width: none; }
+        .category-tab { padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; color: #334155; transition: 0.3s; }
+        .category-tab:hover { background: rgba(255,255,255,0.15); }
+
+        /* Cabeçalhos Separadores (Ex: ADD TAREFA) */
+        .header-secao { 
+			display: flex; 
+			justify-content: space-between; 
+			align-items: center; 
+			border-left: 4px solid #94a3b8; 
+			padding: 12px 15px; 
+			margin: 20px 0 10px; 
+			color: #ffffff !important; /* Título em BRANCO para destacar no fundo escuro */
+			font-size: 0.85rem; 
+			font-weight: 800; 
+			text-transform: uppercase; 
+			cursor: pointer; 
+			/* Mude o background para este cinza escuro: */
+			background: #94a3b8 !important; 
+			border-radius: 12px; 
+		}
+		.header-secao:hover { background: rgba(51, 65, 85, 1); }
+         .seta-secao { transition: transform 0.3s; font-size: 0.7rem; transform: rotate(-90deg); }
+        .seta-expandida { transform: rotate(0deg); }
+
+/* --- PASSO 2: INPUTS, CARTÕES E BOTÕES DE VIDRO --- */
+        textarea, input[type="text"], input[type="time"], input[type="date"], input[type="email"], input[type="password"], select, input[type="number"], input[type="color"] { 
+            width: 100%; padding: 14px; margin: 8px 0; 
+            background: rgba(255, 255, 255, 1); /* Vidro escuro */
+            border: 5px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 12px; color: #000000; 
+            font-family: inherit; font-size: 0.9rem; resize: none; 
+            box-sizing: border-box; transition: all 0.3s ease; 
+        }
+        textarea:focus, input:focus, select:focus { 
+            outline: none; border-color: #8b5cf6; background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 0 3px rgba(0, 0, 0, 1); 
+        }
+        textarea::placeholder, input::placeholder { color: #000000; }
+        
+        /* O Cartão da Tarefa Moderno */
+        .tarefa-item { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); margin-bottom: 12px; padding: 16px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid #94a3b8; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        .tarefa-item:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.06); }
+        .tarefa-content { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; position: relative; color: #000000; }
+        
+        /* O Emblema do Dia (Modernizado) */
+        .dia-badge { font-size: 1.6rem; font-weight: 900; color: #1e293b; min-width: 50px; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .dia-badge span { display: block; font-size: 0.65rem; text-transform: uppercase; color: #000000; font-weight: 700; margin-top: 2px; letter-spacing: 1px; }
+        
+        /* Sistema de Fotos do Glassmorphism */
+        .container-fotos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .foto-wrapper { position: relative; display: inline-block; }
+        .img-tarefa { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); transition: 0.3s; }
+        .img-tarefa:hover { transform: scale(1.05); border-color: #8b5cf6; }
+        .btn-remover-foto { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 14px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+
+        /* Botões de Salvar/Editar Premium */
+        .btn-grupo-edicao-final { display: flex; gap: 10px; margin-top: 15px; width: 100%; }
+        .btn-acao-edit { flex: 1; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; border: none; font-size: 0.85rem; text-align: center; text-transform: uppercase; transition: 0.3s; }
+        .btn-arquivo-azul { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.3) !important; color: #cbd5e1; }
+        .btn-arquivo-azul:hover { background: rgba(255,255,255,0.1); color: white; border-color: white !important;}
+        .btn-salvar-azul { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+        .btn-salvar-azul:hover { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); transform: translateY(-1px); }
+
+/* Botão excluir (O Xizinho no canto direito) */
+.btn-excluir-task { 
+    background: transparent; 
+    border: none; 
+    color: #94a3b8; /* Cinza discreto */
+    cursor: pointer; 
+    font-size: 1.1rem; 
+    position: absolute; 
+    right: 5px; 
+    top: 5px; 
+    width: 30px; 
+    height: 30px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: 0.2s; 
+    font-weight: bold;
+    z-index: 10;
+}
+.btn-excluir-task:hover { 
+    color: #ef4444; /* Fica vermelho ao passar o mouse */
+    transform: scale(1.15); 
+}
+        
+        .grid-50 { display: flex; gap: 10px; align-items: center; width: 100%; }
+        .grid-50 > * { flex: 1; }
+        
+		/* Tira o branco do fundo da seção de arquivos */
+        #secaoArquivos {
+            background: rgba(241, 245, 249, 1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+		
+		/* Estilo dos itens da lista de arquivos */
+        #listaArquivosFixos div {
+            background: rgba(148, 163, 184, 1) !important; /* Fundo claro para o texto aparecer */
+            color: #000000 !important; /* TEXTO PRETO */
+            margin-top: 8px;
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        /* Garante que o texto dentro do arquivo seja preto */
+        #listaArquivosFixos span, #listaArquivosFixos b {
+            color: #000000 !important;
+        }
+
+		/* --- PASSO 3: MODAIS DE VIDRO E TEMA CINZA --- */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); width: 90%; max-width: 380px; padding: 25px; border-radius: 24px; position: relative; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 10px 40px rgba(0,0,0,0.5); color: #f8fafc; }
+        .escondido { display: none !important; }
+        
+        /* Modal de Foto Expandida */
+        .modal-foto { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 3000; display: flex; align-items: center; justify-content: center; }
+        .modal-foto img { max-width: 95%; max-height: 85%; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+        /* Abas dentro da Configuração */
+        .tablink { background-color: transparent; border: none; border-bottom: 3px solid transparent; border-radius: 0; color: #cbd5e1; transition: 0.3s; }
+        .tablink.active { border-bottom: 3px solid #94a3b8; color: #ffffff; }
+        .tabcontent { animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from {opacity: 0; transform: translateY(5px);} to {opacity: 1; transform: translateY(0);} }
+
+        /* Ajustes dos botões do HTML injetado para combinar com o escuro */
+        .modal-content button, #btnSalvar, #btnSubirFixo { transition: 0.3s; border: 1px solid rgba(255,255,255,0.1) !important; }
+        .modal-content button:hover, #btnSalvar:hover, #btnSubirFixo:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+		
+		</style>
+</head>
+<body>
+
+<div id="telaLogin" class="modal">
+    <div class="modal-content">
+        <h2 style="text-align:center;">Agenda v3</h2>
+        <input type="email" id="emailLogin" placeholder="Seu e-mail">
+        <input type="password" id="senhaLogin" placeholder="Sua senha">
+        <button onclick="fazerLogin()" style="background:#007bff; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">Entrar</button>
+        <button onclick="criarConta()" style="background:none; color:#007bff; border:none; width:100%; margin-top:10px; cursor:pointer;">Criar nova conta</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="timeline-header">
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
+        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
+    </div>
+
+<div class="category-tabs" id="listaCategorias">Sincronizando...</div>
+
+<div style="display: flex; align-items: center; gap: 10px; margin: 0 5px 20px 5px; padding: 12px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+    <span style="font-weight: 800; font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;"> Tag:</span>
+    <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; padding: 8px; border-radius: 10px; border: none; background: rgba(255,255,255,0.8); color: #1e293b; font-weight: 700; outline: none; cursor: pointer;">
+        <option value="">Todas</option>
+    </select>
+</div>
+
+<div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
+    <span>📝 ADD Tarefa</span>
+    <span id="setaAdd" class="seta-secao">▼</span>
+</div>
+
+<div id="secaoAdd" class="secao-card escondido">
+    <input type="text" id="descTask" placeholder="O que agendar hoje?">
+    
+    <div id="previewFotosNovas" class="container-fotos"></div>
+    
+    <div class="grid-50">
+        <input type="time" id="horaTask">
+        <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
+        <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
+    </div>
+
+    <div class="grid-50" style="margin-top: 15px; margin-bottom: 5px;">
+        <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
+            <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
+            <select id="tipoRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
+                <option value="nenhuma">Sem recorrência</option>
+                <option value="diario">Diário</option>
+                <option value="2dias">A cada 2 dias</option>
+                <option value="semanal">A cada 1 semana</option>
+                <option value="mensal">A cada 1 mês</option>
+            </select>
+        </div>
+        <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
+            <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
+            <input type="date" id="dataFimRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
+        <button id="btnCancelarAdd" onclick="cancelarNovaTarefa()" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+            Cancelar
+        </button>
+        <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
+            Salvar
+        </button>
+    </div>
+</div>
+
+<div class="header-secao" onclick="toggleSecao('secaoArquivos', 'setaArq')">
+    <span>📂 ARQUIVOS FIXOS</span>
+    <span id="setaArq" class="seta-secao">▼</span>
+</div>
+
+<div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
+    <input type="text" id="nomeArquivoFixo" placeholder="Descrição do arquivo (ex: Manual Gás)" style="width: 100%; margin-bottom: 12px; box-sizing: border-box;">
+    
+    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+        
+        <div style="flex: 1; position: relative; overflow: hidden; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 12px 10px; text-align: center; cursor: pointer; transition: 0.3s;">
+            <span id="file-label" style="font-size: 0.85rem; color: #1e293b; font-weight: 700;">📁 Escolher Arquivo</span>
+            <input type="file" id="inputArquivoFixo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" onchange="document.getElementById('file-label').innerText = this.files[0] ? this.files[0].name : '📁 Escolher Arquivo'">
+        </div>
+
+        <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); white-space: nowrap;">
+            📤 Subir
+        </button>
+    </div>
+
+    <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px;"></div>
+</div>
+
+
+
+<div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
+        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
+            <span id="headerMes">📅 Atividades</span>
+            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
+        </div>
+        
+        <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            📄 PDF
+        </button>
+    </div>
+    
+    <div id="listaTarefas">Carregando atividades...</div>
+
+<div id="modalConfiguracoes" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="fecharModalConfig()" style="float: right; font-size: 24px; cursor: pointer;">&times;</span>
+    <h2>Configurações</h2>
+    
+ <div class="category-tabs" style="margin-bottom: 15px;">
+  <button class="category-tab active tablink" onclick="abrirAba(event, 'abaAlarme')">🔔 Alarmes</button>
+  <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')">📂 Categorias</button>
+  <button class="category-tab tablink" onclick="abrirAba(event, 'abaMarcadores')">🔖 Marcadores</button>
+</div>
+
+    <div id="abaAlarme" class="tabcontent" style="display: block;">
+      <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
+      <select id="tempoAntecedencia" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+        <option value="0">Na hora exata (0 minutos)</option>
+        <option value="5">5 minutos antes</option>
+        <option value="10">10 minutos antes</option>
+        <option value="15">15 minutos antes</option>
+        <option value="30">30 minutos antes</option>
+        <option value="60">1 hora antes</option>
+      </select>
+      
+      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Comportamento da Notificação:</label>
+      <select id="tipoNotificacao" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+        <option value="normal">Push Normal (Some sozinha da tela)</option>
+        <option value="fixa">Push Fixo (Fica na tela até eu fechar)</option>
+      </select>
+
+      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme (Internet):</label>
+      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+        <select id="somAlarmeSelecionado" onchange="atualizarPreferenciasNuvem()" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+          <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Relógio Digital</option>
+          <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Bip Curto</option>
+          <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Corneta</option>
+        </select>
+        <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
+      </div>
+
+      <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
+    </div>
+
+  <div id="abaCategorias" class="tabcontent" style="display: none;">
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px;">
+        <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
+        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1; margin: 0;">
+        
+        <div style="position: relative; overflow: hidden; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Escolher Logo">
+            <span style="font-size: 1.2rem;">🖼️</span>
+            <input type="file" id="logoCatInput" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+        </div>
+
+        <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
+      </div>
+      
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
+      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+    </div>
+	
+<div id="abaMarcadores" class="tabcontent" style="display: none;">
+  <label style="display:block; margin-bottom:5px; font-weight:bold;">Marcador:</label>
+  
+  <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+    <input type="text" id="nomeNovoMarcador" placeholder="Ex: Infraestrutura Elétrica" style="flex: 1; margin: 0;">
+    <button onclick="adicionarMarcador()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
+  </div>
+
+  <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+  
+  <label style="display:block; margin-bottom:5px; font-weight:bold;">Marcadores Ativos:</label>
+  <ul id="listaMarcadoresModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;">
+      </ul>
+</div>
+
+<div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
+    <img id="imgGrande" src="">
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
+        authDomain: "agenda-4efa7.firebaseapp.com",
+        projectId: "agenda-4efa7",
+        storageBucket: "agenda-4efa7.firebasestorage.app",
+        appId: "1:299659202964:web:e358210feb4d7784f63f81",
+        messagingSenderId: "299659202964" 
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const messaging = getMessaging(app);
+    const storage = getStorage(app);
+    
+    // VARIÁVEIS E DICIONÁRIOS GLOBAIS
+    window.coresCategorias = { "Geral": "#94a3b8" }; 
+    window.logosCategorias = {}; 
+
+    let categoriaFiltroAtiva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
+    let idEmEdicao = null;
+    let fotosTemporarias = []; 
+    let fotosNovasArray = [];  
+    let tipoFiltroTempo = 'dia'; 
+    let tagFiltroAtiva = ""; 
+    window.usuarioLogado = null;
+    window.tarefasMonitoramento = [];
+
+    window.selecionarTag = (valor) => {
+        tagFiltroAtiva = valor;
+        carregarTarefas(); 
+        carregarArquivosFixos(); 
+    };
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log('Erro SW:', err));
+    }
+
+    // --- CARREGAR PREFERÊNCIAS E AUTO-SAVE ---
+    window.carregarPreferenciasNuvem = async () => {
+        if(!window.usuarioLogado) return;
+        const docSnap = await getDoc(doc(db, "tokens_dispositivos", window.usuarioLogado.uid));
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if(data.minutosAntecedencia !== undefined) document.getElementById('tempoAntecedencia').value = String(data.minutosAntecedencia);
+            if(data.tipoNotificacao) document.getElementById('tipoNotificacao').value = data.tipoNotificacao;
+            if(data.somSelecionado) document.getElementById('somAlarmeSelecionado').value = data.somSelecionado;
+            
+            const btn = document.getElementById('btnConectarNuvem');
+            btn.innerHTML = "✅ Conectado à Nuvem";
+            btn.style.background = "#28a745";
+        }
+    };
+
+    window.atualizarPreferenciasNuvem = async () => {
+        const btn = document.getElementById('btnConectarNuvem');
+        if (btn.innerText.includes("Conectado") && window.usuarioLogado) {
+            await setDoc(doc(db, "tokens_dispositivos", window.usuarioLogado.uid), {
+                minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
+                tipoNotificacao: document.getElementById('tipoNotificacao').value,
+                somSelecionado: document.getElementById('somAlarmeSelecionado').value
+            }, { merge: true });
+        }
+    };
+
+    window.solicitarPermissaoNotificacao = () => {
+        Notification.requestPermission().then((permission) => {
+            if (permission === 'granted' && window.usuarioLogado) {
+                const btn = document.getElementById('btnConectarNuvem');
+                const textoOriginal = btn.innerHTML;
+                btn.innerHTML = "⏳ Conectando..."; 
+                
+                navigator.serviceWorker.ready.then((registration) => {
+                    getToken(messaging, { 
+                        vapidKey: 'BDyyehg3466Bi3B_awzlWOcaXxwhRu1kC8O8KStXQrP6BWuAI2h_iZ8zkvI89-nO01NqriRqlxPKvevxktY5SI8',
+                        serviceWorkerRegistration: registration 
+                    }).then(async (currentToken) => {
+                        if (currentToken) {
+                            await setDoc(doc(db, "tokens_dispositivos", window.usuarioLogado.uid), {
+                                tokens: arrayUnion(currentToken),
+                                minutosAntecedencia: document.getElementById('tempoAntecedencia').value,
+                                tipoNotificacao: document.getElementById('tipoNotificacao').value,
+                                somSelecionado: document.getElementById('somAlarmeSelecionado').value
+                            }, { merge: true });
+                            btn.innerHTML = "✅ Conectado à Nuvem";
+                            btn.style.background = "#28a745";
+                            alert("Aparelho sincronizado na Nuvem!");
+                        }
+                    }).catch(err => {
+                        alert("Erro de conexão.");
+                        btn.innerHTML = textoOriginal;
+                    });
+                });
+            } else alert("Você precisa logar e permitir notificações.");
+        });
+    };
+
+    // --- LOGIN E AUTH ---
+    onAuthStateChanged(auth, (user) => {
+        const tela = document.getElementById('telaLogin');
+        if (user) {
+            window.usuarioLogado = user;
+            if(tela) tela.classList.add('escondido'); 
+            
+            carregarCategorias(); 
+            setarData('hoje', document.getElementById('btnHoje'));
+            carregarPreferenciasNuvem();
+            carregarArquivosFixos();
+            
+            setTimeout(() => {
+                atualizarSeletorMarcadores();
+            }, 800);
+        } else {
+            window.usuarioLogado = null;
+            if(tela) tela.classList.remove('escondido');
+        }
+    });
+
+    window.fazerLogin = () => {
+        const e = document.getElementById('emailLogin').value;
+        const s = document.getElementById('senhaLogin').value;
+        if(!e || !s) return alert("Preencha tudo!");
+        signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro ao entrar: " + err.code));
+    };
+
+    window.criarConta = () => {
+        const e = document.getElementById('emailLogin').value;
+        const s = document.getElementById('senhaLogin').value;
+        if(s.length < 6) return alert("A senha deve ter 6 números/letras!");
+        createUserWithEmailAndPassword(auth, e, s).then(() => alert("Conta criada e logada!")).catch(err => alert("Erro ao criar: " + err.code));
+    };
+
+    window.fazerLogout = () => { if(confirm("Deseja sair da agenda?")) signOut(auth); };
+    
+    // --- UI E ALARMES ---
+    window.abrirConfig = () => { 
+        document.getElementById('modalConfiguracoes').style.display = 'flex'; 
+        carregarCategoriasModal(); 
+        carregarMarcadoresModal(); 
+    };
+    window.fecharModalConfig = () => { document.getElementById('modalConfiguracoes').style.display = 'none'; };
+    
+    window.abrirAba = (evt, nomeAba) => {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
+        tablinks = document.getElementsByClassName("tablink");
+        for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
+        document.getElementById(nomeAba).style.display = "block";
+        evt.currentTarget.classList.add("active");
+    };
+
+    window.testarAlarme = () => {
+        const somUrl = document.getElementById('somAlarmeSelecionado').value;
+        new Audio(somUrl).play().catch(e => alert("Erro no som."));
+        if(Notification.permission === 'granted') new Notification("Teste de Alarme", { body: "Notificação funcionando!" });
+    };
+
+    setInterval(() => {
+        if (Notification.permission !== "granted") return; 
+        const agora = new Date();
+        const dataHojeStr = agora.toLocaleDateString('en-CA');
+        const horaAtualMinutos = agora.getHours() * 60 + agora.getMinutes();
+        const antecedencia = parseInt(document.getElementById('tempoAntecedencia').value) || 0;
+        const somUrl = document.getElementById('somAlarmeSelecionado').value;
+
+        window.tarefasMonitoramento.forEach(t => {
+            if (t.dataString === dataHojeStr && t.hora && !t.alertaDisparado) {
+                const [h, m] = t.hora.split(':').map(Number);
+                if (((h * 60) + m) - antecedencia === horaAtualMinutos) {
+                    new Notification("Lembrete da Agenda", { body: `Sua tarefa "${t.descricao}" começa às ${t.hora}!`, requireInteraction: true });
+                    new Audio(somUrl).play().catch(console.error);
+                }
+            }
+        });
+    }, 60000); 
+
+    // --- CATEGORIAS ---
+// --- CATEGORIAS ---
+    window.carregarCategorias = async () => { 
+        const c = document.getElementById('listaCategorias'); 
+        if (!window.usuarioLogado) return; 
+
+        try {
+            // REMOVIDO O FILTRO DE LOGIN AQUI para puxar as suas categorias antigas!
+            const q = query(collection(db, "categorias"));
+            const s = await getDocs(q); 
+            
+            const catSalva = localStorage.getItem('ultimaCategoriaAgenda') || "Geral";
+            const corSalva = localStorage.getItem('ultimaCorCategoria') || "#94a3b8";
+
+            const corGeral = catSalva === "Geral" ? "#94a3b8" : "rgba(255,255,255,0.05)";
+            const textoGeral = catSalva === "Geral" ? "white" : "#cbd5e1";
+            let htmlTabs = `<div class="category-tab" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8', this)">Geral</div>`; 
+            
+            s.forEach(d => { 
+                const cat = d.data();
+                window.coresCategorias[cat.nome] = cat.cor; 
+                if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
+                
+                const corFundo = catSalva === cat.nome ? cat.cor : "rgba(255,255,255,0.05)";
+                const corTexto = catSalva === cat.nome ? "white" : "#cbd5e1";
+                
+                htmlTabs += `<div class="category-tab" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}', this)">${cat.nome}</div>`; 
+            }); 
+            
+            c.innerHTML = htmlTabs;
+            carregarTarefas();
+            carregarArquivosFixos();
+        } catch (e) { console.error("Erro ao carregar categorias:", e); }
+    };
+
+    window.selecionarCat = (nome, cor, el) => { 
+        categoriaFiltroAtiva = nome; 
+        localStorage.setItem('ultimaCategoriaAgenda', nome);
+        localStorage.setItem('ultimaCorCategoria', cor);
+        document.querySelectorAll('.category-tab').forEach(b => { 
+            b.style.backgroundColor = 'rgba(255,255,255,0.05)'; 
+            b.style.color = '#cbd5e1'; 
+        }); 
+        if(el) { 
+            el.style.backgroundColor = cor; 
+            el.style.color = 'white'; 
+        } 
+        carregarTarefas(); 
+        carregarArquivosFixos(); 
+    };
+
+    window.adicionarCategoria = async () => {
+        // IDs corrigidos para baterem com o HTML novo!
+        const nome = document.getElementById('novaCategoria').value;
+        const cor = document.getElementById('corNovaCategoria').value;
+        const logoInput = document.getElementById('logoCatInput');
+        const logoFile = logoInput ? logoInput.files[0] : null;
+        
+        if(!nome) return alert("Digite o nome da categoria!");
+
+        const btn = document.querySelector("button[onclick='adicionarCategoria()']");
+        btn.disabled = true; btn.innerHTML = "⏳";
+        let logoUrl = "";
+
+        try {
+            if (logoFile) {
+                const storageRef = ref(storage, `logos_categorias/${window.usuarioLogado.uid}/${Date.now()}_${logoFile.name}`);
+                const snapshot = await uploadBytes(storageRef, logoFile);
+                logoUrl = await getDownloadURL(snapshot.ref);
+            }
+            await addDoc(collection(db, "categorias"), { nome: nome, cor: cor, logoUrl: logoUrl, uid: window.usuarioLogado.uid, criadoEm: new Date() });
+            
+            document.getElementById('novaCategoria').value = "";
+            if (logoInput) logoInput.value = "";
+            carregarCategoriasModal();
+            carregarCategorias(); 
+            alert("Categoria criada!");
+        } catch (e) { alert("Erro ao salvar categoria."); } 
+        finally { btn.disabled = false; btn.innerHTML = "+"; }
+    };
+
+    window.carregarCategoriasModal = async () => {
+        const lista = document.getElementById('listaCategoriasModal');
+        if (!lista || !window.usuarioLogado) return;
+        lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
+
+        try {
+            // Removido o filtro de UID aqui também para poder gerenciar as antigas
+            const q = query(collection(db, "categorias"));
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+
+            snap.forEach(d => {
+                const c = d.data();
+                const logoPreview = c.logoUrl ? `<img src="${c.logoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">` : `<span style="font-size:12px;">🖼️</span>`;
+                lista.innerHTML += `
+                    <li style="display:flex; align-items:center; gap:8px; margin-bottom:10px; background: rgba(0,0,0,0.2); padding:10px; border-radius:8px; border: 1px solid rgba(255,255,255,0.1);">
+                        <input type="color" value="${c.cor || '#007bff'}" onchange="atualizarCorCategoria('${d.id}', this.value)" style="width:35px; height:35px; border:none; padding:0; border-radius:4px; cursor:pointer; background:none;">
+                        
+                        <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;" onclick="document.getElementById('logo-edit-${d.id}').click()" title="Alterar Logo">
+                            ${logoPreview}
+                            <input type="file" id="logo-edit-${d.id}" accept="image/*" style="display: none;" onchange="atualizarLogoCategoria('${d.id}', this.files[0])">
+                        </div>
+
+                        <input type="text" value="${c.nome}" style="flex:1; background:transparent; border:none; color:white; font-size:0.9rem;" onchange="atualizarNomeCategoria('${d.id}', this.value)">
+                        <button onclick="excluirCategoria('${d.id}')" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; padding:8px; border-radius:6px; cursor:pointer;">🗑️</button>
+                    </li>`;
+            });
+            if(snap.empty) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma categoria encontrada.</p>";
+        } catch (e) { lista.innerHTML = "<p style='text-align:center; color:#ff4d4d;'>Erro ao carregar.</p>"; }
+    };
+
+    window.atualizarCorCategoria = async (id, novaCor) => { await updateDoc(doc(db, "categorias", id), { cor: novaCor }); carregarCategorias(); };
+    window.atualizarNomeCategoria = async (id, novoNome) => { if(novoNome.trim()) { await updateDoc(doc(db, "categorias", id), { nome: novoNome }); carregarCategorias(); } };
+    window.excluirCategoria = async (id) => { if(confirm("Tem certeza que deseja apagar esta categoria?")) { await deleteDoc(doc(db, "categorias", id)); carregarCategoriasModal(); carregarCategorias(); } };
+    
+    // Função para conseguir atualizar a foto de uma categoria que já existe
+    window.atualizarLogoCategoria = async (id, file) => {
+        if (!file) return;
+        try {
+            const storageRef = ref(storage, `logos_categorias/${window.usuarioLogado.uid}/${Date.now()}_${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            const logoUrl = await getDownloadURL(snapshot.ref);
+            await updateDoc(doc(db, "categorias", id), { logoUrl: logoUrl });
+            carregarCategoriasModal();
+            carregarCategorias();
+            alert("Logo atualizada com sucesso!");
+        } catch (e) { console.error(e); alert("Erro ao atualizar logo."); }
+    };
+    // --- MARCADORES ---
+    window.adicionarMarcador = async () => {
+        const nome = document.getElementById('nomeNovoMarcador').value;
+        if(!nome) return alert("Digite o nome do marcador!");
+        try {
+            await addDoc(collection(db, "marcadores"), { nome: nome, uid: window.usuarioLogado.uid, criadoEm: new Date() });
+            document.getElementById('nomeNovoMarcador').value = "";
+            carregarMarcadoresModal();
+            atualizarSeletorMarcadores(); 
+        } catch (e) { console.error("Erro ao salvar marcador:", e); }
+    };
+
+    window.carregarMarcadoresModal = async () => {
+        const lista = document.getElementById('listaMarcadoresModal');
+        if(!lista || !window.usuarioLogado) return;
+        lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
+        
+        try {
+            const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+            
+            snap.forEach(d => {
+                const m = d.data();
+                lista.innerHTML += `
+                    <li style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.08); padding:12px; border-radius:12px; margin-bottom:8px; border: 1px solid rgba(255,255,255,0.1);">
+                        <b style="color:#ffffff; font-size:0.95rem;">${m.nome}</b>
+                        <button onclick="excluirMarcador('${d.id}')" style="background:rgba(239, 68, 68, 0.3); border:none; color:#ff8080; cursor:pointer; border-radius:8px; padding:8px 12px; font-weight:bold;">🗑️</button>
+                    </li>`;
+            });
+            if(snap.empty) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhum marcador criado.</p>";
+        } catch (e) { console.error(e); }
+    };
+
+    window.atualizarSeletorMarcadores = async () => {
+        const seletor = document.getElementById('filtroTagGlobal');
+        if (!seletor || !window.usuarioLogado) return;
+        try {
+            const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
+            const snap = await getDocs(q);
+            seletor.innerHTML = '<option value="">Todas as Etapas</option>';
+            snap.forEach(d => {
+                const m = d.data();
+                const opcao = document.createElement('option');
+                opcao.value = m.nome; opcao.textContent = m.nome;
+                seletor.appendChild(opcao);
+            });
+        } catch (e) { console.error("Erro no drop-down:", e); }
+    };
+
+    window.excluirMarcador = async (id) => { if(confirm("Deseja apagar esta etapa?")) { await deleteDoc(doc(db, "marcadores", id)); carregarMarcadoresModal(); } };
+
+    // --- TAREFAS E FOTOS ---
+    window.setarData = (tipo, el) => {
+        const input = document.getElementById('dataSeletor'); 
+        const hoje = new Date(); 
+        tipoFiltroTempo = 'dia'; 
+        
+        if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
+        else if (tipo === 'amanha') { const am = new Date(); am.setDate(hoje.getDate() + 1); input.value = am.toLocaleDateString('en-CA'); }
+        else if (tipo === 'semana') { 
+            tipoFiltroTempo = 'semana'; 
+            const p = new Date(hoje); 
+            p.setDate(hoje.getDate() - hoje.getDay()); 
+            window.arrayDiasSemana = [];
+            for(let i = 0; i < 7; i++) {
+                const d = new Date(p); d.setDate(p.getDate() + i);
+                window.arrayDiasSemana.push(d.toLocaleDateString('en-CA'));
+            }
+            input.value = window.arrayDiasSemana[0]; 
+        }
+        else if (tipo === 'custom') tipoFiltroTempo = 'dia';
+        
+        if(el) { document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); if(el.tagName === 'BUTTON') el.classList.add('ativo'); }
+        carregarTarefas();
+    };
+
+    window.carregarTarefas = async () => {
+        if (!window.usuarioLogado) return; 
+        const lista = document.getElementById('listaTarefas');
+        const dataFiltro = document.getElementById('dataSeletor').value;
+        let q;
+
+        try {
+            if (tipoFiltroTempo === 'semana') q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "in", window.arrayDiasSemana));
+            else q = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "==", dataFiltro), orderBy("hora", "asc"));
+
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+            let tarefas = [];
+            snap.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
+            window.tarefasMonitoramento = tarefas;
+
+            if (tipoFiltroTempo === 'semana') {
+                tarefas.sort((a, b) => { 
+                    if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); 
+                    return a.dataString.localeCompare(b.dataString); 
+                });
+            }
+
+            if (categoriaFiltroAtiva !== "Geral") tarefas = tarefas.filter(t => t.categoria === categoriaFiltroAtiva);
+            if (tagFiltroAtiva !== "") tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
+
+            tarefas.forEach(t => {
+                const isEditando = idEmEdicao === t.id; 
+                const listaFotos = t.fotos || [];
+                const dataObj = new Date(t.dataString + 'T00:00:00'); 
+                const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+                const corDaBorda = window.coresCategorias[t.categoria] || "#94a3b8";
+
+                // Formatação blindada para evitar erros com aspas
+                const fotosStringSegura = JSON.stringify(listaFotos).split('"').join('&quot;');
+
+                lista.innerHTML += `
+                    <div class="tarefa-item" style="border-left-color: ${corDaBorda}; border-left-width: 6px;">
+                        <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${fotosStringSegura})">
+                            <div class="dia-badge">${dataObj.getDate()}<span>${diasSemana[dataObj.getDay()]}</span></div>
+                            <div class="tarefa-info" style="flex:1;">
+                                ${isEditando ? `
+                                    <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
+                                    <div id="container-fotos-edit-${t.id}" class="container-fotos"></div>
+                                    <div class="area-edicao" onclick="event.stopPropagation()">
+                                        <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}">
+                                        <div class="btn-grupo-edicao-final">
+                                            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('edit-foto-${t.id}').click()">📷 ARQUIVO</button>
+                                            <button class="btn-acao-edit btn-salvar-azul" onclick="salvarAlteracoes('${t.id}')">SALVAR</button>
+                                        </div>
+                                        <input type="file" id="edit-foto-${t.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
+                                    </div>
+                                ` : `
+                                    <div style="font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">
+                                        <span style="background: rgba(30, 41, 59, 0.8); color: #ffffff; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                                            🏷️ ${t.marcador || 'Sem Etapa'}
+                                        </span>
+                                    </div>
+                                    <div style="font-weight:bold; padding-right: 35px; word-wrap: break-word; color: #1e293b;">
+                                        ${t.hora ? t.hora + ' - ' : ''}${t.descricao}
+                                    </div>
+                                    <div class="container-fotos">
+                                        ${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}
+                                    </div>
+                                    <button class="btn-excluir-task" title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')">✕</button>
+                                `}
+                            </div>
+                        </div>
+                    </div>`;
+                if(isEditando) renderizarFotosEdicao();
+            });
+            if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
+        } catch (error) { console.error("Erro tarefas:", error); }
+    };
+
+    window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
+    window.removerFotoTemporaria = (idx) => { fotosTemporarias.splice(idx, 1); renderizarFotosEdicao(); };
+    window.renderizarFotosEdicao = () => {
+        const container = document.getElementById(`container-fotos-edit-${idEmEdicao}`);
+        if(!container) return;
+        container.innerHTML = fotosTemporarias.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="event.stopPropagation(); removerFotoTemporaria(${idx});">×</button></div>`).join('');
+    };
+    window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
+    window.salvarAlteracoes = async (id) => { await updateDoc(doc(db, "tarefas", id), { descricao: document.getElementById(`edit-desc-${id}`).value, hora: document.getElementById(`edit-hora-${id}`).value, fotos: fotosTemporarias }); idEmEdicao = null; carregarTarefas(); };
+
+    window.cancelarNovaTarefa = () => {
+        document.getElementById('descTask').value = ""; 
+        document.getElementById('horaTask').value = "";
+        document.getElementById('fotoTask').value = ""; 
+        document.getElementById('previewFotosNovas').innerHTML = "";
+        // Limpa também os novos campos de recorrência
+        document.getElementById('tipoRecorrencia').value = "nenhuma";
+        document.getElementById('dataFimRecorrencia').value = "";
+        
+        fotosNovasArray = []; 
+        document.getElementById('secaoAdd').classList.add('escondido');
+        document.getElementById('setaAdd').classList.remove('seta-expandida');
+    };
+    
+    window.salvarNovaTarefa = async () => {
+        const desc = document.getElementById('descTask').value;
+        const marcadorAtivo = document.getElementById('filtroTagGlobal').value; 
+        
+        // Dados de recorrência
+        const tipoRec = document.getElementById('tipoRecorrencia').value;
+        const dataFimInput = document.getElementById('dataFimRecorrencia').value;
+        const dataInicioTexto = document.getElementById('dataSeletor').value;
+
+        if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
+        if(tipoRec !== 'nenhuma' && !dataFimInput) return alert("Selecione a data final da recorrência!");
+        if(tipoRec !== 'nenhuma' && dataFimInput < dataInicioTexto) return alert("A data final não pode ser antes da data inicial!");
+        
+        const btn = document.getElementById('btnSalvar');
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = "⏳ Salvando..."; btn.disabled = true;
+
+        try {
+            // 1. Faz o upload das fotos apenas UMA vez
+            let linksFotos = [];
+            for (let file of fotosNovasArray) {
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
+                const snap = await uploadBytes(sRef, file);
+                linksFotos.push(await getDownloadURL(snap.ref));
+            }
+
+            // 2. Calcula todas as datas do intervalo
+            let datasParaSalvar = [];
+            
+            if (tipoRec === 'nenhuma') {
+                datasParaSalvar.push(dataInicioTexto);
+            } else {
+                // T12:00:00 evita bugs de fuso horário pulando o dia errado
+                let dataAtual = new Date(dataInicioTexto + 'T12:00:00'); 
+                let dataFimObj = new Date(dataFimInput + 'T12:00:00');
+
+                while (dataAtual <= dataFimObj) {
+                    datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
+                    
+                    if (tipoRec === 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
+                    else if (tipoRec === '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
+                    else if (tipoRec === 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
+                    else if (tipoRec === 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
+                }
+            }
+
+            // 3. Salva uma cópia da tarefa para cada data gerada (usando Promise.all para ser super rápido)
+            const promessasDeSalvamento = datasParaSalvar.map(dataStr => {
+                return addDoc(collection(db, "tarefas"), { 
+                    uid: window.usuarioLogado.uid, 
+                    descricao: desc, 
+                    marcador: marcadorAtivo, 
+                    hora: document.getElementById('horaTask').value, 
+                    dataString: dataStr, // Data dinâmica gerada no loop
+                    categoria: categoriaFiltroAtiva, 
+                    fotos: linksFotos, 
+                    criadoEm: new Date(), 
+                    alarmeAtivo: true, 
+                    alertaDisparado: false 
+                });
+            });
+
+            await Promise.all(promessasDeSalvamento);
+
+            cancelarNovaTarefa(); 
+            carregarTarefas(); 
+            alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas com sucesso!` : "Tarefa salva!");
+        } catch (e) { 
+            console.error(e);
+            alert("Erro ao salvar."); 
+        } finally { 
+            btn.innerHTML = textoOriginal; 
+            btn.disabled = false; 
+        }
+    };
+
+    window.prepararFotosNovas = (input) => { 
+        Array.from(input.files).forEach(f => { if (fotosNovasArray.length >= 4) return; fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); 
+        input.value = ""; 
+    };
+    const renderizarPreviewFotosNovas = () => { 
+        document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((file, idx) => `
+            <div class="foto-wrapper"><img src="${URL.createObjectURL(file)}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); 
+    };
+    window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
+
+    // --- ARQUIVOS E PDF ---
+    // --- ARQUIVOS E PDF ---
+    
+    // 1. Função de subir arquivo manual (Agora inteligente: Atualiza se tiver o mesmo nome)
+    window.subirArquivoFixo = async () => {
+        const file = document.getElementById('inputArquivoFixo').files[0];
+        const nome = document.getElementById('nomeArquivoFixo').value;
+        if(!file || !nome || !window.usuarioLogado) return alert("Preencha o nome e selecione o arquivo!");
+        
+        const btn = document.getElementById('btnSubirFixo');
+        btn.innerHTML = "⏳ Enviando..."; btn.disabled = true;
+        try {
+            // Sobe pro Storage (O Firebase já sobrescreve automaticamente se o arquivo tiver o mesmo nome)
+            const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${file.name}`);
+            const snap = await uploadBytes(sRef, file);
+            const url = await getDownloadURL(snap.ref);
+            
+            // Verifica se esse NOME de arquivo já existe no banco de dados para essa categoria
+            const q = query(collection(db, "arquivos_fixos"), 
+                where("uid", "==", window.usuarioLogado.uid),
+                where("Nomearquivo", "==", nome),
+                where("categoria", "==", categoriaFiltroAtiva)
+            );
+            const busca = await getDocs(q);
+
+            if (!busca.empty) {
+                // Se já existe, ATUALIZA o arquivo antigo!
+                const idDocExistente = busca.docs[0].id;
+                await updateDoc(doc(db, "arquivos_fixos", idDocExistente), {
+                    link: url, 
+                    dataUpload: new Date()
+                });
+                alert("Arquivo Fixo atualizado com sucesso!"); 
+            } else {
+                // Se não existe, CRIA um novo!
+                await addDoc(collection(db, "arquivos_fixos"), { 
+                    uid: window.usuarioLogado.uid, 
+                    Nomearquivo: nome, 
+                    categoria: categoriaFiltroAtiva, 
+                    link: url, 
+                    dataUpload: new Date() 
+                });
+                alert("Novo Arquivo Fixo salvo!"); 
+            }
+
+            carregarArquivosFixos();
+            // Limpa os campos da tela
+            document.getElementById('nomeArquivoFixo').value = ""; 
+            document.getElementById('inputArquivoFixo').value = "";
+            document.getElementById('file-label').innerText = '📁 Escolher Arquivo';
+        } catch (e) { console.error(e); alert("Erro no upload."); } 
+        finally { btn.innerHTML = "📤 Subir"; btn.disabled = false; }
+    };
+
+    // 2. Carregar arquivos na tela (Agora com botão de Excluir)
+    window.carregarArquivosFixos = async () => {
+        if (!window.usuarioLogado) return;
+        const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid));
+        const snap = await getDocs(q);
+        const lista = document.getElementById('listaArquivosFixos'); 
+        lista.innerHTML = "";
+        
+        let arquivos = [];
+        snap.forEach(d => arquivos.push({ id: d.id, ...d.data() }));
+
+        if (categoriaFiltroAtiva !== "Geral") arquivos = arquivos.filter(a => a.categoria === categoriaFiltroAtiva);
+        if (tagFiltroAtiva !== "") arquivos = arquivos.filter(a => a.marcador === tagFiltroAtiva);
+
+        arquivos.forEach(a => {
+            lista.innerHTML += `
+            <div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items: center; gap: 8px;">
+                <span style="font-size:0.9rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <b>[${a.categoria}]</b> ${a.Nomearquivo}
+                </span>
+                <div style="display: flex; gap: 5px;">
+                    <a href="${a.link}" target="_blank" style="color:white; background:#007bff; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight:bold; font-size: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">ABRIR</a>
+                    <button onclick="excluirArquivoFixo('${a.id}')" style="color:white; background:#ef4444; border:none; padding: 6px 12px; border-radius: 6px; font-weight:bold; font-size: 0.75rem; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">EXCLUIR</button>
+                </div>
+            </div>`;
+        });
+        if(arquivos.length === 0) lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhum arquivo nesta categoria.</p>";
+    };
+
+    // 3. Nova função para deletar o arquivo
+    window.excluirArquivoFixo = async (id) => { 
+        if(confirm("Tem certeza que deseja apagar este arquivo?")) { 
+            await deleteDoc(doc(db, "arquivos_fixos", id)); 
+            carregarArquivosFixos(); 
+        } 
+    };
+
+    // 4. Função do PDF
+
+window.gerarRelatorioPDF = (evento) => {
+        evento.stopPropagation();
+        if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) return alert("Não há atividades para gerar.");
+
+        let tarefasDoPDF = window.tarefasMonitoramento;
+        if (categoriaFiltroAtiva !== "Geral") tarefasDoPDF = tarefasDoPDF.filter(t => t.categoria === categoriaFiltroAtiva);
+        if (tarefasDoPDF.length === 0) return alert("Não há atividades nesta categoria.");
+
+        const btn = evento.currentTarget;
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = "⏳ Gerando..."; btn.disabled = true;
+
+        let dataFiltroTexto = "";
+        if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
+            const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
+            const fim = window.arrayDiasSemana[6].split('-').reverse().join('/');
+            dataFiltroTexto = `${inicio} a ${fim}`;
+        } else {
+            dataFiltroTexto = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
+        }
+
+        // LÓGICA NOVA: Agrupando primeiro pelas TAGS, depois pelos DIAS
+        const tarefasPorTag = {};
+        tarefasDoPDF.forEach(t => {
+            const tag = t.marcador ? t.marcador : "Geral / Sem Etapa";
+            if (!tarefasPorTag[tag]) tarefasPorTag[tag] = {};
+            if (!tarefasPorTag[tag][t.dataString]) tarefasPorTag[tag][t.dataString] = [];
+            tarefasPorTag[tag][t.dataString].push(t);
+        });
+
+        const tagsOrdenadas = Object.keys(tarefasPorTag).sort();
+        const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+        const relatorioTemp = document.createElement('div');
+        relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
+        relatorioTemp.style.color = '#1e293b';
+
+        let logoHeaderHtml = "";
+        if (categoriaFiltroAtiva !== "Geral" && window.logosCategorias && window.logosCategorias[categoriaFiltroAtiva]) {
+            logoHeaderHtml = `<img src="${window.logosCategorias[categoriaFiltroAtiva]}" style="max-height: 40px; margin-right: 15px; border-radius: 4px; object-fit: contain;">`;
+        }
+
+        // --- 1. CONSTRUINDO O RESUMO EXECUTIVO (SEPARADO POR TAGS) ---
+        let htmlPdf = `
+            <div style="padding: 10px 30px;">
+                <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center;">
+                    ${logoHeaderHtml}
+                    <h1 style="margin: 0; font-size: 26px;">Resumo Executivo - ${categoriaFiltroAtiva}</h1>
+                </div>`;
+
+        tagsOrdenadas.forEach(tag => {
+            htmlPdf += `<h2 style="color: #3b82f6; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px; margin-top: 25px; font-size: 20px;">📌 Etapa: ${tag}</h2>`;
+            htmlPdf += `<ul style="list-style-type: none; padding-left: 10px;">`;
+            
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+            diasOrdenados.forEach(dia => {
+                const dataObj = new Date(dia + 'T00:00:00');
+                const nomeDia = diasSemanaNomes[dataObj.getDay()];
+                const dataFormatada = dia.split('-').reverse().join('/');
+                
+                htmlPdf += `<li style="margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #1e293b;">📅 ${nomeDia} (${dataFormatada})</h3>`;
+                
+                tarefasPorTag[tag][dia].forEach(t => {
+                    htmlPdf += `<div style="padding-left: 12px; border-left: 3px solid ${window.coresCategorias[t.categoria] || '#94a3b8'}; margin-bottom: 6px; font-size: 14px; color: #475569;">${t.descricao}</div>`;
+                });
+                htmlPdf += `</li>`;
+            });
+            htmlPdf += `</ul>`;
+        });
+        htmlPdf += `</div>`;
+
+        // --- 2. CONSTRUINDO AS PÁGINAS SEGUINTES (CRONOGRAMA INDIVIDUAL POR TAG) ---
+        tagsOrdenadas.forEach(tag => {
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+            
+            diasOrdenados.forEach(dia => {
+                const dataObj = new Date(dia + 'T00:00:00');
+                const nomeDia = diasSemanaNomes[dataObj.getDay()];
+                const diaMes = dataObj.getDate();
+                
+                htmlPdf += `<div class="html2pdf__page-break"></div>`;
+                
+                // CABEÇALHO DA PÁGINA (Com a TAG em Destaque)
+                htmlPdf += `<div style="padding: 10px 30px 0 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
+                        <h2 style="font-size: 26px; color: #1e293b; margin: 0;">${diaMes} - ${nomeDia}</h2>
+                        <span style="font-size: 14px; font-weight: bold; color: #ffffff; background: #64748b; padding: 4px 10px; border-radius: 6px;">🏷️ ${tag}</span>
+                    </div>`;
+                
+                let alturaAtual = 50;
+                const ALTURA_MAXIMA = 265;
+
+                tarefasPorTag[tag][dia].forEach(t => {
+                    let temFoto = t.fotos && t.fotos.length > 0;
+                    let alturaTarefa = temFoto ? 110 : 35; 
+
+                    if (alturaAtual + alturaTarefa > ALTURA_MAXIMA) {
+                        htmlPdf += `</div><div class="html2pdf__page-break"></div>
+                        <div style="padding: 10px 30px 0 30px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 25px;">
+                                <h2 style="font-size: 26px; color: #1e293b; margin: 0;">${diaMes} - ${nomeDia} (Cont.)</h2>
+                                <span style="font-size: 14px; font-weight: bold; color: #ffffff; background: #64748b; padding: 4px 10px; border-radius: 6px;">🏷️ ${tag}</span>
+                            </div>`;
+                        alturaAtual = 50;
+                    }
+
+                    let fotosHtml = '';
+                    if (temFoto) {
+                        const qtd = Math.min(t.fotos.length, 4); 
+                        let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 280px; margin-top: 15px;';
+                        if (qtd === 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
+                        else if (qtd === 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
+                        else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; 
+
+                        fotosHtml += `<div style="${gridStyles}">`;
+                        for(let i=0; i < qtd; i++) {
+                            fotosHtml += `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;"><img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>`;
+                        }
+                        fotosHtml += `</div>`;
+                    }
+
+                    htmlPdf += `<div style="margin-bottom: 30px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;"><div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">${t.descricao}</div>${fotosHtml}</div>`;
+                    alturaAtual += alturaTarefa;
+                });
+                htmlPdf += `</div>`; 
+            });
+        });
+
+        relatorioTemp.innerHTML = htmlPdf;
+
+        const opcoes = { margin: [15, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } };
+        
+        const periodoSeguro = dataFiltroTexto.split('/').join('-').split(' ').join('_');
+        const nomeRelatorio = `Relatorio_${categoriaFiltroAtiva}_${periodoSeguro}`;
+
+        html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
+            const totalPages = pdf.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                pdf.setPage(i); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(30, 41, 59); pdf.setFontSize(11);
+                pdf.text(`Relatório Técnico | Categoria: ${categoriaFiltroAtiva}`, 15, 10);
+                pdf.text(dataFiltroTexto, 195, 10, { align: 'right' }); 
+                pdf.setDrawColor(203, 213, 225); pdf.setLineWidth(0.5); pdf.line(15, 12, 195, 12);
+                pdf.setFontSize(10); pdf.text(`Página ${i} de ${totalPages}`, 195, 287, { align: 'right' }); pdf.line(15, 282, 195, 282);
+            }
+            return pdf.output('blob');
+        }).then(async (pdfBlob) => {
+            btn.innerHTML = "☁️ Salvando...";
+            try {
+                const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`); 
+                await uploadBytes(sRef, pdfBlob);
+                const urlArquivo = await getDownloadURL(sRef);
+                
+                const q = query(collection(db, "arquivos_fixos"), 
+                    where("uid", "==", window.usuarioLogado.uid),
+                    where("Nomearquivo", "==", nomeRelatorio)
+                );
+                const busca = await getDocs(q);
+
+                if (!busca.empty) {
+                    const idDocExistente = busca.docs[0].id;
+                    await updateDoc(doc(db, "arquivos_fixos", idDocExistente), { link: urlArquivo, dataUpload: new Date() });
+                } else {
+                    await addDoc(collection(db, "arquivos_fixos"), { uid: window.usuarioLogado.uid, Nomearquivo: nomeRelatorio, categoria: categoriaFiltroAtiva, link: urlArquivo, dataUpload: new Date() });
+                }
+                
+                alert(`Relatório atualizado e salvo nos Arquivos Fixos!`); 
+                carregarArquivosFixos(); 
+            } catch (error) { alert("Erro ao salvar."); console.error(error); } 
+            finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+        });
+    };
+
+    // --- FUNÇÕES AUXILIARES ---
+    window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
+    window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
+    window.fecharFoto = () => document.getElementById('modalFotoExpandida').classList.add('escondido');
+    window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+
+</script>
+</body>
+</html>
