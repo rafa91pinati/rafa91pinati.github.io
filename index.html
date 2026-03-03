@@ -224,6 +224,53 @@
         <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px;"></div>
     </div>
 
+
+<div class="header-secao" onclick="toggleSecao('secaoFinanceiro', 'setaFin')">
+    <span style="display: flex; align-items: center; gap: 10px;">
+        <div class="icone-quadrado" style="background-color: #10b981;"></div> FINANCEIRO
+    </span>
+    <span id="setaFin" class="seta-secao">▼</span>
+</div>
+
+<div id="secaoFinanceiro" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 15px; text-align: center;">
+        <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #10b981;">
+            <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">RECEITAS</div>
+            <div id="totalReceitas" style="color: #10b981; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+        </div>
+        <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #ef4444;">
+            <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">DESPESAS</div>
+            <div id="totalDespesas" style="color: #ef4444; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+        </div>
+        <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #3b82f6;">
+            <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">SALDO</div>
+            <div id="saldoTotal" style="color: #3b82f6; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+        </div>
+    </div>
+
+    <input type="text" id="descFinanceiro" placeholder="Descrição (ex: Compra de material)" style="width: 100%; box-sizing: border-box;">
+    
+    <div class="grid-50">
+        <input type="number" id="valorFinanceiro" placeholder="Valor (R$)" step="0.01" style="box-sizing: border-box;">
+        <select id="tipoFinanceiro" style="box-sizing: border-box;">
+            <option value="despesa">Despesa (-)</option>
+            <option value="receita">Receita (+)</option>
+        </select>
+    </div>
+    
+    <div class="grid-50">
+        <input type="date" id="dataFinanceiro" style="box-sizing: border-box;">
+        <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+            Adicionar
+        </button>
+    </div>
+
+    <div id="listaFinanceiro" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;"></div>
+</div>
+
+
+
    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
         <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
             <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
@@ -1380,6 +1427,144 @@ const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : catego
             alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
         } catch (e) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
     };
+
+
+// --- FINANCEIRO ---
+
+window.adicionarTransacao = async () => {
+    const desc = document.getElementById('descFinanceiro').value;
+    const valor = parseFloat(document.getElementById('valorFinanceiro').value);
+    const tipo = document.getElementById('tipoFinanceiro').value;
+    const data = document.getElementById('dataFinanceiro').value;
+
+    if (!desc || isNaN(valor) || !data) return alert("Preencha descrição, valor e data!");
+    if (!window.usuarioLogado) return alert("Faça login primeiro!");
+
+    const btn = document.getElementById('btnSalvarFinanceiro');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳..."; btn.disabled = true;
+
+    // Pega a categoria atual selecionada na interface
+    const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
+    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
+
+    try {
+        await addDoc(collection(db, "financeiro"), {
+            uid: window.usuarioLogado.uid,
+            timeId: idDoTimeDaCategoria,
+            categoria: categoriaPrincipal,
+            descricao: desc,
+            valor: valor,
+            tipo: tipo,
+            dataStr: data,
+            criadoEm: new Date()
+        });
+
+        // Limpa os campos
+        document.getElementById('descFinanceiro').value = "";
+        document.getElementById('valorFinanceiro').value = "";
+        
+        carregarFinanceiro();
+    } catch (e) {
+        console.error("Erro ao salvar transação:", e);
+        alert("Erro ao salvar financeiro.");
+    } finally {
+        btn.innerHTML = textoOriginal; btn.disabled = false;
+    }
+};
+
+window.carregarFinanceiro = async () => {
+    if (!window.usuarioLogado) return;
+    const lista = document.getElementById('listaFinanceiro');
+    lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando caixa...</p>";
+
+    try {
+        let transacoes = [];
+        
+        // 1. Puxa transações pessoais
+        const qPessoal = query(collection(db, "financeiro"), where("uid", "==", window.usuarioLogado.uid));
+        const snapPessoal = await getDocs(qPessoal);
+        snapPessoal.forEach(d => transacoes.push({ id: d.id, ...d.data() }));
+
+        // 2. Lógica para puxar transações dos times (similar a carregarArquivosFixos)
+        let timesIdsBuscados = [];
+        categoriasAtivas.forEach(cat => {
+            if (cat !== "Geral" && window.timesDasCategorias[cat]) {
+                timesIdsBuscados.push(window.timesDasCategorias[cat]);
+            }
+        });
+        timesIdsBuscados = [...new Set(timesIdsBuscados)];
+
+        if (timesIdsBuscados.length > 0) {
+            for (let idTime of timesIdsBuscados) {
+                const qTime = query(collection(db, "financeiro"), where("timeId", "==", idTime));
+                const snapTime = await getDocs(qTime);
+                snapTime.forEach(d => {
+                    if (!transacoes.some(t => t.id === d.id)) transacoes.push({ id: d.id, ...d.data() });
+                });
+            }
+        }
+
+        // 3. Aplica o filtro da aba de categoria que está ativa na tela
+        if (categoriasAtivas.includes("Geral")) {
+            transacoes = transacoes.filter(t => t.categoria !== "Pessoal");
+        } else {
+            transacoes = transacoes.filter(t => categoriasAtivas.includes(t.categoria));
+        }
+
+        // 4. Ordena por data
+        transacoes.sort((a, b) => b.dataStr.localeCompare(a.dataStr));
+
+        // 5. Cálculos para o Painel
+        let somaReceitas = 0;
+        let somaDespesas = 0;
+
+        lista.innerHTML = "";
+        transacoes.forEach(t => {
+            if (t.tipo === 'receita') somaReceitas += t.valor;
+            else somaDespesas += t.valor;
+
+            const corValor = t.tipo === 'receita' ? '#10b981' : '#ef4444';
+            const sinal = t.tipo === 'receita' ? '+' : '-';
+            const dataFormatada = t.dataStr.split('-').reverse().join('/');
+
+            lista.innerHTML += `
+            <div style="background:rgba(255,255,255,0.8); padding:10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items: center; border-left: 4px solid ${corValor};">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; font-size: 0.85rem; color: #1e293b;">${t.descricao}</div>
+                    <div style="font-size: 0.7rem; color: #64748b;">${dataFormatada} • [${t.categoria}]</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 900; color: ${corValor};">R$ ${t.valor.toFixed(2)}</span>
+                    <button onclick="excluirTransacao('${t.id}')" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size: 1.1rem;" title="Excluir">✕</button>
+                </div>
+            </div>`;
+        });
+
+        if (transacoes.length === 0) {
+            lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhuma movimentação nesta categoria.</p>";
+        }
+
+        // Atualiza o painel
+        const saldo = somaReceitas - somaDespesas;
+        document.getElementById('totalReceitas').innerText = `R$ ${somaReceitas.toFixed(2)}`;
+        document.getElementById('totalDespesas').innerText = `R$ ${somaDespesas.toFixed(2)}`;
+        document.getElementById('saldoTotal').innerText = `R$ ${saldo.toFixed(2)}`;
+        document.getElementById('saldoTotal').style.color = saldo >= 0 ? '#3b82f6' : '#ef4444';
+
+    } catch (e) {
+        console.error(e);
+        lista.innerHTML = "<p style='text-align:center; color:#ef4444;'>Erro ao carregar finanças.</p>";
+    }
+};
+
+window.excluirTransacao = async (id) => {
+    if (confirm("Apagar transação?")) {
+        await deleteDoc(doc(db, "financeiro", id));
+        carregarFinanceiro();
+    }
+};
+
 
     window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
     const renderizarPreviewFotosNovas = () => { document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((file, idx) => `<div class="foto-wrapper"><img src="${URL.createObjectURL(file)}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); };
