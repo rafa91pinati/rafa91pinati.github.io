@@ -685,18 +685,25 @@
         carregarTarefas();
     };
 
-    window.carregarTarefas = async () => {
-    if (!window.usuarioLogado) return; 
-    const lista = document.getElementById('listaTarefas');
-    if (!lista) return; // PREVINE O ERRO DE NULL
-    // ... resto do código
-}
-
-window.carregarCategorias = async () => {
-    const c = document.getElementById('listaCategorias');
-    if (!c || !window.usuarioLogado) return; // PREVINE O ERRO DE NULL
-    // ... resto do código
-}
+window.carregarTarefas = async () => {
+    if (!window.usuarioLogado) return; 
+    const lista = document.getElementById('listaTarefas');
+    if (!lista) return; // PREVINE O ERRO DE NULL
+        const dataFiltro = document.getElementById('dataSeletor').value;
+
+        try {
+            const meuEmail = window.usuarioLogado.email.toLowerCase();
+            const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
+            const snapTimes = await getDocs(qTimes);
+            let meusTimesIds = [];
+            snapTimes.forEach(d => meusTimesIds.push(d.id));
+
+            let tarefas = [];
+
+            if (tipoFiltroTempo === 'semana') {
+                const qPessoal = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "in", window.arrayDiasSemana));
+                const snapPessoal = await getDocs(qPessoal);
+                snapPessoal.forEach(d => tarefas.push({ id: d.id, ...d.data() }));
 
                 if (meusTimesIds.length > 0) {
                     const qTime = query(collection(db, "tarefas"), where("timeId", "in", meusTimesIds), where("dataString", "in", window.arrayDiasSemana));
