@@ -1,0 +1,29 @@
+Nome,RGBA,Hexadecimal (#RRGGBBAA)
+Vidro Escuro,"rgba(30, 41, 59, 0.85)",#1e293bd9
+Vidro Claro,"rgba(241, 245, 249, 0.4)",#f1f5f966
+
+
+
+Cinza Escuro
+background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+
+Cinza Claro
+background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+
+Tom,Hexadecimal (#),RGBA,Uso Sugerido
+Cinza Claro,#f1f5f9,"rgba(241, 245, 249, 1)","Fundos de tela, áreas amplas."
+Cinza Médio,#94a3b8,"rgba(148, 163, 184, 1)","Bordas, ícones secundários."
+Cinza Escuro,#334155,"rgba(51, 65, 85, 1)","Cartões, cabeçalhos de seção."
+Grafite Profundo,#1e293b,"rgba(30, 41, 59, 1)","Rodapés, modais, fundo dark."
+
+Estilo,RGBA,Hexadecimal (#RRGGBBAA)
+Branco Puro (Sólido),"rgba(255, 255, 255, 1)",#ffffffff (ou apenas #ffffff)
+Branco Vidro (85%),"rgba(255, 255, 255, 0.85)",#ffffffd9
+Branco Vidro (40%),"rgba(255, 255, 255, 0.4)",#ffffff66
+Branco Sutil (15%),"rgba(255, 255, 255, 0.15)",#ffffff26
+
+Estilo,RGBA,Hexadecimal (#RRGGBBAA)
+Preto Sólido,"rgba(0, 0, 0, 1)",#000000 ou #000000ff
+Preto Vidro (85%),"rgba(0, 0, 0, 0.85)",#000000d9
+Preto Vidro (40%),"rgba(0, 0, 0, 0.4)",#00000066
+Preto Sutil (10%),"rgba(0, 0, 0, 0.1)",#0000001a
