@@ -1,318 +1,626 @@
-<!DOCTYPE html>
-
-<html lang="pt-BR">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <title>Minha Agenda Inteligente - v4.3.6</title>
-
-    
-
-    <link rel="manifest" href="manifest.json">
-
-    <link rel="stylesheet" href="style.css">
-
-    
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-</head>
-<body>
-
+<!DOCTYPE html>
+
+
+
+<html lang="pt-BR">
+
+
+
+<head>
+
+
+
+    <meta charset="UTF-8">
+
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+
+
+    <title>Minha Agenda Inteligente - v4.3.6</title>
+
+
+
+    
+
+
+
+    <link rel="manifest" href="manifest.json">
+
+
+
+    <link rel="stylesheet" href="style.css">
+
+
+
+    
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+
+
+</head>
+
+<body>
+
+
+
 <div id="telaLogin" class="modal">
-    <div class="modal-content">
-        <h2 style="text-align:center;">Agenda v4.3.5</h2>
-        <input type="email" id="emailLogin" placeholder="Seu e-mail">
-        <input type="password" id="senhaLogin" placeholder="Sua senha">
-        <button onclick="fazerLogin()" style="background:#007bff; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">Entrar</button>
-        <button onclick="criarConta()" style="background:none; color:#007bff; border:none; width:100%; margin-top:10px; cursor:pointer;">Criar nova conta</button>
-    </div>
-</div>
-
-<div class="container">
-    <div class="timeline-header">
-        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
-        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
-    </div>
-
-    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
-
-    <div style="display: flex; align-items: center; gap: 10px; margin: 0 5px 20px 5px; padding: 12px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
-        <div style="flex: 1; display: flex; align-items: center; gap: 5px;">
-            <span style="font-weight: 800; font-size: 0.65rem; color: #64748b; text-transform: uppercase;">Tag:</span>
-            <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; padding: 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.8); color: #1e293b; font-weight: 700; outline: none; cursor: pointer;">
-                <option value="">Todas</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado"></div> ADD TAREFA
-        </span>
-        <span id="setaAdd" class="seta-secao">▼</span>
-    </div>
-    
-    <div id="secaoAdd" class="secao-card escondido">
-        <input type="text" id="descTask" placeholder="O que agendar hoje?">
-        
-        <div id="previewFotosNovas" class="container-fotos"></div>
-        
-        <div class="grid-50">
-            <input type="time" id="horaTask">
-            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
-            <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
-        </div>
-
-        <div class="grid-50" style="margin-top: 15px; margin-bottom: 5px;">
-            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
-                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
-                <select id="tipoRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
-                    <option value="nenhuma">Sem recorrência</option>
-                    <option value="diario">Diário</option>
-                    <option value="2dias">A cada 2 dias</option>
-                    <option value="semanal">A cada 1 semana</option>
-                    <option value="mensal">A cada 1 mês</option>
-                </select>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
-                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
-                <input type="date" id="dataFimRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
-            </div>
-        </div>
-        
-        <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
-            <button id="btnCancelarAdd" onclick="cancelarNovaTarefa()" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">
-                Cancelar
-            </button>
-            <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
-                Salvar
-            </button>
-        </div>
-    </div>
-
-    <div class="header-secao" onclick="toggleSecao('secaoArquivos', 'setaArq')">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado"></div> ARQUIVOS FIXOS
-        </span>
-        <span id="setaArq" class="seta-secao">▼</span>
-    </div>
-
-    <div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
-        <input type="text" id="nomeArquivoFixo" placeholder="Descrição do arquivo (ex: Manual Gás)" style="width: 100%; margin-bottom: 12px; box-sizing: border-box;">
-        
-        <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
-            <div style="flex: 1; position: relative; overflow: hidden; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 12px 10px; text-align: center; cursor: pointer; transition: 0.3s;">
-                <span id="file-label" style="font-size: 0.85rem; color: #1e293b; font-weight: 700;">📁 Escolher Arquivo</span>
-                <input type="file" id="inputArquivoFixo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" onchange="document.getElementById('file-label').innerText = this.files[0] ? this.files[0].name : '📁 Escolher Arquivo'">
-            </div>
-            <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); white-space: nowrap;">
-                📤 Subir
-            </button>
-        </div>
-
-        <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px;"></div>
-    </div>
-
-    <div class="header-secao" onclick="toggleSecao('secaoFinanceiro', 'setaFin')">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado" style="background-color: #10b981;"></div> FINANCEIRO
-        </span>
-        <span id="setaFin" class="seta-secao">▼</span>
-    </div>
-
-    <div id="secaoFinanceiro" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; text-align: center;">
-            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #10b981;">
-                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">RECEITAS</div>
-                <div id="totalReceitas" style="color: #10b981; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-            </div>
-            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #ef4444;">
-                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">DESPESAS</div>
-                <div id="totalDespesas" style="color: #ef4444; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-            </div>
-            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #3b82f6;">
-                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">SALDO</div>
-                <div id="saldoTotal" style="color: #3b82f6; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-            </div>
-        </div>
-
-        <input type="text" id="descFinanceiro" placeholder="Descrição (ex: Compra de material)" style="width: 100%; box-sizing: border-box;">
-        
-        <div class="grid-50">
-            <input type="number" id="valorFinanceiro" placeholder="Valor (R$)" step="0.01" style="box-sizing: border-box;">
-            <select id="tipoFinanceiro" style="box-sizing: border-box;">
-                <option value="despesa">Despesa (-)</option>
-                <option value="receita">Receita (+)</option>
-            </select>
-        </div>
-        
-        <div class="grid-50">
-            <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: rgba(255,255,255,0.7); color: #334155; border: 1px dashed #94a3b8; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-sizing: border-box; width: 100%;">
-                📎 Anexar Recibo
-            </button>
-            <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '📎 ' + this.files[0].name : '📎 Anexar Recibo'">
-            
-            <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); box-sizing: border-box; width: 100%;">
-                Adicionar
-            </button>
-        </div>
-
-        <div id="listaFinanceiro" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;"></div>
-    </div>
-
-    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
-        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
-            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
-                <div class="icone-quadrado"></div> ATIVIDADES
-            </span>
-            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
-        </div>
-        
-        <div style="display: flex; gap: 8px;">
-            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📊 Gráfico
-            </button>
-            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📄 PDF
-            </button>
-        </div>
-    </div>
-    
-    <div id="listaTarefas">Carregando atividades...</div>
-</div> 
-
-<div id="modalConfiguracoes" class="modal" style="display: none;">
-  <div class="modal-content" style="position: relative;">
-    
-    <button onclick="document.getElementById('modalConfiguracoes').style.display='none'" style="position: absolute; top: 15px; right: 20px; background: transparent; border: none; font-size: 32px; cursor: pointer; color: #94a3b8; z-index: 9999; line-height: 1;">&times;</button>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-right: 35px;">
-        <h2 style="margin: 0; font-size: 1.4rem;">Configurações</h2>
-        <button onclick="fazerLogout()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ff8080; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;" title="Sair">
-            🚪 <span style="font-size: 0.75rem; text-transform: uppercase;">Sair</span>
-        </button>
-    </div>
-    
-    <div class="category-tabs" style="margin-bottom: 20px; display: flex; gap: 8px; padding-bottom: 10px;">
-      <button class="category-tab active tablink" onclick="abrirAba(event, 'abaAlarme')" title="Alarmes" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔔</button>
-      <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')" title="Categorias" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">📂</button>
-      <button class="category-tab tablink" onclick="abrirAba(event, 'abaMarcadores')" title="Marcadores" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔖</button>
-      <button class="category-tab tablink" onclick="abrirAba(event, 'abaTimes')" title="Times" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">👥</button>
-    </div>
-
-    <div id="abaAlarme" class="tabcontent" style="display: block;">
-      <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
-      <select id="tempoAntecedencia" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
-        <option value="0">Na hora exata (0 minutos)</option>
-        <option value="5">5 minutos antes</option>
-        <option value="10">10 minutos antes</option>
-        <option value="15">15 minutos antes</option>
-        <option value="30">30 minutos antes</option>
-        <option value="60">1 hora antes</option>
-      </select>
-      
-      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Notificação:</label>
-      <select id="tipoNotificacao" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
-        <option value="normal">Push Normal (Some sozinha da tela)</option>
-        <option value="fixa">Push Fixo (Fica na tela até eu fechar)</option>
-      </select>
-
-      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme:</label>
-      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-        <select id="somAlarmeSelecionado" onchange="atualizarPreferenciasNuvem()" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-          <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Relógio Digital</option>
-          <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Bip Curto</option>
-          <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Corneta</option>
-        </select>
-        <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
-      </div>
-      <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
-    </div>
-
-    <div id="abaCategorias" class="tabcontent" style="display: none;">
-      <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
-      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
-        <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
-        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1; margin: 0; min-width: 120px;">
-        
-        <select id="timeNovaCategoria" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; cursor: pointer;">
-            <option value="" style="color: black;">👤 Pessoal (Sem Time)</option>
-        </select>
-        
-        <div style="position: relative; overflow: hidden; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Escolher Logo">
-            <span style="font-size: 1.2rem;">🖼️</span>
-            <input type="file" id="logoCatInput" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
-        </div>
-        <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
-      </div>
-      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-      <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
-      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-    </div>
-    
-    <div id="abaMarcadores" class="tabcontent" style="display: none;">
-      <label style="display:block; margin-bottom:5px; font-weight:bold;">Marcador:</label>
-      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-        <input type="text" id="nomeNovoMarcador" placeholder="Ex: Infraestrutura Elétrica" style="flex: 1; margin: 0;">
-        <button onclick="adicionarMarcador()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
-      </div>
-      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-      <label style="display:block; margin-bottom:5px; font-weight:bold;">Marcadores Ativos:</label>
-      <ul id="listaMarcadoresModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-    </div>
-
-    <div id="abaTimes" class="tabcontent" style="display: none;">
-      <label style="display:block; margin-bottom:5px; font-weight:bold;">Criar Novo Time:</label>
-      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-        <input type="text" id="nomeNovoTime" placeholder="Ex: Equipe de Manutenção" style="flex: 1; margin: 0;">
-        <button onclick="criarTime()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">Criar</button>
-      </div>
-      
-      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-      
-      <label style="display:block; margin-bottom:5px; font-weight:bold; color: #3b82f6;">👑 Times que gerencio:</label>
-      <ul id="listaTimesModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-
-      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-
-      <label style="display:block; margin-bottom:5px; font-weight:bold; color: #10b981;">🤝 Times que pertenço:</label>
-      <ul id="listaTimesPertencoModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-    </div>
-
-  </div>
-</div>
-
-<div id="modalCronograma" class="modal" style="display: none; align-items: flex-start; padding-top: 40px; overflow-y: auto;">
-    <div class="modal-content" style="width: 95%; max-width: 600px; padding: 25px;">
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
-<h2 style="margin: 0; color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-        <img src="LinhaDoTempo.png" style="width: 22px; height: 22px; filter: brightness(0) invert(1);"> LINHA DO TEMPO 
-        <span id="cronoBadge" style="font-size: 0.7rem; background: #3b82f6; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;"></span>
-    </h2>
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <button onclick="gerarPDFCronograma(event)" id="btnPdfCrono" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">📄 PDF</button>
-                <span onclick="document.getElementById('modalCronograma').style.display='none'" style="font-size: 28px; cursor: pointer; color: #94a3b8; line-height: 1;">&times;</span>
-            </div>
-        </div>
-
-        <div id="cronoContainer"></div>
-    </div>
-</div>
-
-<div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
-    <img id="imgGrande" src="">
-</div>
-
-<script type="module" src="app.js?v=2"></script>
-
-</body>
+    <div class="modal-content">
+        <h2 style="text-align:center;">Agenda v4.3.6</h2> <input type="email" id="emailLogin" placeholder="Seu e-mail">
+        <input type="password" id="senhaLogin" placeholder="Sua senha">
+        <button onclick="fazerLogin()" style="background:#007bff; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">Entrar</button>
+        <button onclick="criarConta()" style="background:none; color:#007bff; border:none; width:100%; margin-top:10px; cursor:pointer;">Criar nova conta</button>
+    </div>
+</div>
+
+
+
+<div class="container">
+
+    <div class="timeline-header">
+
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+
+        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
+
+        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5;">⚙️</button>
+
+    </div>
+
+
+
+    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
+
+
+
+    <div style="display: flex; align-items: center; gap: 10px; margin: 0 5px 20px 5px; padding: 12px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+
+        <div style="flex: 1; display: flex; align-items: center; gap: 5px;">
+
+            <span style="font-weight: 800; font-size: 0.65rem; color: #64748b; text-transform: uppercase;">Tag:</span>
+
+            <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; padding: 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.8); color: #1e293b; font-weight: 700; outline: none; cursor: pointer;">
+
+                <option value="">Todas</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
+
+        <span style="display: flex; align-items: center; gap: 10px;">
+
+            <div class="icone-quadrado"></div> ADD TAREFA
+
+        </span>
+
+        <span id="setaAdd" class="seta-secao">▼</span>
+
+    </div>
+
+    
+
+    <div id="secaoAdd" class="secao-card escondido">
+
+        <input type="text" id="descTask" placeholder="O que agendar hoje?">
+
+        
+
+        <div id="previewFotosNovas" class="container-fotos"></div>
+
+        
+
+        <div class="grid-50">
+
+            <input type="time" id="horaTask">
+
+            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
+
+            <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
+
+        </div>
+
+
+
+        <div class="grid-50" style="margin-top: 15px; margin-bottom: 5px;">
+
+            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
+
+                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
+
+                <select id="tipoRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
+
+                    <option value="nenhuma">Sem recorrência</option>
+
+                    <option value="diario">Diário</option>
+
+                    <option value="2dias">A cada 2 dias</option>
+
+                    <option value="semanal">A cada 1 semana</option>
+
+                    <option value="mensal">A cada 1 mês</option>
+
+                </select>
+
+            </div>
+
+            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
+
+                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
+
+                <input type="date" id="dataFimRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
+
+            </div>
+
+        </div>
+
+        
+
+        <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
+
+            <button id="btnCancelarAdd" onclick="cancelarNovaTarefa()" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+
+                Cancelar
+
+            </button>
+
+            <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
+
+                Salvar
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="header-secao" onclick="toggleSecao('secaoArquivos', 'setaArq')">
+
+        <span style="display: flex; align-items: center; gap: 10px;">
+
+            <div class="icone-quadrado"></div> ARQUIVOS FIXOS
+
+        </span>
+
+        <span id="setaArq" class="seta-secao">▼</span>
+
+    </div>
+
+
+
+    <div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
+
+        <input type="text" id="nomeArquivoFixo" placeholder="Descrição do arquivo (ex: Manual Gás)" style="width: 100%; margin-bottom: 12px; box-sizing: border-box;">
+
+        
+
+        <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+
+            <div style="flex: 1; position: relative; overflow: hidden; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 12px 10px; text-align: center; cursor: pointer; transition: 0.3s;">
+
+                <span id="file-label" style="font-size: 0.85rem; color: #1e293b; font-weight: 700;">📁 Escolher Arquivo</span>
+
+                <input type="file" id="inputArquivoFixo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" onchange="document.getElementById('file-label').innerText = this.files[0] ? this.files[0].name : '📁 Escolher Arquivo'">
+
+            </div>
+
+            <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); white-space: nowrap;">
+
+                📤 Subir
+
+            </button>
+
+        </div>
+
+
+
+        <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px;"></div>
+
+    </div>
+
+
+
+    <div class="header-secao" onclick="toggleSecao('secaoFinanceiro', 'setaFin')">
+
+        <span style="display: flex; align-items: center; gap: 10px;">
+
+            <div class="icone-quadrado" style="background-color: #10b981;"></div> FINANCEIRO
+
+        </span>
+
+        <span id="setaFin" class="seta-secao">▼</span>
+
+    </div>
+
+
+
+    <div id="secaoFinanceiro" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
+
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; text-align: center;">
+
+            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #10b981;">
+
+                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">RECEITAS</div>
+
+                <div id="totalReceitas" style="color: #10b981; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+
+            </div>
+
+            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #ef4444;">
+
+                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">DESPESAS</div>
+
+                <div id="totalDespesas" style="color: #ef4444; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+
+            </div>
+
+            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #3b82f6;">
+
+                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">SALDO</div>
+
+                <div id="saldoTotal" style="color: #3b82f6; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+
+            </div>
+
+        </div>
+
+
+
+        <input type="text" id="descFinanceiro" placeholder="Descrição (ex: Compra de material)" style="width: 100%; box-sizing: border-box;">
+
+        
+
+        <div class="grid-50">
+
+            <input type="number" id="valorFinanceiro" placeholder="Valor (R$)" step="0.01" style="box-sizing: border-box;">
+
+            <select id="tipoFinanceiro" style="box-sizing: border-box;">
+
+                <option value="despesa">Despesa (-)</option>
+
+                <option value="receita">Receita (+)</option>
+
+            </select>
+
+        </div>
+
+        
+
+        <div class="grid-50">
+
+            <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: rgba(255,255,255,0.7); color: #334155; border: 1px dashed #94a3b8; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-sizing: border-box; width: 100%;">
+
+                📎 Anexar Recibo
+
+            </button>
+
+            <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '📎 ' + this.files[0].name : '📎 Anexar Recibo'">
+
+            
+
+            <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); box-sizing: border-box; width: 100%;">
+
+                Adicionar
+
+            </button>
+
+        </div>
+
+
+
+        <div id="listaFinanceiro" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;"></div>
+
+    </div>
+
+
+
+    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
+
+        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
+
+            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
+
+                <div class="icone-quadrado"></div> ATIVIDADES
+
+            </span>
+
+            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
+
+        </div>
+
+        
+
+        <div style="display: flex; gap: 8px;">
+
+            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+
+                📊 Gráfico
+
+            </button>
+
+            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+
+                📄 PDF
+
+            </button>
+
+        </div>
+
+    </div>
+
+    
+
+    <div id="listaTarefas">Carregando atividades...</div>
+
+</div> 
+
+
+
+<div id="modalConfiguracoes" class="modal" style="display: none;">
+
+  <div class="modal-content" style="position: relative;">
+
+    
+
+    <button onclick="document.getElementById('modalConfiguracoes').style.display='none'" style="position: absolute; top: 15px; right: 20px; background: transparent; border: none; font-size: 32px; cursor: pointer; color: #94a3b8; z-index: 9999; line-height: 1;">&times;</button>
+
+
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-right: 35px;">
+
+        <h2 style="margin: 0; font-size: 1.4rem;">Configurações</h2>
+
+        <button onclick="fazerLogout()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ff8080; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;" title="Sair">
+
+            🚪 <span style="font-size: 0.75rem; text-transform: uppercase;">Sair</span>
+
+        </button>
+
+    </div>
+
+    
+
+    <div class="category-tabs" style="margin-bottom: 20px; display: flex; gap: 8px; padding-bottom: 10px;">
+
+      <button class="category-tab active tablink" onclick="abrirAba(event, 'abaAlarme')" title="Alarmes" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔔</button>
+
+      <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')" title="Categorias" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">📂</button>
+
+      <button class="category-tab tablink" onclick="abrirAba(event, 'abaMarcadores')" title="Marcadores" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔖</button>
+
+      <button class="category-tab tablink" onclick="abrirAba(event, 'abaTimes')" title="Times" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">👥</button>
+
+    </div>
+
+
+
+    <div id="abaAlarme" class="tabcontent" style="display: block;">
+
+      <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
+
+      <select id="tempoAntecedencia" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+
+        <option value="0">Na hora exata (0 minutos)</option>
+
+        <option value="5">5 minutos antes</option>
+
+        <option value="10">10 minutos antes</option>
+
+        <option value="15">15 minutos antes</option>
+
+        <option value="30">30 minutos antes</option>
+
+        <option value="60">1 hora antes</option>
+
+      </select>
+
+      
+
+      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Notificação:</label>
+
+      <select id="tipoNotificacao" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+
+        <option value="normal">Push Normal (Some sozinha da tela)</option>
+
+        <option value="fixa">Push Fixo (Fica na tela até eu fechar)</option>
+
+      </select>
+
+
+
+      <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme:</label>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+
+        <select id="somAlarmeSelecionado" onchange="atualizarPreferenciasNuvem()" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+
+          <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Relógio Digital</option>
+
+          <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Bip Curto</option>
+
+          <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Corneta</option>
+
+        </select>
+
+        <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
+
+      </div>
+
+      <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
+
+    </div>
+
+
+
+    <div id="abaCategorias" class="tabcontent" style="display: none;">
+
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
+
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+
+        <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
+
+        <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1; margin: 0; min-width: 120px;">
+
+        
+
+        <select id="timeNovaCategoria" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; cursor: pointer;">
+
+            <option value="" style="color: black;">👤 Pessoal (Sem Time)</option>
+
+        </select>
+
+        
+
+        <div style="position: relative; overflow: hidden; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Escolher Logo">
+
+            <span style="font-size: 1.2rem;">🖼️</span>
+
+            <input type="file" id="logoCatInput" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+
+        </div>
+
+        <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
+
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
+
+      <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+
+    </div>
+
+    
+
+    <div id="abaMarcadores" class="tabcontent" style="display: none;">
+
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Marcador:</label>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+
+        <input type="text" id="nomeNovoMarcador" placeholder="Ex: Infraestrutura Elétrica" style="flex: 1; margin: 0;">
+
+        <button onclick="adicionarMarcador()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
+
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Marcadores Ativos:</label>
+
+      <ul id="listaMarcadoresModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+
+    </div>
+
+
+
+    <div id="abaTimes" class="tabcontent" style="display: none;">
+
+      <label style="display:block; margin-bottom:5px; font-weight:bold;">Criar Novo Time:</label>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+
+        <input type="text" id="nomeNovoTime" placeholder="Ex: Equipe de Manutenção" style="flex: 1; margin: 0;">
+
+        <button onclick="criarTime()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">Criar</button>
+
+      </div>
+
+      
+
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+
+      
+
+      <label style="display:block; margin-bottom:5px; font-weight:bold; color: #3b82f6;">👑 Times que gerencio:</label>
+
+      <ul id="listaTimesModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+
+
+
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+
+
+
+      <label style="display:block; margin-bottom:5px; font-weight:bold; color: #10b981;">🤝 Times que pertenço:</label>
+
+      <ul id="listaTimesPertencoModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+
+    </div>
+
+
+
+  </div>
+
+</div>
+
+
+
+<div id="modalCronograma" class="modal" style="display: none; align-items: flex-start; padding-top: 40px; overflow-y: auto;">
+
+    <div class="modal-content" style="width: 95%; max-width: 600px; padding: 25px;">
+
+        
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
+
+<h2 style="margin: 0; color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+
+        <img src="LinhaDoTempo.png" style="width: 22px; height: 22px; filter: brightness(0) invert(1);"> LINHA DO TEMPO 
+
+        <span id="cronoBadge" style="font-size: 0.7rem; background: #3b82f6; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;"></span>
+
+    </h2>
+
+            <div style="display: flex; gap: 12px; align-items: center;">
+
+                <button onclick="gerarPDFCronograma(event)" id="btnPdfCrono" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">📄 PDF</button>
+
+                <span onclick="document.getElementById('modalCronograma').style.display='none'" style="font-size: 28px; cursor: pointer; color: #94a3b8; line-height: 1;">&times;</span>
+
+            </div>
+
+        </div>
+
+
+
+        <div id="cronoContainer"></div>
+
+    </div>
+
+</div>
+
+
+
+<div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
+
+    <img id="imgGrande" src="">
+
+</div>
+
+
+
+<script type="module" src="app.js?v=2"></script>
+
+
+
+</body>
+
 </html>
