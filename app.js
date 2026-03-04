@@ -8405,8 +8405,16 @@ const firebaseConfig = {
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
     });
+// --- LOGIN (VERSÃO LIMPA) ---
+window.fazerLogin = () => {
+    const e = document.getElementById('emailLogin').value;
+    const s = document.getElementById('senhaLogin').value;
+    if(!e || !s) return alert("Preencha tudo!");
+    signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro ao entrar: " + err.code));
+};
 
-    window.carregarCategorias = async () => {
+// --- CATEGORIAS (VERSÃO LIMPA SEM REPETIÇÕES) ---
+window.carregarCategorias = async () => {
     const c = document.getElementById('listaCategorias');
     if (!window.usuarioLogado || !c) return;
 
@@ -8456,157 +8464,8 @@ const firebaseConfig = {
         console.error("Erro categorias:", e);
         c.innerHTML = "<span style='color: #ef4444;'>Erro ao carregar categorias.</span>";
     }
-}; 
-            color: ${taGeralAtiva ? "white" : "#1e293b"};" 
-            onclick="selecionarCat('Geral', '#334155')">Geral</div>`;
-
-        categoriasUnicas.forEach((cat, id) => {
-            window.coresCategorias[cat.nome] = cat.cor;
-            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
-            
-            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" 
-                style="background-color: ${taAtiva ? cat.cor : "rgba(255,255,255,0.2)"}; 
-                color: ${taAtiva ? "white" : "#1e293b"};" 
-                onclick="selecionarCat('${cat.nome}', '${cat.cor}')">
-                ${cat.timeId ? "👥 " : ""}${cat.nome}
-            </div>`;
-        });
-
-        c.innerHTML = htmlTabs;
-        await carregarTarefas();
-        carregarArquivosFixos();
-        carregarFinanceiro();
-
-    } catch (e) {
-        console.error("Erro nas categorias:", e);
-        c.innerHTML = "<span style='color: #ef4444; font-size: 0.8rem;'>Erro ao carregar categorias.</span>";
-    }
 };
-
-// --- LOGIN (CORREÇÃO DA FUNÇÃO CIRCULAR) ---
-window.fazerLogin = () => {
-    const e = document.getElementById('emailLogin').value;
-    const s = document.getElementById('senhaLogin').value;
-    if(!e || !s) return alert("Preencha tudo!");
-    signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro ao entrar: " + err.code));
-}; color: ${taGeralAtiva ? "white" : "#1e293b"};" 
-
-            onclick="selecionarCat('Geral', '#334155')">Geral</div>`;
-
-
-
-        categoriasUnicas.forEach((cat, id) => {
-
-            window.coresCategorias[cat.nome] = cat.cor;
-
-            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
-
-            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
-
-
-
-            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
-
-            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" 
-
-                style="background-color: ${taAtiva ? cat.cor : "rgba(255,255,255,0.2)"}; color: ${taAtiva ? "white" : "#1e293b"};" 
-
-                onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${cat.timeId ? "👥 " : ""}${cat.nome}</div>`;
-
-        });
-
-
-
-        c.innerHTML = htmlTabs;
-
-        await carregarTarefas();
-
-        carregarArquivosFixos();
-
-        carregarFinanceiro();
-
-
-
-    } catch (e) {
-
-        console.error("Erro detalhado nas categorias:", e); // Mostra o erro real no F12
-
-        c.innerHTML = "<span style='color: #ef4444; font-size: 0.8rem;'>Erro técnico ao carregar. Verifique o console.</span>";
-
-    }
-
-}; color: ${taGeralAtiva ? "white" : "#1e293b"};" 
-
-            onclick="selecionarCat('Geral', '#334155')">Geral</div>`;
-
-
-
-        categoriasUnicas.forEach((cat, id) => {
-
-            window.coresCategorias[cat.nome] = cat.cor;
-
-            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
-
-            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
-
-
-
-            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
-
-            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" 
-
-                style="background-color: ${taAtiva ? cat.cor : "rgba(255,255,255,0.2)"}; color: ${taAtiva ? "white" : "#1e293b"};" 
-
-                onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${cat.timeId ? "👥 " : ""}${cat.nome}</div>`;
-
-        });
-
-
-
-        c.innerHTML = htmlTabs;
-
-        await carregarTarefas();
-
-        carregarArquivosFixos();
-
-        carregarFinanceiro();
-
-
-
-    } catch (e) {
-
-        console.error("Erro detalhado nas categorias:", e); // Mostra o erro real no F12
-
-        c.innerHTML = "<span style='color: #ef4444; font-size: 0.8rem;'>Erro técnico ao carregar. Verifique o console.</span>";
-
-    }
-
-}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8')">Geral</div>`;
-
-            categoriasUnicas.forEach((cat, id) => {
-                window.coresCategorias[cat.nome] = cat.cor;
-                if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
-                if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
-
-                const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
-                const corFundo = taAtiva ? cat.cor : "rgba(255,255,255,0.05)";
-                const corTexto = taAtiva ? "white" : "#cbd5e1";
-                const iconeTime = cat.timeId ? "👥 " : "";
-
-                htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${iconeTime}${cat.nome}</div>`;
-            });
-
-            c.innerHTML = htmlTabs;
-            
-            await carregarTarefas();
-            carregarArquivosFixos();
-            carregarFinanceiro();
-        } catch (e) {
-            console.error("Erro nas categorias:", e);
-            c.innerHTML = "<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>Erro ao carregar categorias.</span>";
-        }
-    };
-
+    
     window.selecionarCat = (nome, cor) => {
         if (nome === "Geral") {
             categoriasAtivas = ["Geral"]; 
