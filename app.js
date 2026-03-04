@@ -117,7 +117,7 @@ window.atualizarPreferenciasNuvem = async () => {
 
 window.solicitarPermissaoNotificacao = () => {
     Notification.requestPermission().then((permission) => {
-        if (permission === 'granted' && window.usuarioLogado) {
+        if (permission == 'granted' && window.usuarioLogado) {
             const btn = document.getElementById('btnConectarNuvem');
             const textoOriginal = btn.innerHTML;
             btn.innerHTML = "⏳ Conectando..."; 
@@ -147,7 +147,7 @@ window.solicitarPermissaoNotificacao = () => {
 window.testarAlarme = () => {
     const somUrl = document.getElementById('somAlarmeSelecionado').value;
     new Audio(somUrl).play().catch(e => alert("Erro no som."));
-    if(Notification.permission === 'granted') new Notification("Teste de Alarme", { body: "Notificação funcionando!" });
+    if(Notification.permission == 'granted') new Notification("Teste de Alarme", { body: "Notificação funcionando!" });
 };
 
 setInterval(() => {
@@ -159,9 +159,9 @@ setInterval(() => {
     const somUrl = document.getElementById('somAlarmeSelecionado').value;
 
     window.tarefasMonitoramento.forEach(t => {
-        if (t.dataString === dataHojeStr && t.hora && !t.alertaDisparado) {
+        if (t.dataString == dataHojeStr && t.hora && !t.alertaDisparado) {
             const [h, m] = t.hora.split(':').map(Number);
-            if (((h * 60) + m) - antecedencia === horaAtualMinutos) {
+            if (((h * 60) + m) - antecedencia == horaAtualMinutos) {
                 new Notification("Lembrete da Agenda", { body: `Sua tarefa "${t.descricao}" começa às ${t.hora}!`, requireInteraction: true });
                 new Audio(somUrl).play().catch(console.error);
             }
@@ -261,13 +261,13 @@ window.carregarCategorias = async () => {
 };
 
 window.selecionarCat = (nome, cor) => {
-    if (nome === "Geral") {
+    if (nome == "Geral") {
         categoriasAtivas = ["Geral"]; 
     } else {
         categoriasAtivas = categoriasAtivas.filter(c => c !== "Geral"); 
         if (categoriasAtivas.includes(nome)) {
             categoriasAtivas = categoriasAtivas.filter(c => c !== nome); 
-            if (categoriasAtivas.length === 0) categoriasAtivas = ["Geral"]; 
+            if (categoriasAtivas.length == 0) categoriasAtivas = ["Geral"]; 
         } else {
             categoriasAtivas.push(nome); 
         }
@@ -384,7 +384,7 @@ window.carregarCategoriasModal = async () => {
                 </li>`;
         });
 
-        if(categoriasUnicas.size === 0) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma encontrada.</p>";
+        if(categoriasUnicas.size == 0) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma encontrada.</p>";
     } catch (e) { 
         lista.innerHTML = "<p style='text-align:center; color:#ff4d4d;'>Erro ao carregar.</p>"; 
     }
@@ -498,7 +498,7 @@ window.carregarTimes = async () => {
             const t = d.data();
             let htmlMembros = t.membros.map(m => `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; padding-top:6px; border-top: 1px solid rgba(255,255,255,0.05);">
-                    <span style="font-size: 0.85rem; word-break: break-all;">${m.email} ${m.email === window.usuarioLogado.email ? '<b style="color:#10b981;">(Você)</b>' : ''}</span> 
+                    <span style="font-size: 0.85rem; word-break: break-all;">${m.email} ${m.email == window.usuarioLogado.email ? '<b style="color:#10b981;">(Você)</b>' : ''}</span> 
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span style="font-weight:bold; color:#f59e0b; font-size: 0.8rem;">Nível ${m.nivel}</span>
                         ${m.email !== window.usuarioLogado.email ? `<button onclick="removerMembro('${d.id}', '${m.email}')" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; cursor:pointer; font-size:0.9rem; padding: 4px 8px; border-radius: 6px;" title="Remover membro">✕</button>` : ''}
@@ -541,7 +541,7 @@ window.carregarTimes = async () => {
             const t = d.data();
             if (t.criadorUid !== window.usuarioLogado.uid) {
                 contPertenco++;
-                const meuPerfil = t.membros.find(m => m.email === meuEmailFormatado);
+                const meuPerfil = t.membros.find(m => m.email == meuEmailFormatado);
                 const meuNivel = meuPerfil ? meuPerfil.nivel : "?";
 
                 listaPertenco.innerHTML += `
@@ -551,12 +551,12 @@ window.carregarTimes = async () => {
                             <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem;">Meu Nível: ${meuNivel}</span>
                         </div>
                         <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 5px;">
-                            Administrador: ${t.membros.find(m => m.nivel === 'A')?.email || 'Desconhecido'}
+                            Administrador: ${t.membros.find(m => m.nivel == 'A')?.email || 'Desconhecido'}
                         </div>
                     </li>`;
             }
         });
-        if(contPertenco === 0) listaPertenco.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size: 0.85rem;'>Você não foi convidado para outros times.</p>";
+        if(contPertenco == 0) listaPertenco.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size: 0.85rem;'>Você não foi convidado para outros times.</p>";
         
     } catch (e) {
         listaGerencio.innerHTML = "<p style='color:#ef4444; text-align:center;'>Erro ao carregar.</p>";
@@ -577,7 +577,7 @@ window.adicionarMembro = async (evento, timeId) => {
     const nivelNovo = nivelSelect.value;
 
     if (!emailNovo) return alert("Digite o e-mail do membro!");
-    if (emailNovo === window.usuarioLogado.email) return alert("Você já é o dono do time!");
+    if (emailNovo == window.usuarioLogado.email) return alert("Você já é o dono do time!");
 
     const btn = evento.currentTarget;
     const textoOriginal = btn.innerHTML;
@@ -666,9 +666,9 @@ window.setarData = (tipo, el) => {
     const hoje = new Date(); 
     tipoFiltroTempo = 'dia'; 
     
-    if (tipo === 'hoje') input.value = hoje.toLocaleDateString('en-CA');
-    else if (tipo === 'amanha') { const am = new Date(); am.setDate(hoje.getDate() + 1); input.value = am.toLocaleDateString('en-CA'); }
-    else if (tipo === 'semana') { 
+    if (tipo == 'hoje') input.value = hoje.toLocaleDateString('en-CA');
+    else if (tipo == 'amanha') { const am = new Date(); am.setDate(hoje.getDate() + 1); input.value = am.toLocaleDateString('en-CA'); }
+    else if (tipo == 'semana') { 
         tipoFiltroTempo = 'semana'; 
         const p = new Date(hoje); p.setDate(hoje.getDate() - hoje.getDay()); 
         window.arrayDiasSemana = [];
@@ -678,9 +678,9 @@ window.setarData = (tipo, el) => {
         }
         input.value = window.arrayDiasSemana[0]; 
     }
-    else if (tipo === 'custom') tipoFiltroTempo = 'dia';
+    else if (tipo == 'custom') tipoFiltroTempo = 'dia';
     
-    if(el) { document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); if(el.tagName === 'BUTTON') el.classList.add('ativo'); }
+    if(el) { document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo')); if(el.tagName == 'BUTTON') el.classList.add('ativo'); }
     carregarTarefas();
 };
 
@@ -712,7 +712,7 @@ window.carregarTarefas = async () => {
 
 
 
-        if (tipoFiltroTempo === 'semana') {
+        if (tipoFiltroTempo == 'semana') {
 
             const qPessoal = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid), where("dataString", "in", window.arrayDiasSemana));
 
@@ -730,7 +730,7 @@ window.carregarTarefas = async () => {
 
                 snapTime.forEach(d => {
 
-                    if (!tarefas.some(t => t.id === d.id)) tarefas.push({ id: d.id, ...d.data() });
+                    if (!tarefas.some(t => t.id == d.id)) tarefas.push({ id: d.id, ...d.data() });
 
                 });
 
@@ -754,7 +754,7 @@ window.carregarTarefas = async () => {
 
                 snapTime.forEach(d => {
 
-                    if (!tarefas.some(t => t.id === d.id)) tarefas.push({ id: d.id, ...d.data() });
+                    if (!tarefas.some(t => t.id == d.id)) tarefas.push({ id: d.id, ...d.data() });
 
                 });
 
@@ -770,7 +770,7 @@ window.carregarTarefas = async () => {
 
         tarefas.sort((a, b) => { 
 
-            if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); 
+            if (a.dataString == b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); 
 
             return a.dataString.localeCompare(b.dataString); 
 
@@ -790,11 +790,11 @@ window.carregarTarefas = async () => {
 
         
 
-        if (tagFiltroAtiva !== "") tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
+        if (tagFiltroAtiva !== "") tarefas = tarefas.filter(t => t.marcador == tagFiltroAtiva);
 
         if (typeof timeFiltroAtivo !== 'undefined' && timeFiltroAtivo !== "") {
 
-            tarefas = tarefas.filter(t => window.timesDasCategorias[t.categoria] === timeFiltroAtivo);
+            tarefas = tarefas.filter(t => window.timesDasCategorias[t.categoria] == timeFiltroAtivo);
 
         }
 
@@ -804,7 +804,7 @@ window.carregarTarefas = async () => {
 
         tarefas.forEach(t => {
 
-            const isEditando = idEmEdicao === t.id; 
+            const isEditando = idEmEdicao == t.id; 
 
             const listaFotos = t.fotos || [];
 
@@ -908,7 +908,7 @@ window.carregarTarefas = async () => {
 
         });
 
-        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
+        if(tarefas.length == 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
 
     } catch (error) { 
 
@@ -950,13 +950,13 @@ window.carregarTarefas = async () => {
                 </div>`;
             if(isEditando) renderizarFotosEdicao();
         });
-        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
+        if(tarefas.length == 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
     } catch (error) { 
         lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#ef4444;'>Erro ao carregar tarefas.</p>";
     }
 };
 
-window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao === id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
+window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao == id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
 window.removerFotoTemporaria = (idx) => { fotosTemporarias.splice(idx, 1); renderizarFotosEdicao(); };
 window.renderizarFotosEdicao = () => {
     const container = document.getElementById(`container-fotos-edit-${idEmEdicao}`);
@@ -1039,10 +1039,10 @@ window.salvarNovaTarefa = async () => {
             let dataFimObj = new Date(dataFimInput + 'T12:00:00');
             while (dataAtual <= dataFimObj) {
                 datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
-                if (tipoRec === 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
-                else if (tipoRec === '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
-                else if (tipoRec === 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
-                else if (tipoRec === 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
+                if (tipoRec == 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
+                else if (tipoRec == '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
+                else if (tipoRec == 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
+                else if (tipoRec == 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
             }
         }
 
@@ -1132,7 +1132,7 @@ window.carregarArquivosFixos = async () => {
                 const qTime = query(collection(db, "arquivos_fixos"), where("timeId", "==", idTime));
                 const snapTime = await getDocs(qTime);
                 snapTime.forEach(d => {
-                    if (!arquivos.some(a => a.id === d.id)) arquivos.push({ id: d.id, ...d.data() });
+                    if (!arquivos.some(a => a.id == d.id)) arquivos.push({ id: d.id, ...d.data() });
                 });
             }
         }
@@ -1143,7 +1143,7 @@ window.carregarArquivosFixos = async () => {
             arquivos = arquivos.filter(a => categoriasAtivas.includes(a.categoria));
         }
 
-        if (tagFiltroAtiva !== "") arquivos = arquivos.filter(a => a.marcador === tagFiltroAtiva);
+        if (tagFiltroAtiva !== "") arquivos = arquivos.filter(a => a.marcador == tagFiltroAtiva);
 
         lista.innerHTML = "";
         arquivos.forEach(a => {
@@ -1156,7 +1156,7 @@ window.carregarArquivosFixos = async () => {
                 </div>
             </div>`;
         });
-        if(arquivos.length === 0) lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhum arquivo nestas categorias.</p>";
+        if(arquivos.length == 0) lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhum arquivo nestas categorias.</p>";
     } catch(e) { lista.innerHTML = "<p style='text-align:center; color:#ef4444; font-size: 0.85rem;'>Erro ao carregar.</p>"; }
 };
 window.excluirArquivoFixo = async (id) => { if(confirm("Apagar arquivo?")) { await deleteDoc(doc(db, "arquivos_fixos", id)); carregarArquivosFixos(); } };
@@ -1251,7 +1251,7 @@ window.carregarFinanceiro = async () => {
                 const qTime = query(collection(db, "financeiro"), where("timeId", "==", idTime));
                 const snapTime = await getDocs(qTime);
                 snapTime.forEach(d => {
-                    if (!transacoes.some(t => t.id === d.id)) transacoes.push({ id: d.id, ...d.data() });
+                    if (!transacoes.some(t => t.id == d.id)) transacoes.push({ id: d.id, ...d.data() });
                 });
             }
         }
@@ -1263,7 +1263,7 @@ window.carregarFinanceiro = async () => {
         }
 
         if (tagFiltroAtiva !== "") {
-            transacoes = transacoes.filter(t => t.marcador === tagFiltroAtiva);
+            transacoes = transacoes.filter(t => t.marcador == tagFiltroAtiva);
         }
 
         transacoes.sort((a, b) => b.dataStr.localeCompare(a.dataStr));
@@ -1273,10 +1273,10 @@ window.carregarFinanceiro = async () => {
 
         lista.innerHTML = "";
         transacoes.forEach(t => {
-            if (t.tipo === 'receita') somaReceitas += t.valor;
+            if (t.tipo == 'receita') somaReceitas += t.valor;
             else somaDespesas += t.valor;
 
-            const corValor = t.tipo === 'receita' ? '#10b981' : '#ef4444';
+            const corValor = t.tipo == 'receita' ? '#10b981' : '#ef4444';
             const dataFormatada = t.dataStr.split('-').reverse().join('/');
             
             const btnComprovante = t.comprovanteUrl ? `<a href="${t.comprovanteUrl}" target="_blank" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 0.65rem; font-weight: bold; margin-left: 5px;">📄 RECIBO</a>` : '';
@@ -1294,7 +1294,7 @@ window.carregarFinanceiro = async () => {
             </div>`;
         });
 
-        if (transacoes.length === 0) {
+        if (transacoes.length == 0) {
             lista.innerHTML = "<p style='text-align:center; font-size:0.8rem; color:#888;'>Nenhuma movimentação nesta categoria.</p>";
         }
 
@@ -1346,9 +1346,9 @@ window.abrirCronogramaVisual = async (evento) => {
     badge.innerText = categoriaDoGrafico;
 
     try {
-        let tarefas = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoGrafico);
+        let tarefas = window.tarefasMonitoramento.filter(t => t.categoria == categoriaDoGrafico);
         
-        if (!tarefas || tarefas.length === 0) { 
+        if (!tarefas || tarefas.length == 0) { 
             container.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma atividade na tela para gerar o gráfico.</p>"; 
             return; 
         }
@@ -1386,8 +1386,8 @@ window.abrirCronogramaVisual = async (evento) => {
             const diasDeslocamento = Math.round((dMin - dateMinGlobal) / (1000 * 60 * 60 * 24));
             const duracaoDias = Math.round((dMax - dMin) / (1000 * 60 * 60 * 24)) + 1;
 
-            const percLeft = totalDiasGlobais === 1 ? 0 : (diasDeslocamento / totalDiasGlobais) * 100;
-            const percWidth = totalDiasGlobais === 1 ? 100 : (duracaoDias / totalDiasGlobais) * 100;
+            const percLeft = totalDiasGlobais == 1 ? 0 : (diasDeslocamento / totalDiasGlobais) * 100;
+            const percWidth = totalDiasGlobais == 1 ? 100 : (duracaoDias / totalDiasGlobais) * 100;
 
             const fMin = `${String(dMin.getDate()).padStart(2,'0')}/${String(dMin.getMonth()+1).padStart(2,'0')}`;
             const fMax = `${String(dMax.getDate()).padStart(2,'0')}/${String(dMax.getMonth()+1).padStart(2,'0')}`;
@@ -1421,19 +1421,19 @@ window.gerarRelatorioPDF = async (evento) => {
     
     if (categoriasAtivas.length > 1) return alert("📄 Por favor, deixe apenas UMA categoria selecionada para gerar o Relatório PDF.");
     if (categoriasAtivas.includes("Geral")) return alert("📄 Por favor, selecione uma categoria de projeto específica (desmarque a Geral) para gerar o PDF.");
-    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) return alert("Não há atividades na tela para gerar o PDF.");
+    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length == 0) return alert("Não há atividades na tela para gerar o PDF.");
 
     const categoriaDoPDF = categoriasAtivas[0];
-    let tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
+    let tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria == categoriaDoPDF);
     
-    if (tarefasDoPDF.length === 0) return alert("Não há atividades nesta categoria.");
+    if (tarefasDoPDF.length == 0) return alert("Não há atividades nesta categoria.");
 
     const btn = evento.currentTarget;
     const textoOriginal = btn.innerHTML;
     btn.innerHTML = "⏳ Gerando..."; btn.disabled = true;
 
     let dataFiltroTexto = "";
-    if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
+    if (tipoFiltroTempo == 'semana' && window.arrayDiasSemana) {
         const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
         const fim = window.arrayDiasSemana[6].split('-').reverse().join('/');
         dataFiltroTexto = `${inicio} a ${fim}`;
@@ -1528,8 +1528,8 @@ window.gerarRelatorioPDF = async (evento) => {
                 if (temFoto) {
                     const qtd = Math.min(t.fotos.length, 4); 
                     let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 280px; margin-top: 15px;';
-                    if (qtd === 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
-                    else if (qtd === 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
+                    if (qtd == 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
+                    else if (qtd == 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
                     else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; 
 
                     fotosHtml += `<div style="${gridStyles}">`;
