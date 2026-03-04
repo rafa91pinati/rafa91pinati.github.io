@@ -1,52 +1,34 @@
-<!DOCTYPE html>
-
-<html lang="pt-BR">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <title>Minha Agenda Inteligente - v4.3.6</title>
-
-    
-
-    <link rel="manifest" href="manifest.json">
-
-    <link rel="stylesheet" href="style.css">
-
-    
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-</head>
-
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minha Agenda Inteligente - v4.3.6</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
 <body>
-    <div id="telaLogin" class="modal">
-        <div class="modal-content">
-            <h2 style="text-align:center;">Agenda v4.3.6</h2>
-            <input type="email" id="emailLogin" placeholder="Seu e-mail">
-            <input type="password" id="senhaLogin" placeholder="Sua senha">
-            <button onclick="fazerLogin()" style="background:#007bff; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px;">Entrar</button>
-            <button onclick="criarConta()" style="background:none; color:#007bff; border:none; width:100%; margin-top:10px;">Criar nova conta</button>
-        </div>
+<div id="telaLogin" class="modal">
+    <div class="modal-content">
+        <h2 style="text-align:center;">Agenda v4.3.6</h2>
+        <input type="email" id="emailLogin" placeholder="Seu e-mail">
+        <input type="password" id="senhaLogin" placeholder="Sua senha">
+        <button onclick="fazerLogin()" style="background:#007bff; color:white; border:none; padding:15px; width:100%; border-radius:8px; font-weight:bold; margin-top:10px;">Entrar</button>
+        <button onclick="criarConta()" style="background:none; color:#007bff; border:none; width:100%; margin-top:10px;">Criar nova conta</button>
     </div>
+</div>
 
-    <div class="container">
-        <div class="timeline-header">
-            <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-            <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-            <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
-            <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-            <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; color:#ccd0d5;">⚙️</button>
-        </div>
-        <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
-        </div>
-
-    <script type="module" src="app.js?v=2"></script>
-</body>
-
-
-
+<div class="container">
+    <div class="timeline-header">
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
+        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; color:#ccd0d5;">⚙️</button>
+    </div>
+    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
+    </div>
+<script type="module" src="app.js?v=2"></script>
+</body>
 </html>
