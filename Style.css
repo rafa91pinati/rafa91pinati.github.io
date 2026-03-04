@@ -1,7 +1,7 @@
 <style>
 
 body { 
-    font-family: 'Segoe UI', system-ui, sans-serif; 
+font-family: 'Segoe UI', system-ui, sans-serif; 
     /* Ajustado para um cinza mais visível e elegante */
     background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%);
     background-size: 200% 200%; 
@@ -10,6 +10,12 @@ body {
     margin: 0; 
     color: #000000; 
     min-height: 100vh; 
+}
+
+@keyframes gradientBG { 
+    0% { background-position: 0% 50%; } 
+    50% { background-position: 100% 50%; } 
+    100% { background-position: 0% 50%; } 
 }
 
 @keyframes gradientBG { 
