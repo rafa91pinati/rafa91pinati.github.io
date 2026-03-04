@@ -917,12 +917,12 @@ window.carregarTarefas = async () => {
     }
 
 };
-                    <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${fotosStringSegura})">
-                        <div class="dia-badge">${dataObj.getDate()}<span>${diasSemana[dataObj.getDay()]}</span></div>
-                        <div class="tarefa-info" style="flex:1;">
-                            ${isEditando ? `
-                                <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
-                                <div id="container-fotos-edit-${t.id}" class="container-fotos"></div>
+                    <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${fotosStringSegura})">
+                        <div class="dia-badge">${dataObj.getDate()}<span>${diasSemana[dataObj.getDay()]}</span></div>
+                        <div class="tarefa-info" style="flex:1;">
+                            ${isEditando ? `
+                                <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
+                                <div id="container-fotos-edit-
                                 <div class="area-edicao" onclick="event.stopPropagation()">
                                     <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}">
                                     <div class="btn-grupo-edicao-final">
@@ -1006,64 +1006,122 @@ window.cancelarNovaTarefa = () => {
     document.getElementById('setaAdd').classList.remove('seta-expandida');
 };
 
-window.salvarNovaTarefa = async () => {
-    const desc = document.getElementById('descTask').value;
-    const marcadorAtivo = document.getElementById('filtroTagGlobal').value; 
-    const tipoRec = document.getElementById('tipoRecorrencia').value;
-    const dataFimInput = document.getElementById('dataFimRecorrencia').value;
-    const dataInicioTexto = document.getElementById('dataSeletor').value;
-
-    if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
-    if(tipoRec !== 'nenhuma' && !dataFimInput) return alert("Selecione a data final!");
-    if(tipoRec !== 'nenhuma' && dataFimInput < dataInicioTexto) return alert("Data final não pode ser antes do início!");
-    
-    const btn = document.getElementById('btnSalvar');
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Salvando..."; btn.disabled = true;
-
-    let categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
-    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
-
-    try {
-        let linksFotos = [];
-        for (let file of fotosNovasArray) {
-            const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
-            const snap = await uploadBytes(sRef, file);
-            linksFotos.push(await getDownloadURL(snap.ref));
-        }
-
-        let datasParaSalvar = [];
-        if (tipoRec == 'nenhuma') datasParaSalvar.push(dataInicioTexto);
-        else {
-            let dataAtual = new Date(dataInicioTexto + 'T12:00:00'); 
-            let dataFimObj = new Date(dataFimInput + 'T12:00:00');
-            while (dataAtual <= dataFimObj) {
-                datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
-                if (tipoRec == 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
-                else if (tipoRec == '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
-                else if (tipoRec == 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
-                else if (tipoRec == 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
-            }
-        }
-
-        const promessas = datasParaSalvar.map(dataStr => addDoc(collection(db, "tarefas"), { 
-            uid: window.usuarioLogado.uid, 
-            timeId: idDoTimeDaCategoria,
-            categoria: categoriaPrincipal,
-            descricao: desc, 
-            marcador: marcadorAtivo, 
-            hora: document.getElementById('horaTask').value, 
-            dataString: dataStr, 
-            fotos: linksFotos, 
-            criadoEm: new Date(), 
-            alarmeAtivo: true, 
-            alertaDisparado: false 
-        }));
-        
-        await Promise.all(promessas);
-        cancelarNovaTarefa(); carregarTarefas(); 
-        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
-    } catch (e) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+window.salvarNovaTarefa = async () => {
+
+    const desc = document.getElementById('descTask').value;
+
+    const marcadorAtivo = document.getElementById('filtroTagGlobal').value; 
+
+    const tipoRec = document.getElementById('tipoRecorrencia').value;
+
+    const dataFimInput = document.getElementById('dataFimRecorrencia').value;
+
+    const dataInicioTexto = document.getElementById('dataSeletor').value;
+
+
+
+    if(!desc || !window.usuarioLogado) return alert("Dê um nome e confira o login!");
+
+    if(tipoRec !== 'nenhuma' && !dataFimInput) return alert("Selecione a data final!");
+
+    if(tipoRec !== 'nenhuma' && dataFimInput < dataInicioTexto) return alert("Data final não pode ser antes do início!");
+
+    
+
+    const btn = document.getElementById('btnSalvar');
+
+    const textoOriginal = btn.innerHTML;
+
+    btn.innerHTML = "⏳ Salvando..."; btn.disabled = true;
+
+
+
+    let categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[categoriasAtivas.length - 1];
+
+    const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
+
+
+
+    try {
+
+        let linksFotos = [];
+
+        for (let file of fotosNovasArray) {
+
+            const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${Date.now()}-${file.name}`);
+
+            const snap = await uploadBytes(sRef, file);
+
+            linksFotos.push(await getDownloadURL(snap.ref));
+
+        }
+
+
+
+        let datasParaSalvar = [];
+
+        if (tipoRec == 'nenhuma') datasParaSalvar.push(dataInicioTexto);
+
+        else {
+
+            let dataAtual = new Date(dataInicioTexto + 'T12:00:00'); 
+
+            let dataFimObj = new Date(dataFimInput + 'T12:00:00');
+
+            while (dataAtual <= dataFimObj) {
+
+                datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
+
+                if (tipoRec == 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
+
+                else if (tipoRec == '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
+
+                else if (tipoRec == 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
+
+                else if (tipoRec == 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
+
+            }
+
+        }
+
+
+
+        const promessas = datasParaSalvar.map(dataStr => addDoc(collection(db, "tarefas"), { 
+
+            uid: window.usuarioLogado.uid, 
+
+            timeId: idDoTimeDaCategoria,
+
+            categoria: categoriaPrincipal,
+
+            descricao: desc, 
+
+            marcador: marcadorAtivo, 
+
+            hora: document.getElementById('horaTask').value, 
+
+            dataString: dataStr, 
+
+            fotos: linksFotos, 
+
+            criadoEm: new Date(), 
+
+            alarmeAtivo: true, 
+
+            alertaDisparado: false 
+
+        }));
+
+        
+
+        await Promise.all(promessas);
+
+        cancelarNovaTarefa(); carregarTarefas(); 
+
+        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
+
+    } catch (e) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+
 };
 
 window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
