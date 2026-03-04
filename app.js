@@ -262,6 +262,52 @@ const firebaseConfig = {
         console.error("Erro detalhado nas categorias:", e); // Mostra o erro real no F12
         c.innerHTML = "<span style='color: #ef4444; font-size: 0.8rem;'>Erro técnico ao carregar. Verifique o console.</span>";
     }
+}; color: ${taGeralAtiva ? "white" : "#1e293b"};" 
+
+            onclick="selecionarCat('Geral', '#334155')">Geral</div>`;
+
+
+
+        categoriasUnicas.forEach((cat, id) => {
+
+            window.coresCategorias[cat.nome] = cat.cor;
+
+            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
+
+            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
+
+
+
+            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
+
+            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" 
+
+                style="background-color: ${taAtiva ? cat.cor : "rgba(255,255,255,0.2)"}; color: ${taAtiva ? "white" : "#1e293b"};" 
+
+                onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${cat.timeId ? "👥 " : ""}${cat.nome}</div>`;
+
+        });
+
+
+
+        c.innerHTML = htmlTabs;
+
+        await carregarTarefas();
+
+        carregarArquivosFixos();
+
+        carregarFinanceiro();
+
+
+
+    } catch (e) {
+
+        console.error("Erro detalhado nas categorias:", e); // Mostra o erro real no F12
+
+        c.innerHTML = "<span style='color: #ef4444; font-size: 0.8rem;'>Erro técnico ao carregar. Verifique o console.</span>";
+
+    }
+
 }; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8')">Geral</div>`;
 
             categoriasUnicas.forEach((cat, id) => {
