@@ -1033,7 +1033,7 @@ window.salvarNovaTarefa = async () => {
         }
 
         let datasParaSalvar = [];
-        if (tipoRec === 'nenhuma') datasParaSalvar.push(dataInicioTexto);
+        if (tipoRec == 'nenhuma') datasParaSalvar.push(dataInicioTexto);
         else {
             let dataAtual = new Date(dataInicioTexto + 'T12:00:00'); 
             let dataFimObj = new Date(dataFimInput + 'T12:00:00');
