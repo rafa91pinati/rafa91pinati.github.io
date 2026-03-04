@@ -51,26 +51,25 @@ const firebaseConfig = {
     }
 
     // --- LOGIN E AUTH ---
-    onAuthStateChanged(auth, async (user) => {
-        const tela = document.getElementById('telaLogin');
-        if (user) {
-            window.usuarioLogado = user;
-            if(tela) tela.classList.add('escondido'); 
-            
-            await atualizarSeletorTimes(); 
-            await carregarCategorias(); 
-            
-            setarData('hoje', document.getElementById('btnHoje'));
-            carregarPreferenciasNuvem();
-            
-            setTimeout(() => { 
-                atualizarSeletorMarcadores(); 
-            }, 800);
-        } else {
-            window.usuarioLogado = null;
-            if(tela) tela.classList.remove('escondido');
-        }
-    });
+    onAuthStateChanged(auth, async (user) => {
+    const tela = document.getElementById('telaLogin');
+    if (user) {
+        window.usuarioLogado = user;
+        if(tela) tela.classList.add('escondido');
+        
+        // Pequeno atraso para o Firebase estabilizar os tokens
+        setTimeout(async () => {
+            await atualizarSeletorTimes(); 
+            await carregarCategorias(); 
+            setarData('hoje', document.getElementById('btnHoje'));
+            carregarPreferenciasNuvem();
+            atualizarSeletorMarcadores();
+        }, 500);
+    } else {
+        window.usuarioLogado = null;
+        if(tela) tela.classList.remove('escondido');
+    }
+});
 
     window.fazerLogin = () => {
 		window.fazerLogin = fazerLogin;
@@ -200,68 +199,130 @@ const firebaseConfig = {
         reader.onerror = error => reject(error);
     });
 
-    window.carregarCategorias = async () => {
-    const c = document.getElementById('listaCategorias');
-    if (!window.usuarioLogado || !c) return;
-
-    try {
-        const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
-        let meusTimesIds = [];
-
-        // Busca os times que eu pertenço
-        if (meuEmail) {
-            const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
-            const snapTimes = await getDocs(qTimes);
-            snapTimes.forEach(d => meusTimesIds.push(d.id));
-        }
-
-        // Busca categorias pessoais
-        const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
-        const snapCatPessoal = await getDocs(qCatPessoal);
-
-        let categoriasUnicas = new Map();
-        snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
-
-        // Busca categorias de times (se houver algum time)
-        if (meusTimesIds.length > 0) {
-            const lotes = [];
-            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
-            
-            for (let lote of lotes) {
-                const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
-                const snapCatTime = await getDocs(qCatTime);
-                snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
-            }
-        }
-
-        // Montagem do HTML das abas
-        let categoriasAtivasIniciais = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
-        const taGeralAtiva = categoriasAtivasIniciais.includes("Geral");
-        
-        let htmlTabs = `<div class="category-tab" data-nome="Geral" 
-            style="background-color: ${taGeralAtiva ? "#334155" : "rgba(255,255,255,0.2)"}; color: ${taGeralAtiva ? "white" : "#1e293b"};" 
-            onclick="selecionarCat('Geral', '#334155')">Geral</div>`;
-
-        categoriasUnicas.forEach((cat, id) => {
-            window.coresCategorias[cat.nome] = cat.cor;
-            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
-            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
-
-            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
-            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" 
-                style="background-color: ${taAtiva ? cat.cor : "rgba(255,255,255,0.2)"}; color: ${taAtiva ? "white" : "#1e293b"};" 
-                onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${cat.timeId ? "👥 " : ""}${cat.nome}</div>`;
-        });
-
-        c.innerHTML = htmlTabs;
-        await carregarTarefas();
-        carregarArquivosFixos();
-        carregarFinanceiro();
-
-    } catch (e) {
-        console.error("Erro detalhado nas categorias:", e); // Mostra o erro real no F12
-        c.innerHTML = "<span style='color: #ef4444; font-size: 0.8rem;'>Erro técnico ao carregar. Verifique o console.</span>";
-    }
+    window.carregarCategorias = async () => {
+
+    const c = document.getElementById('listaCategorias');
+
+    if (!window.usuarioLogado || !c) return;
+
+
+
+    try {
+
+        const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
+
+        let meusTimesIds = [];
+
+
+
+        // Busca os times que eu pertenço
+
+        if (meuEmail) {
+
+            const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
+
+            const snapTimes = await getDocs(qTimes);
+
+            snapTimes.forEach(d => meusTimesIds.push(d.id));
+
+        }
+
+
+
+        // Busca categorias pessoais
+
+        const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+
+        const snapCatPessoal = await getDocs(qCatPessoal);
+
+
+
+        let categoriasUnicas = new Map();
+
+        snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
+
+
+
+        // Busca categorias de times (se houver algum time)
+
+        if (meusTimesIds.length > 0) {
+
+            const lotes = [];
+
+            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
+
+            
+
+            for (let lote of lotes) {
+
+                const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
+
+                const snapCatTime = await getDocs(qCatTime);
+
+                snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
+
+            }
+
+        }
+
+
+
+        // Montagem do HTML das abas
+
+        let categoriasAtivasIniciais = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
+
+        const taGeralAtiva = categoriasAtivasIniciais.includes("Geral");
+
+        
+
+        let htmlTabs = `<div class="category-tab" data-nome="Geral" 
+
+            style="background-color: ${taGeralAtiva ? "#334155" : "rgba(255,255,255,0.2)"}; color: ${taGeralAtiva ? "white" : "#1e293b"};" 
+
+            onclick="selecionarCat('Geral', '#334155')">Geral</div>`;
+
+
+
+        categoriasUnicas.forEach((cat, id) => {
+
+            window.coresCategorias[cat.nome] = cat.cor;
+
+            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
+
+            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
+
+
+
+            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
+
+            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" 
+
+                style="background-color: ${taAtiva ? cat.cor : "rgba(255,255,255,0.2)"}; color: ${taAtiva ? "white" : "#1e293b"};" 
+
+                onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${cat.timeId ? "👥 " : ""}${cat.nome}</div>`;
+
+        });
+
+
+
+        c.innerHTML = htmlTabs;
+
+        await carregarTarefas();
+
+        carregarArquivosFixos();
+
+        carregarFinanceiro();
+
+
+
+    } catch (e) {
+
+        console.error("Erro detalhado nas categorias:", e); // Mostra o erro real no F12
+
+        c.innerHTML = "<span style='color: #ef4444; font-size: 0.8rem;'>Erro técnico ao carregar. Verifique o console.</span>";
+
+    }
+
 }; color: ${taGeralAtiva ? "white" : "#1e293b"};" 
 
             onclick="selecionarCat('Geral', '#334155')">Geral</div>`;
