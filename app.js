@@ -4,6 +4,44 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 
+ 
+async function sincronizarVersaoGithub() {
+    const usuario = 'rafa91pinati'; //
+    const repositorio = 'rafa91pinati.github.io'; //
+    const branch = 'main'; //
+    const url = `https://api.github.com/repos/${usuario}/${repositorio}/commits/${branch}`;
+
+    try {
+        const resposta = await fetch(url);
+        if (!resposta.ok) throw new Error('Erro na API');
+        
+        const dados = await resposta.json();
+        
+        // Converte a data do GitHub (UTC) para o horário local (Brasília)
+        const dataCommit = new Date(dados.commit.committer.date);
+        
+        const dataFormatada = dataCommit.toLocaleDateString('pt-BR');
+        const horaFormatada = dataCommit.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        const elStatus = document.getElementById('txt-ultima-atualizacao');
+        if (elStatus) {
+            // Exibe a versão fixa v4.3.6 com a data real do GitHub
+            elStatus.innerText = `v4.3.6 • PUBLICADO: ${dataFormatada} ÀS ${horaFormatada}`;
+        }
+        
+        // Atualiza o título da aba para conferência rápida
+        document.title = `Life Sync v4.3.6 (${horaFormatada})`; //
+        
+    } catch (erro) {
+        console.error('Falha ao buscar versão:', erro);
+        const elStatus = document.getElementById('txt-ultima-atualizacao');
+        if (elStatus) elStatus.innerText = 'v4.3.6 • VERSÃO LOCAL (OFFLINE)';
+    }
+}
+
+// Inicia a busca assim que o navegador carregar o DOM
+document.addEventListener('DOMContentLoaded', sincronizarVersaoGithub);
+
 const firebaseConfig = {
     apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
     authDomain: "agenda-4efa7.firebaseapp.com",
@@ -20,42 +58,6 @@ const messaging = getMessaging(app);
 const storage = getStorage(app);
 
 
-function registrarAtualizacao() {
-    const agora = new Date();
-    const horas = String(agora.getHours()).padStart(2, '0');
-    const minutos = String(agora.getMinutes()).padStart(2, '0');
-    
-    const statusEl = document.getElementById('status-atualizacao');
-    if (statusEl) {
-        statusEl.innerText = `Atualizado às ${horas}:${minutos}`;
-        
-        // Efeito visual opcional: dá uma piscadinha no texto ao atualizar
-        statusEl.style.color = '#10b981'; // Fica verde momentaneamente
-        setTimeout(() => {
-            statusEl.style.color = '#94a3b8'; // Volta para o cinza
-        }, 1000);
-    }
-}
-
-function marcarComoAtualizado() {
-    const agora = new Date();
-    const hora = String(agora.getHours()).padStart(2, '0');
-    const minuto = String(agora.getMinutes()).padStart(2, '0');
-    const horarioFinal = `${hora}:${minuto}`;
-
-    // 1. Atualiza o texto visual no topo do app
-    const elementoStatus = document.getElementById('txt-ultima-atualizacao');
-    if (elementoStatus) {
-        elementoStatus.innerText = `• ATUALIZADO ÀS ${horarioFinal}`;
-        
-        // Efeito de "piscar" verde para confirmar o salvamento
-        elementoStatus.style.color = '#10b981'; 
-        setTimeout(() => { elementoStatus.style.color = '#94a3b8'; }, 1000);
-    }
-
-    // 2. Atualiza o <title> lá no <head> dinamicamente
-    document.title = `Agenda v4.3.6 - ${horarioFinal}`;
-}
 
 // Chamar uma vez ao carregar a página
 window.onload = function() {
