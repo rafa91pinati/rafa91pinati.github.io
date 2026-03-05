@@ -1220,7 +1220,7 @@ window.salvarNovaTarefa = async () => {
         
 
         await Promise.all(promessas);
-        cancelarNovaTarefa(); carregarTarefas(); 
+        cancelarNovaTarefa();  		await carregarTarefas();	
         alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
     } catch (e) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
 };
