@@ -60,8 +60,8 @@ body {
     position: fixed !important;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: #f1f5f9 !important; /* Cor sólida para não vazar o app atrás */
-    z-index: 10000 !important; /* Acima de tudo */
+    background: #f1f5f9 !important; /* Cor sólida para ninguém ver o app atrás */
+    z-index: 10000 !important; /* Valor bem alto para ficar na frente de tudo */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -224,17 +224,28 @@ body {
 
 
 
-#listaCategorias button {
-
-    font-size: 0.75rem !important;
-
-    padding: 10px 16px !important;
-
-    border-radius: 18px !important;
-
-    font-weight: 800 !important;
-
-}
+#listaCategorias button {
+
+
+
+    font-size: 0.75rem !important;
+
+
+
+    padding: 10px 16px !important;
+
+
+
+    border-radius: 18px !important;
+
+
+
+    font-weight: 800 !important;
+
+
+
+}
+
 
 
 
