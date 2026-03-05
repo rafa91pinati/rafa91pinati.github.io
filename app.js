@@ -886,97 +886,188 @@ window.atualizarSeletorMarcadores = async () => {
 };
 
 
-window.carregarTimes = async () => {
-    const listaGerencio = document.getElementById('listaTimesModal');
-    const listaPertenco = document.getElementById('listaTimesPertencoModal');
-    if(!listaGerencio || !listaPertenco || !window.usuarioLogado) return;
-    
-    listaGerencio.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
-    listaPertenco.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
-
-    try {
-        const meuEmailFormatado = window.usuarioLogado.email.trim().toLowerCase();
-        
-        // CONSULTA ÚNICA: Busca todos os times que o e-mail do usuário participa de uma só vez
-        const qTodosOsTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmailFormatado));
-        const snapTodos = await getDocs(qTodosOsTimes);
-        
-        let htmlGerencio = "";
-        let htmlPertenco = "";
-        let contGerencio = 0;
-        let contPertenco = 0;
-
-        snapTodos.forEach(d => {
-            const t = d.data();
-            
-            // SEPARAÇÃO NO FRONTEND (Evita cobrar mais uma leitura do banco)
-            if (t.criadorUid === window.usuarioLogado.uid) {
-                // --- CARD: TIMES QUE GERENCIO ---
-                contGerencio++;
-                
-                let htmlMembros = (t.membros || []).map(m => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; padding-top:6px; border-top: 1px solid rgba(255,255,255,0.05);">
-                        <span style="font-size: 0.85rem; word-break: break-all;">${m.email} ${m.email == meuEmailFormatado ? '<b style="color:#10b981;">(Você)</b>' : ''}</span> 
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <span style="font-weight:bold; color:#f59e0b; font-size: 0.8rem;">Nível ${m.nivel}</span>
-                            ${m.email !== meuEmailFormatado ? `<button onclick="removerMembro('${d.id}', '${m.email}')" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; cursor:pointer; font-size:0.9rem; padding: 4px 8px; border-radius: 6px;" title="Remover membro">✕</button>` : ''}
-                        </div>
-                    </div>
-                `).join('');
-
-                htmlGerencio += `
-                    <li style="background: rgba(255,255,255,0.08); padding:15px; border-radius:12px; margin-bottom:12px; border: 1px solid rgba(37, 99, 235, 0.3); border-left: 4px solid #3b82f6;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                            <b style="color:#ffffff; font-size:1.1rem;">👑 ${t.nome}</b>
-                            <button onclick="excluirTime('${d.id}')" style="background:rgba(239, 68, 68, 0.3); border:none; color:#ff8080; cursor:pointer; border-radius:8px; padding:6px 10px; font-weight:bold;">🗑️ Excluir</button>
-                        </div>
-                        
-                        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                            <input type="email" id="email-membro-${d.id}" placeholder="E-mail do parceiro" style="flex:1; padding: 8px; border-radius: 8px; border: none; font-size: 0.85rem; margin:0; outline: none;">
-                            <select id="nivel-membro-${d.id}" style="padding: 8px; border-radius: 8px; border: none; font-size: 0.85rem; margin:0; outline: none; cursor: pointer;">
-                                <option value="B">Nível B (Editor)</option>
-                                <option value="C">Nível C (Visual)</option>
-                            </select>
-                            <button onclick="adicionarMembro(event, '${d.id}')" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+ Add</button>
-                        </div>
-
-                        <div style="font-size: 0.8rem; color: #cbd5e1; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-                            <div style="font-weight: bold; margin-bottom: 5px; color: #94a3b8; text-transform: uppercase; font-size: 0.7rem;">Membros da Equipe:</div>
-                            ${htmlMembros}
-                        </div>
-                    </li>`;
-                    
-            } else {
-                // --- CARD: TIMES QUE PERTENÇO (Convidado) ---
-                contPertenco++;
-                const meuPerfil = (t.membros || []).find(m => m.email == meuEmailFormatado);
-                const meuNivel = meuPerfil ? meuPerfil.nivel : "?";
-                
-                // Ajustado para buscar quem é o "Dono" do time de acordo com a nossa nova regra
-                const donoDoTime = (t.membros || []).find(m => m.nivel === 'Dono' || m.nivel === 'A');
-
-                htmlPertenco += `
-                    <li style="background: rgba(255,255,255,0.08); padding:15px; border-radius:12px; margin-bottom:12px; border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                            <b style="color:#ffffff; font-size:1.1rem;">🤝 ${t.nome}</b>
-                            <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem;">Meu Nível: ${meuNivel}</span>
-                        </div>
-                        <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 5px;">
-                            Administrador: ${donoDoTime ? donoDoTime.email : 'Desconhecido'}
-                        </div>
-                    </li>`;
-            }
-        });
-
-        // INSERE O HTML NA TELA APÓS MONTAR TUDO
-        listaGerencio.innerHTML = contGerencio > 0 ? htmlGerencio : "<p style='text-align:center; color:#94a3b8; font-size: 0.85rem;'>Você não gerencia nenhum time.</p>";
-        listaPertenco.innerHTML = contPertenco > 0 ? htmlPertenco : "<p style='text-align:center; color:#94a3b8; font-size: 0.85rem;'>Você não foi convidado para outros times.</p>";
-        
-    } catch (e) {
-        console.error("Erro ao carregar times:", e);
-        listaGerencio.innerHTML = "<p style='color:#ef4444; text-align:center;'>Erro ao carregar os times.</p>";
-        listaPertenco.innerHTML = "";
-    }
+window.carregarTimes = async () => {
+
+    const listaGerencio = document.getElementById('listaTimesModal');
+
+    const listaPertenco = document.getElementById('listaTimesPertencoModal');
+
+    if(!listaGerencio || !listaPertenco || !window.usuarioLogado) return;
+
+    
+
+    listaGerencio.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
+
+    listaPertenco.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
+
+
+
+    try {
+
+        const meuEmailFormatado = window.usuarioLogado.email.trim().toLowerCase();
+
+        
+
+        // CONSULTA ÚNICA: Busca todos os times que o e-mail do usuário participa de uma só vez
+
+        const qTodosOsTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmailFormatado));
+
+        const snapTodos = await getDocs(qTodosOsTimes);
+
+        
+
+        let htmlGerencio = "";
+
+        let htmlPertenco = "";
+
+        let contGerencio = 0;
+
+        let contPertenco = 0;
+
+
+
+        snapTodos.forEach(d => {
+
+            const t = d.data();
+
+            
+
+            // SEPARAÇÃO NO FRONTEND (Evita cobrar mais uma leitura do banco)
+
+            if (t.criadorUid === window.usuarioLogado.uid) {
+
+                // --- CARD: TIMES QUE GERENCIO ---
+
+                contGerencio++;
+
+                
+
+                let htmlMembros = (t.membros || []).map(m => `
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; padding-top:6px; border-top: 1px solid rgba(255,255,255,0.05);">
+
+                        <span style="font-size: 0.85rem; word-break: break-all;">${m.email} ${m.email == meuEmailFormatado ? '<b style="color:#10b981;">(Você)</b>' : ''}</span> 
+
+                        <div style="display:flex; align-items:center; gap:10px;">
+
+                            <span style="font-weight:bold; color:#f59e0b; font-size: 0.8rem;">Nível ${m.nivel}</span>
+
+                            ${m.email !== meuEmailFormatado ? `<button onclick="removerMembro('${d.id}', '${m.email}')" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; cursor:pointer; font-size:0.9rem; padding: 4px 8px; border-radius: 6px;" title="Remover membro">✕</button>` : ''}
+
+                        </div>
+
+                    </div>
+
+                `).join('');
+
+
+
+                htmlGerencio += `
+
+                    <li style="background: rgba(255,255,255,0.08); padding:15px; border-radius:12px; margin-bottom:12px; border: 1px solid rgba(37, 99, 235, 0.3); border-left: 4px solid #3b82f6;">
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+
+                            <b style="color:#ffffff; font-size:1.1rem;">👑 ${t.nome}</b>
+
+                            <button onclick="excluirTime('${d.id}')" style="background:rgba(239, 68, 68, 0.3); border:none; color:#ff8080; cursor:pointer; border-radius:8px; padding:6px 10px; font-weight:bold;">🗑️ Excluir</button>
+
+                        </div>
+
+                        
+
+                        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+
+                            <input type="email" id="email-membro-${d.id}" placeholder="E-mail do parceiro" style="flex:1; padding: 8px; border-radius: 8px; border: none; font-size: 0.85rem; margin:0; outline: none;">
+
+                            <select id="nivel-membro-${d.id}" style="padding: 8px; border-radius: 8px; border: none; font-size: 0.85rem; margin:0; outline: none; cursor: pointer;">
+
+                                <option value="B">Nível B (Editor)</option>
+
+                                <option value="C">Nível C (Visual)</option>
+
+                            </select>
+
+                            <button onclick="adicionarMembro(event, '${d.id}')" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+ Add</button>
+
+                        </div>
+
+
+
+                        <div style="font-size: 0.8rem; color: #cbd5e1; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+
+                            <div style="font-weight: bold; margin-bottom: 5px; color: #94a3b8; text-transform: uppercase; font-size: 0.7rem;">Membros da Equipe:</div>
+
+                            ${htmlMembros}
+
+                        </div>
+
+                    </li>`;
+
+                    
+
+            } else {
+
+                // --- CARD: TIMES QUE PERTENÇO (Convidado) ---
+
+                contPertenco++;
+
+                const meuPerfil = (t.membros || []).find(m => m.email == meuEmailFormatado);
+
+                const meuNivel = meuPerfil ? meuPerfil.nivel : "?";
+
+                
+
+                // Ajustado para buscar quem é o "Dono" do time de acordo com a nossa nova regra
+
+                const donoDoTime = (t.membros || []).find(m => m.nivel === 'Dono' || m.nivel === 'A');
+
+
+
+                htmlPertenco += `
+
+                    <li style="background: rgba(255,255,255,0.08); padding:15px; border-radius:12px; margin-bottom:12px; border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981;">
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+
+                            <b style="color:#ffffff; font-size:1.1rem;">🤝 ${t.nome}</b>
+
+                            <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem;">Meu Nível: ${meuNivel}</span>
+
+                        </div>
+
+                        <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 5px;">
+
+                            Administrador: ${donoDoTime ? donoDoTime.email : 'Desconhecido'}
+
+                        </div>
+
+                    </li>`;
+
+            }
+
+        });
+
+
+
+        // INSERE O HTML NA TELA APÓS MONTAR TUDO
+
+        listaGerencio.innerHTML = contGerencio > 0 ? htmlGerencio : "<p style='text-align:center; color:#94a3b8; font-size: 0.85rem;'>Você não gerencia nenhum time.</p>";
+
+        listaPertenco.innerHTML = contPertenco > 0 ? htmlPertenco : "<p style='text-align:center; color:#94a3b8; font-size: 0.85rem;'>Você não foi convidado para outros times.</p>";
+
+        
+
+    } catch (e) {
+
+        console.error("Erro ao carregar times:", e);
+
+        listaGerencio.innerHTML = "<p style='color:#ef4444; text-align:center;'>Erro ao carregar os times.</p>";
+
+        listaPertenco.innerHTML = "";
+
+    }
+
 };
 
 window.criarTime = async () => {
@@ -1072,15 +1163,17 @@ window.criarTime = async () => {
     }
 
 };
-
 window.excluirTime = async (id) => {
-    if(confirm("Tem certeza que deseja apagar este time? Isso afetará todos os membros.")) { 
-        await deleteDoc(doc(db, "times", id)); 
-        carregarTimes(); 
+    if(confirm("Tem certeza que deseja apagar este time? Isso afetará todos os membros e eles perderão o acesso.")) { 
+        try {
+            await deleteDoc(doc(db, "times", id)); 
+            if (typeof window.carregarTimes === 'function') window.carregarTimes(); 
+        } catch (e) {
+            console.error("Erro ao excluir o time:", e);
+            alert("Erro ao excluir o time. Verifique sua conexão.");
+        }
     } 
 };
-
-
 
 window.adicionarMembro = async (evento, timeId) => {
 
@@ -1259,7 +1352,6 @@ window.adicionarMembro = async (evento, timeId) => {
 };
 
 
-
 window.removerMembro = async (timeId, emailRemover) => {
     if (!confirm(`Remover ${emailRemover} da equipe?`)) return;
     try {
@@ -1271,14 +1363,30 @@ window.removerMembro = async (timeId, emailRemover) => {
             let membrosAtuais = timeData.membros || [];
             let membrosEmailsAtuais = timeData.membrosEmails || [];
             
+            // Puxa o dicionário de segurança atual
+            let cargosAtuais = timeData.cargos || {}; 
+
             let novosMembros = membrosAtuais.filter(m => m.email !== emailRemover);
             let novosEmails = membrosEmailsAtuais.filter(e => e !== emailRemover);
             
-            await updateDoc(timeRef, { membros: novosMembros, membrosEmails: novosEmails });
-            carregarTimes();
+            // MÁGICA COMERCIAL: Remove a "chave" do usuário do banco de dados de segurança
+            delete cargosAtuais[emailRemover]; 
+
+            await updateDoc(timeRef, { 
+                membros: novosMembros, 
+                membrosEmails: novosEmails,
+                cargos: cargosAtuais // Envia o dicionário limpo para o Firebase
+            });
+            
+            if (typeof window.carregarTimes === 'function') window.carregarTimes();
         }
-    } catch (e) { alert("Erro ao remover membro."); }
+    } catch (e) { 
+        console.error("Erro ao remover membro:", e);
+        alert("Erro ao remover membro."); 
+    }
 };
+
+
 
 window.atualizarSeletorTimes = async () => {
     const seletorGlobal = document.getElementById('filtroTimeGlobal');
