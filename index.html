@@ -421,106 +421,125 @@
 
 </div>
 
-<div id="modalConfiguracoes" class="modal-overlay escondido">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase;">Configurações</h3>
-            <button class="btn-fechar" onclick="fecharModal('modalConfiguracoes')">✕</button>
-        </div>
-        <div class="modal-body">
-            
-            <div class="category-tabs" style="margin-bottom: 20px; display: flex; gap: 8px; padding-bottom: 10px;">
-
-    <button id="btnAbaAlarme" class="category-tab tablink" onclick="abrirAba(event, 'abaAlarme')" title="Alarmes" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔔</button>
-
-    
-
-    <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')" title="Categorias" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">📂</button>
-
-    
-
-    <button class="category-tab tablink" onclick="abrirAba(event, 'abaMarcadores')" title="Marcadores" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔖</button>
-
-    
-
-    <button class="category-tab tablink" onclick="abrirAba(event, 'abaTimes')" title="Times" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">👥</button>
-
-</div>
-
-            <div id="abaAlarme" class="tabcontent" style="display: block;">
-                <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
-                <select id="tempoAntecedencia" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
-                    <option value="0">Na hora exata (0 minutos)</option>
-                    <option value="5">5 minutos antes</option>
-                    <option value="10">10 minutos antes</option>
-                    <option value="15">15 minutos antes</option>
-                    <option value="30">30 minutos antes</option>
-                    <option value="60">1 hora antes</option>
-                </select>
-                
-                <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Notificação:</label>
-                <select id="tipoNotificacao" onchange="atualizarPreferenciasNuvem()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
-                    <option value="normal">Push Normal (Some sozinha da tela)</option>
-                    <option value="fixa">Push Fixo (Fica na tela até eu fechar)</option>
-                </select>
-
-                <label style="display:block; margin-top:10px; margin-bottom:5px; font-weight:bold;">Som do Alarme:</label>
-                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                    <select id="somAlarmeSelecionado" onchange="atualizarPreferenciasNuvem()" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                        <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Relógio Digital</option>
-                        <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Bip Curto</option>
-                        <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Corneta</option>
-                    </select>
-                    <button onclick="testarAlarme()" style="background:#ffc107; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">▶️ Testar</button>
-                </div>
-                <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background:#007bff; color:white; border:none; padding:10px 15px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">🔔 Conectar na Nuvem</button>
-            </div>
-
-            <div id="abaCategorias" class="tabcontent" style="display: none;">
-                <label style="display:block; margin-bottom:5px; font-weight:bold;">Adicionar Nova Categoria:</label>
-                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
-                    <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 8px; cursor: pointer;">
-                    <input type="text" id="novaCategoria" placeholder="Nome..." style="flex: 1; margin: 0; min-width: 120px;">
-                    <select id="timeNovaCategoria" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; cursor: pointer;">
-                        <option value="" style="color: black;">👤 Pessoal (Sem Time)</option>
-                    </select>
-                    <div style="position: relative; overflow: hidden; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Escolher Logo">
-                        <span style="font-size: 1.2rem;">🖼️</span>
-                        <input type="file" id="logoCatInput" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
-                    </div>
-                    <button onclick="adicionarCategoria()" style="background:#28a745; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
-                </div>
-                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-                <label style="display:block; margin-bottom:5px; font-weight:bold;">Gerenciar Existentes:</label>
-                <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-            </div>
-            
-            <div id="abaMarcadores" class="tabcontent" style="display: none;">
-                <label style="display:block; margin-bottom:5px; font-weight:bold;">Marcador:</label>
-                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                    <input type="text" id="nomeNovoMarcador" placeholder="Ex: Infraestrutura Elétrica" style="flex: 1; margin: 0;">
-                    <button onclick="adicionarMarcador()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">+</button>
-                </div>
-                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-                <label style="display:block; margin-bottom:5px; font-weight:bold;">Marcadores Ativos:</label>
-                <ul id="listaMarcadoresModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-            </div>
-
-            <div id="abaTimes" class="tabcontent" style="display: none;">
-                <label style="display:block; margin-bottom:5px; font-weight:bold;">Criar Novo Time:</label>
-                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                    <input type="text" id="nomeNovoTime" placeholder="Ex: Equipe de Manutenção" style="flex: 1; margin: 0;">
-                    <button onclick="criarTime()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">Criar</button>
-                </div>
-                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-                <label style="display:block; margin-bottom:5px; font-weight:bold; color: #3b82f6;">👑 Times que gerencio:</label>
-                <ul id="listaTimesModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
-                <label style="display:block; margin-bottom:5px; font-weight:bold; color: #10b981;">🤝 Times que pertenço:</label>
-                <ul id="listaTimesPertencoModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-            </div>
-        </div>
-    </div>
+<div id="modalConfiguracoes" class="modal-overlay escondido">
+    <style>
+        .config-tablink { opacity: 0.4; transition: all 0.3s ease; transform: scale(0.95); }
+        .config-tablink.active { opacity: 1; transform: scale(1.05); }
+        .config-label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block; margin-top: 15px; }
+        .config-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; font-weight: 600; box-sizing: border-box; outline: none; background: white; color: #1e293b; appearance: none; }
+        .config-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    </style>
+    
+    <div class="modal-card" style="background: #f1f5f9; border-radius: 28px; width: 92%; max-width: 400px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
+        
+        <div class="modal-header" style="padding: 20px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); flex-shrink: 0;">
+            <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase; font-size: 1rem;">Configurações</h3>
+            <button class="btn-fechar" onclick="fecharModal('modalConfiguracoes')" style="background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
+        </div>
+        
+        <div class="modal-body" style="padding: 20px; overflow-y: auto;">
+            
+            <div class="category-tabs" style="display: flex; justify-content: space-evenly; background: white; padding: 15px 10px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                <button id="btnAbaAlarme" class="btn-acao-modal tablink config-tablink active" onclick="abrirAba(event, 'abaAlarme')">
+                    <span class="icon">🔔</span>
+                    <span class="label">Alarmes</span>
+                </button>
+                <button class="btn-acao-modal tablink config-tablink" onclick="abrirAba(event, 'abaCategorias')">
+                    <span class="icon">📂</span>
+                    <span class="label">Categorias</span>
+                </button>
+                <button class="btn-acao-modal tablink config-tablink" onclick="abrirAba(event, 'abaMarcadores')">
+                    <span class="icon">🔖</span>
+                    <span class="label">Etapas</span>
+                </button>
+                <button class="btn-acao-modal tablink config-tablink" onclick="abrirAba(event, 'abaTimes')">
+                    <span class="icon">👥</span>
+                    <span class="label">Times</span>
+                </button>
+            </div>
+
+            <div id="abaAlarme" class="tabcontent" style="display: block;">
+                <label class="config-label" style="margin-top: 0;">Avisar com antecedência:</label>
+                <select id="tempoAntecedencia" class="config-input" onchange="atualizarPreferenciasNuvem()">
+                    <option value="0">Na hora exata (0 minutos)</option>
+                    <option value="5">5 minutos antes</option>
+                    <option value="10">10 minutos antes</option>
+                    <option value="15">15 minutos antes</option>
+                    <option value="30">30 minutos antes</option>
+                    <option value="60">1 hora antes</option>
+                </select>
+                
+                <label class="config-label">Notificação:</label>
+                <select id="tipoNotificacao" class="config-input" onchange="atualizarPreferenciasNuvem()">
+                    <option value="normal">Push Normal (Some sozinha da tela)</option>
+                    <option value="fixa">Push Fixo (Fica na tela até eu fechar)</option>
+                </select>
+
+                <label class="config-label">Som do Alarme:</label>
+                <div style="display: flex; gap: 8px;">
+                    <select id="somAlarmeSelecionado" class="config-input" onchange="atualizarPreferenciasNuvem()" style="flex: 1;">
+                        <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">Relógio Digital</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Bip Curto</option>
+                        <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Corneta</option>
+                    </select>
+                    <button onclick="testarAlarme()" style="background:#f59e0b; color: white; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);">▶️ Testar</button>
+                </div>
+                
+                <button id="btnConectarNuvem" onclick="solicitarPermissaoNotificacao()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer; font-weight:bold; margin-top: 25px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">🔔 Conectar na Nuvem</button>
+            </div>
+
+            <div id="abaCategorias" class="tabcontent" style="display: none;">
+                <label class="config-label" style="margin-top: 0;">Adicionar Nova Categoria:</label>
+                <div style="display: grid; grid-template-columns: auto 1fr; gap: 8px; margin-bottom: 8px;">
+                    <input type="color" id="corNovaCategoria" value="#007bff" style="width: 45px; height: 45px; padding: 0; border: none; border-radius: 12px; cursor: pointer; background: transparent;">
+                    <input type="text" id="novaCategoria" class="config-input" placeholder="Nome...">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 8px;">
+                    <select id="timeNovaCategoria" class="config-input">
+                        <option value="" style="color: black;">👤 Pessoal (Sem Time)</option>
+                    </select>
+                    <div style="position: relative; overflow: hidden; background: white; border: 1px solid #cbd5e1; border-radius: 12px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Escolher Logo">
+                        <span style="font-size: 1.2rem;">🖼️</span>
+                        <input type="file" id="logoCatInput" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+                    </div>
+                    <button onclick="adicionarCategoria()" style="background: linear-gradient(135deg, #10b981, #059669); color:white; border:none; width: 45px; height: 45px; border-radius:12px; cursor:pointer; font-weight:bold; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">➕</button>
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
+                <label class="config-label">Gerenciar Existentes:</label>
+                <ul id="listaCategoriasModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 250px; overflow-y: auto;"></ul>
+            </div>
+
+            <div id="abaMarcadores" class="tabcontent" style="display: none;">
+                <label class="config-label" style="margin-top: 0;">Novo Marcador:</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="nomeNovoMarcador" class="config-input" placeholder="Ex: Infraestrutura Elétrica" style="flex: 1;">
+                    <button onclick="adicionarMarcador()" style="background: linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:12px 20px; border-radius:12px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">➕</button>
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
+                <label class="config-label">Marcadores Ativos:</label>
+                <ul id="listaMarcadoresModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 250px; overflow-y: auto;"></ul>
+            </div>
+
+            <div id="abaTimes" class="tabcontent" style="display: none;">
+                <label class="config-label" style="margin-top: 0;">Criar Novo Time:</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="nomeNovoTime" class="config-input" placeholder="Ex: Equipe de Manutenção" style="flex: 1;">
+                    <button onclick="criarTime()" style="background: linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:12px 20px; border-radius:12px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">Criar</button>
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
+                <label class="config-label" style="color: #3b82f6;">👑 Times que gerencio:</label>
+                <ul id="listaTimesModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+                
+                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
+                <label class="config-label" style="color: #10b981;">🤝 Times que pertenço:</label>
+                <ul id="listaTimesPertencoModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+            </div>
+
+        </div>
+    </div>
 </div>
 
 <div id="modalCronograma" class="modal" style="display: none; align-items: flex-start; padding-top: 40px; overflow-y: auto;">
