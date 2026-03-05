@@ -22,32 +22,58 @@
 </div>
 
 <div class="container">
-<div class="timeline-header">
-    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
-        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5; flex-shrink: 0; width: 32px;">⚙️</button>
-    </div>
-    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-        <button class="btn-date" id="btnMes" onclick="setarData('mes', this)">Mês</button>
-        <button class="btn-date" id="btnTudo" onclick="setarData('tudo', this)">Tudo</button>
-        <div style="flex: 1; text-align: center; font-size: 0.65rem; font-weight: 800; color: #64748b;">PERÍODO</div>
-        <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)" style="flex: 1.8; padding: 8px; border-radius: 20px; border: none; background: rgba(255,255,255,0.1); color: #000; text-align: center;">
-        <div style="width: 32px; visibility: hidden;">⚙️</div>
-    </div>
-</div>
-
-<div class="secao-filtros-projeto">
-    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
-
-    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 12px;">
-        <span style="font-weight: 800; font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Tag:</span>
-        <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; padding: 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.8); font-weight: 700;">
-            <option value="">Todas as Etapas</option>
-        </select>
-    </div>
+<div class="timeline-header">
+
+    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+
+        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
+
+        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5; flex-shrink: 0; width: 32px;">⚙️</button>
+
+    </div>
+
+    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+
+        <button class="btn-date" id="btnMes" onclick="setarData('mes', this)">Mês</button>
+
+        <button class="btn-date" id="btnTudo" onclick="setarData('tudo', this)">Tudo</button>
+
+        <div style="flex: 1; text-align: center; font-size: 0.65rem; font-weight: 800; color: #64748b;">PERÍODO</div>
+
+        <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)" style="flex: 1.8; padding: 8px; border-radius: 20px; border: none; background: rgba(255,255,255,0.1); color: #000; text-align: center;">
+
+        <div style="width: 32px; visibility: hidden;">⚙️</div>
+
+    </div>
+
+</div>
+
+
+
+<div class="secao-filtros-projeto">
+
+    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
+
+
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 12px;">
+
+        <span style="font-weight: 800; font-size: 0.7rem; color: #64748b; text-transform: uppercase;">Tag:</span>
+
+        <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; padding: 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.8); font-weight: 700;">
+
+            <option value="">Todas as Etapas</option>
+
+        </select>
+
+    </div>
+
 </div>
     </div>
 	
@@ -59,33 +85,42 @@
 
     
 
-<div class="barra-acoes-rapidas">
-    <button class="btn-acao-flutuante" onclick="abrirModal('modalTarefa')">
-        <span class="icon">➕</span>
-        <span class="label">Tarefa</span>
-    </button>
-    <button class="btn-acao-flutuante" onclick="abrirModal('modalArquivos')">
-        <span class="icon">📂</span>
-        <span class="label">Arquivos</span>
-    </button>
-    <button class="btn-acao-flutuante" onclick="abrirModal('modalFinanceiro')">
-        <span class="icon">💰</span>
-        <span class="label">Financeiro</span>
-    </button>
+<div class="barra-acoes-rapidas">
+    <button class="btn-acao-modal" onclick="abrirModal('modalTarefa')">
+        <span class="icon">➕</span>
+        <span class="label">Tarefa</span>
+    </button>
+    <button class="btn-acao-modal" onclick="abrirModal('modalArquivos')">
+        <span class="icon">📂</span>
+        <span class="label">Arquivos</span>
+    </button>
+    <button class="btn-acao-modal" onclick="abrirModal('modalFinanceiro')">
+        <span class="icon">💰</span>
+        <span class="label">Financeiro</span>
+    </button>
+</div>
+
+<div id="modalTarefa" class="modal-overlay escondido">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Nova Atividade</h3>
+            <button onclick="fecharModal('modalTarefa')">✕</button>
+        </div>
+        <div class="modal-body">
+            </div>
+    </div>
+</div>
+
+<div id="modalArquivos" class="modal-overlay escondido">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Arquivos Fixos</h3>
+            <button onclick="fecharModal('modalArquivos')">✕</button>
+        </div>
+        <div class="modal-body">
+            </div>
+    </div>
 </div>
-
-<div id="modalTarefa" class="modal-container escondido">
-    <div class="modal-content">
-        <span class="fechar-modal" onclick="fecharModal('modalTarefa')">×</span>
-        <h3>Nova Atividade</h3>
-        </div>
-</div>
-
-<div id="modalArquivos" class="modal-container escondido">
-    <div class="modal-content">
-        <span class="fechar-modal" onclick="fecharModal('modalArquivos')">×</span>
-        <h3>Repositório de Arquivos</h3>
-        </div>
 </div>
 
 <div id="modalFinanceiro" class="modal-container escondido">
