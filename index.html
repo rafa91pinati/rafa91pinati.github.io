@@ -1,32 +1,61 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <link rel="manifest" href="manifest.json">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Life Sync - v4.3.6</title> 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="style.css">
-</head>
-
-<body> 
-    <div class="header-principal" style="text-align: center; padding: 20px 10px; background: white; border-bottom: 1px solid #e2e8f0;">
-        <h1 style="margin: 0; font-size: 1.2rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">
-            Life <span style="color: #3b82f6;">Sync</span>
-        </h1>
-    </div>
-
-    <main>
-    </main>
-
-    <div id="telaLogin" class="modal-login">
-        <div class="modal-login-content">
-            <h2 style="text-align:center; color: #1e293b; margin-bottom: 20px;">Agenda v4.5</h2>
-            <input type="email" id="emailLogin" placeholder="Seu e-mail">
-            <input type="password" id="senhaLogin" placeholder="Sua senha">
-            <button onclick="fazerLogin()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; border:none; padding:15px; width:100%; border-radius:12px; font-weight:bold; margin-top:10px; cursor:pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">Entrar</button>
-            <button onclick="criarConta()" style="background:none; color:#3b82f6; border:none; width:100%; margin-top:10px; cursor:pointer; font-weight: 600;">Criar nova conta</button>
-        </div> 
+<!DOCTYPE html>
+
+<html lang="pt-br">
+
+<head>
+
+    <link rel="manifest" href="manifest.json">
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Life Sync - v4.3.6</title> 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+
+<body> 
+
+    <div class="header-principal" style="text-align: center; padding: 20px 10px; background: white; border-bottom: 1px solid #e2e8f0;">
+
+        <h1 style="margin: 0; font-size: 1.2rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">
+
+            Life <span style="color: #3b82f6;">Sync</span>
+
+        </h1>
+
+    </div>
+
+
+
+    <main>
+
+    </main>
+
+
+
+    <div id="telaLogin" class="modal-login">
+
+        <div class="modal-login-content">
+
+            <h2 style="text-align:center; color: #1e293b; margin-bottom: 20px;">Agenda v4.5</h2>
+
+            <input type="email" id="emailLogin" placeholder="Seu e-mail">
+
+            <input type="password" id="senhaLogin" placeholder="Sua senha">
+
+            <button onclick="fazerLogin()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; border:none; padding:15px; width:100%; border-radius:12px; font-weight:bold; margin-top:10px; cursor:pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">Entrar</button>
+
+            <button onclick="criarConta()" style="background:none; color:#3b82f6; border:none; width:100%; margin-top:10px; cursor:pointer; font-weight: 600;">Criar nova conta</button>
+
+        </div> 
+
     </div> 
 </div>
 
@@ -510,26 +539,23 @@
     <img id="imgGrande" src="">
 </div>
 
-<div id="modalOutrasCategorias" class="modal-overlay escondido">
-    <div class="modal-card" style="max-width: 400px; padding: 20px;">
-        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase;">Selecione a Categoria</h3>
-            <button class="btn-fechar" onclick="fecharModal('modalOutrasCategorias')" style="background: transparent; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">✕</button>
-        </div>
-        <div class="modal-body">
-            <div id="listaTodasCategoriasModal" style="display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; padding-right: 5px;">
-            </div>
-        </div>
-    </div>
-</div>
-
-<script type="module">
-    // Isso gera um número de versão baseado no tempo para limpar o cache
-    const versao = Math.floor(Date.now() / 60000); 
-    
-    // O comando import() dinâmico garante que o app.js seja lido como MÓDULO
-    import('./app.js?v=' + versao);
-</script>
-
-</body>
+<div id="modalOutrasCategorias" class="modal-overlay escondido">
+        <div class="modal-card" style="max-width: 400px; padding: 20px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase;">Selecione a Categoria</h3>
+                <button class="btn-fechar" onclick="fecharModal('modalOutrasCategorias')" style="background: transparent; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="listaTodasCategoriasModal" style="display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; padding-right: 5px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        const versao = Math.floor(Date.now() / 60000); 
+        import('./app.js?v=' + versao);
+    </script>
+
+</body>
 </html>
