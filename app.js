@@ -2083,7 +2083,7 @@ window.gerarRelatorioPDF = async (evento) => {
         
         if (tarefasDoPDF.length === 0) throw new Error("Não há tarefas para esta categoria.");
 
-        // --- NOVO: Cálculo Dinâmico do Período (Início e Fim) ---
+        // Cálculo Dinâmico do Período (Início e Fim)
         let minDataStr = null;
         let maxDataStr = null;
         tarefasDoPDF.forEach(t => {
@@ -2098,8 +2098,8 @@ window.gerarRelatorioPDF = async (evento) => {
         
         const periodoNomeArquivo = (minDataStr === maxDataStr) ? dataInicioForm.replace(/\//g, '-') : `${dataInicioForm.replace(/\//g, '-')}_a_${dataFimForm.replace(/\//g, '-')}`;
         const periodoDisplay = (minDataStr === maxDataStr) ? dataInicioForm : `${dataInicioForm} até ${dataFimForm}`;
-        // ---------------------------------------------------------
 
+        // Agrupamento de Tarefas por Tag e depois por Dia
         const tarefasPorTag = {};
         tarefasDoPDF.forEach(t => {
             const tag = t.tag || t.etapa || "Geral";
@@ -2119,111 +2119,114 @@ window.gerarRelatorioPDF = async (evento) => {
             logoImgHtml = `<img src="${window.logosCategorias[categoriaDoPDF]}" style="height: 40px; max-width: 140px; object-fit: contain;">`;
         }
 
-        // Ajustado: Espaçamento reduzido de 30px para 15px no margin-bottom
         const criarCabecalho = (tagAtual) => `
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 20px;">
                 <div>
-                    <div style="font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Relatório Diário | Período: ${periodoDisplay}</div>
-                    <div style="font-size: 14px; font-weight: 900; color: #1e293b; margin-top: 2px;">ETAPA: ${tagAtual}</div>
+                    <div style="font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Relatório Executivo | Período: ${periodoDisplay}</div>
+                    <div style="font-size: 16px; font-weight: 900; color: #1e293b; margin-top: 2px;">ETAPA: ${tagAtual}</div>
                 </div>
                 <div>${logoImgHtml}</div>
             </div>`;
 
+        // Função auxiliar para desenhar o corpo de uma tarefa detalhada
+        const renderizarTarefaDetalhe = (t) => {
+            let fotosHtml = '';
+            if (t.fotos && t.fotos.length > 0) {
+                const qtd = Math.min(t.fotos.length, 4);
+                const grid = qtd === 1 ? '1fr' : '1fr 1fr';
+                fotosHtml = `<div style="display: grid; grid-template-columns: ${grid}; gap: 10px; margin-top: 12px;">`;
+                t.fotos.slice(0, 4).forEach(f => {
+                    fotosHtml += `
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            <img src="${f}" style="max-width: 95%; max-height: 95%; object-fit: contain;">
+                        </div>`;
+                });
+                fotosHtml += `</div>`;
+            }
+            const cor = window.coresCategorias?.[t.categoria] || '#3b82f6';
+            return `
+                <div style="border-left: 4px solid ${cor}; padding-left: 15px;">
+                    <div style="font-weight: 800; font-size: 13px; color: #1e293b;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
+                    ${fotosHtml}
+                </div>`;
+        };
+
         const relatorioTemp = document.createElement('div');
         relatorioTemp.style.cssText = "font-family: Arial, sans-serif; background: white; color: #1e293b; padding: 0; margin: 0;";
 
-        // RESUMO COM BLINDAGEM DE CORTE
-        let htmlPdf = `
-            <div style="padding: 20px; min-height: 260mm;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                    <div>
-                        <h1 style="margin: 0; font-size: 28px; font-weight: 900; text-transform: uppercase; color: #1e293b;">RESUMO</h1>
-                        <h2 style="margin: 5px 0 2px 0; font-size: 16px; color: #3b82f6; font-weight: bold;">${categoriaDoPDF}</h2>
-                        <span style="font-size: 11px; color: #64748b;">${periodoDisplay}</span>
-                    </div>
-                    <div>${logoImgHtml}</div>
-                </div>`;
+        let htmlPdf = ``;
 
-        tagsOrdenadas.forEach(tag => {
-            htmlPdf += `<div style="page-break-inside: avoid; margin-bottom: 15px;">`;
-            htmlPdf += `<h2 style="color: #3b82f6; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 15px; margin-bottom: 10px; text-transform: uppercase;">${tag}</h2>`;
-            Object.keys(tarefasPorTag[tag]).sort().forEach(dia => {
+        // LOOP PRINCIPAL POR TAG (CADA TAG GERA UMA NOVA PÁGINA)
+        tagsOrdenadas.forEach((tag, index) => {
+            // Se não for a primeira tag, força a quebra de página
+            if (index > 0) htmlPdf += `<div class="html2pdf__page-break"></div>`;
+
+            // Retirado o min-height gigante. O html2pdf cuidará do fluxo naturalmente
+            htmlPdf += `<div style="padding: 10px;">`;
+            htmlPdf += criarCabecalho(tag);
+
+            // --- 1. BLOCO DE RESUMO DA TAG ---
+            htmlPdf += `<h2 style="font-size: 15px; font-weight: 900; color: #64748b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase;">Resumo das Atividades</h2>`;
+            
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+            
+            diasOrdenados.forEach(dia => {
                 const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
-                htmlPdf += `<h3 style="margin: 6px 0; font-size: 11px; color: #1e293b;">${nomeDia} (${dia.split('-').reverse().join('/')})</h3>`;
+                const dataF = dia.split('-').reverse().join('/');
+                
+                // Blindagem do resumo diário
+                htmlPdf += `<div style="page-break-inside: avoid; margin-bottom: 10px;">`;
+                htmlPdf += `<h3 style="margin: 0 0 6px 0; font-size: 12px; color: #3b82f6;">${nomeDia} (${dataF})</h3>`;
+                
                 tarefasPorTag[tag][dia].forEach(t => {
                     const cor = window.coresCategorias?.[t.categoria] || '#3b82f6';
                     htmlPdf += `
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; padding-left: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding-left: 10px;">
                             <div style="width: 3px; height: 12px; background: ${cor};"></div>
-                            <span style="font-size: 10px; color: #475569;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</span>
+                            <span style="font-size: 11px; color: #475569;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</span>
                         </div>`;
                 });
+                htmlPdf += `</div>`;
             });
-            htmlPdf += `</div>`;
-        });
 
-        htmlPdf += `</div><div class="html2pdf__page-break"></div>`;
+            // --- 2. BLOCO DE DETALHES DA TAG ---
+            htmlPdf += `<h2 style="font-size: 15px; font-weight: 900; color: #64748b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 35px; margin-bottom: 25px; text-transform: uppercase;">Detalhes da Execução</h2>`;
 
-        // ATIVIDADES DETALHADAS COM TABELA PARA REPETIR CABEÇALHO
-        tagsOrdenadas.forEach((tag, index) => {
-            if (index > 0) htmlPdf += `<div class="html2pdf__page-break"></div>`;
-            
-            htmlPdf += `<div style="padding: 20px; min-height: 260mm;">`;
-            htmlPdf += criarCabecalho(tag);
-
-            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
             diasOrdenados.forEach(dia => {
                 const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
                 const dataF = dia.split('-').slice(0, 2).reverse().join('/');
-
-                htmlPdf += `
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                    <thead style="display: table-header-group;">
-                        <tr>
-                            <th style="text-align: left; padding: 20px 0 15px 0;">
-                                <h2 style="font-size: 16px; font-weight: 900; color: #1e293b; margin: 0;">${nomeDia} (${dataF})</h2>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-
-                tarefasPorTag[tag][dia].forEach(t => {
-                    let fotosHtml = '';
-                    if (t.fotos && t.fotos.length > 0) {
-                        const qtd = Math.min(t.fotos.length, 4);
-                        const grid = qtd === 1 ? '1fr' : '1fr 1fr';
-                        fotosHtml = `<div style="display: grid; grid-template-columns: ${grid}; gap: 10px; margin-top: 12px;">`;
-                        t.fotos.slice(0, 4).forEach(f => {
-                            fotosHtml += `
-                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                    <img src="${f}" style="max-width: 95%; max-height: 95%; object-fit: contain;">
-                                </div>`;
-                        });
-                        fotosHtml += `</div>`;
-                    }
-
-                    const cor = window.coresCategorias?.[t.categoria] || '#3b82f6';
-                    htmlPdf += `
-                        <tr style="page-break-inside: avoid;">
-                            <td style="padding-bottom: 25px;">
-                                <div style="border-left: 4px solid ${cor}; padding-left: 15px;">
-                                    <div style="font-weight: 800; font-size: 13px; color: #1e293b;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
-                                    ${fotosHtml}
-                                </div>
-                            </td>
-                        </tr>`;
-                });
                 
-                htmlPdf += `</tbody></table>`;
+                const tarefasDoDia = tarefasPorTag[tag][dia];
+                
+                if (tarefasDoDia.length > 0) {
+                    const tarefa1 = tarefasDoDia[0];
+                    const tarefasRestantes = tarefasDoDia.slice(1);
+
+                    // ESTRATÉGIA SUPERCOLA: Título do dia preso com a Primeira Tarefa
+                    htmlPdf += `
+                    <div style="page-break-inside: avoid; margin-bottom: 25px;">
+                        <h3 style="font-size: 16px; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;">${nomeDia} (${dataF})</h3>
+                        ${renderizarTarefaDetalhe(tarefa1)}
+                    </div>`;
+
+                    // Renderiza as outras tarefas separadamente, também blindadas
+                    tarefasRestantes.forEach(t => {
+                        htmlPdf += `
+                        <div style="page-break-inside: avoid; margin-bottom: 25px;">
+                            ${renderizarTarefaDetalhe(t)}
+                        </div>`;
+                    });
+                }
             });
-            htmlPdf += `</div>`;
+
+            htmlPdf += `</div>`; // Fim da div principal da tag
         });
 
         relatorioTemp.innerHTML = htmlPdf;
 
         const nomeArquivoBase = `Relatorio_${categoriaDoPDF}_${periodoNomeArquivo}`;
         const opcoes = { 
-            margin: [10, 10, 20, 10], // Margem inferior ajustada para 20 (evita conflito com rodapé)
+            margin: [15, 10, 25, 10], // Margem inferior de 25mm para respeitar o rodapé sem esmagar
             filename: `${nomeArquivoBase}.pdf`,
             image: { type: 'jpeg', quality: 0.98 }, 
             html2canvas: { scale: 2, useCORS: true, logging: false }, 
@@ -2241,11 +2244,10 @@ window.gerarRelatorioPDF = async (evento) => {
                 pdf.setPage(i);
                 pdf.setDrawColor(226, 232, 240);
                 pdf.setLineWidth(0.5);
-                // Rodapé ajustado (mais próximo do final da página)
-                pdf.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
+                pdf.line(10, pageHeight - 15, pageWidth - 10, pageHeight - 15);
                 pdf.setFontSize(9);
                 pdf.setTextColor(100, 116, 139);
-                pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 15, pageHeight - 8, { align: 'right' });
+                pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
             }
             return pdf.output('blob');
         });
