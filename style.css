@@ -29,27 +29,22 @@ body {
 }
 
 /* --- CABEÇALHO E FILTROS --- */
-.novo-header-filtros {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.novo-header-filtros input[type="date"] {
     width: 100%;
-}
-
-/* Ajuste das fontes e alinhamento dos botões Hoje/Amanhã/Semana */
-.btn-date { 
-    flex: 1; 
-    padding: 8px 2px; 
-    border-radius: 20px; 
-    border: none; 
-    background: transparent; 
-    color: #475569; 
-    cursor: pointer; 
-    font-size: 0.65rem; /* Fonte pequena para caber tudo */
-    font-weight: 800; 
-    text-transform: uppercase; 
-    text-align: center; 
-    transition: all 0.3s ease; 
+    border: none;
+    background: transparent;
+    font-weight: 800;
+    color: #475569;
+    font-size: 0.65rem;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    appearance: none; /* Remove estilos padrão de alguns browsers */
+    -webkit-appearance: none;
 }
 
 #btnHoje { background: #54627b; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
