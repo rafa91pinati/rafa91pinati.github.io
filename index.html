@@ -147,45 +147,44 @@
             <button class="btn-fechar" onclick="fecharModal('modalTarefa')" style="background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b;">✕</button>
         </div>
 
-        <div class="modal-body" style="padding: 20px;">
-            <input type="text" id="descTask" placeholder="O que agendar hoje?">
-        
-        <div id="previewFotosNovas" class="container-fotos"></div>
-        
-        <div class="grid-50">
-            <input type="time" id="horaTask">
-            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
-            <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
-        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <input type="text" id="descTask" placeholder="O que agendar hoje?" style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0; margin-bottom: 15px; font-weight: 600;">
 
-        <div class="grid-50" style="margin-top: 15px; margin-bottom: 5px;">
-            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
-                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
-                <select id="tipoRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
-                    <option value="nenhuma">Sem recorrência</option>
-                    <option value="diario">Diário</option>
-                    <option value="2dias">A cada 2 dias</option>
-                    <option value="semanal">A cada 1 semana</option>
-                    <option value="mensal">A cada 1 mês</option>
-                </select>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
-                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
-                <input type="date" id="dataFimRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
-            </div>
-        </div>
-        
-        <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
-            <button id="btnCancelarAdd" onclick="cancelarNovaTarefa()" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">
-                Cancelar
-            </button>
-            <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
-                Salvar
-            </button>
-        </div>
-    </div>
-        </div>
-    </div>
+            <div id="previewFotosNovas" class="container-fotos"></div>
+
+            <div class="grid-50" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <input type="time" id="horaTask" style="padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <button class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    📷 ARQUIVO
+                </button>
+                <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
+            </div>
+
+            <div class="grid-50" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                <div style="background: white; border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Repetir:</label>
+                    <select id="tipoRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.8rem;">
+                        <option value="nenhuma">Sem recorrência</option>
+                        <option value="diario">Diário</option>
+                        <option value="2dias">A cada 2 dias</option>
+                        <option value="semanal">A cada 1 semana</option>
+                        <option value="mensal">A cada 1 mês</option>
+                    </select>
+                </div>
+                <div style="background: white; border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Até dia:</label>
+                    <input type="date" id="dataFimRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.8rem;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
+                <button onclick="cancelarNovaTarefa(); fecharModal('modalTarefa')" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer;">Cancelar</button>
+                <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 
