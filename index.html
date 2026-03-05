@@ -138,17 +138,16 @@
     <div id="listaTarefas">
         </div>
 
-</div> <div id="modalTarefa" class="modal-overlay escondido">
-    <div class="modal-card">
-        <div class="modal-header">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="icone-quadrado" style="background: #3b82f6; width: 12px; height: 12px; border-radius: 3px;"></div>
-                <h3 style="margin:0; font-weight: 900; color: #1e293b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Nova Tarefa</h3>
-            </div>
-            <button class="btn-fechar-modal" onclick="fecharModal('modalTarefa')">✕</button>
-        </div>
-
-        <div class="modal-body">
+</div> 
+
+<div id="modalTarefa" class="modal-overlay escondido">
+    <div class="modal-card" style="background: #f1f5f9; border-radius: 28px;">
+        <div class="modal-header" style="padding: 20px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase; font-size: 1rem;">Nova Tarefa</h3>
+            <button class="btn-fechar" onclick="fecharModal('modalTarefa')" style="background: #f1f5f9; border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b;">✕</button>
+        </div>
+
+        <div class="modal-body" style="padding: 20px;">
             <input type="text" id="descTask" placeholder="O que agendar hoje?">
         
         <div id="previewFotosNovas" class="container-fotos"></div>
