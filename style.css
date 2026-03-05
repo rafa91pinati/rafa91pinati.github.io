@@ -73,17 +73,14 @@ body {
 /* Garante que os botões não fiquem gigantes na grade */
 
 .category-tab { 
-    padding: 10px 16px; /* Aumentado para melhor toque */
+    padding: 10px 18px; 
     border-radius: 14px; 
-    border: 1px solid rgba(255,255,255,0.1); 
-    background: rgba(255,255,255,0.05); 
-    cursor: pointer; 
-    font-size: 2rem; /* Fonte maior para leitura clara */
-    font-weight: 700; 
-    white-space: nowrap; 
-    color: #334155; 
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.95rem; /* Maior que os botões de data */
+    font-weight: 800; 
+    color: #1e293b;
     transition: 0.3s;
-    flex-grow: 0;
 }
 .category-tab:hover { background: rgba(255,255,255,0.15); }
 
