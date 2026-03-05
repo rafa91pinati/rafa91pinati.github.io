@@ -22,21 +22,21 @@
 </div>
 
 <div class="container">
-<div class="timeline-header" style="display: flex; flex-direction: column; gap: 8px;">
-        <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-            <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-            <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-            <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
-            <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-            <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5; flex-shrink: 0;">⚙️</button>
-        </div>
-        <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-            <button class="btn-date" id="btnMes" onclick="setarData('mes', this)">Mês</button>
-            <button class="btn-date" id="btnTudo" onclick="setarData('tudo', this)">Tudo</button>
-            <div style="flex: 1; text-align: center; font-size: 0.6rem; font-weight: 800; color: #64748b; text-transform: uppercase; white-space: nowrap;">Período</div>
-            <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)" style="flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: #000000; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none;">
-            <button style="background:none; border:none; font-size:1.4rem; visibility: hidden; flex-shrink: 0;">⚙️</button>
-        </div>
+<div class="timeline-header">
+        <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+            <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+            <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+            <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
+            <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+            <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5; flex-shrink: 0;">⚙️</button>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+            <button class="btn-date" id="btnMes" onclick="setarData('mes', this)">Mês</button>
+            <button class="btn-date" id="btnTudo" onclick="setarData('tudo', this)">Tudo</button>
+            <div style="flex: 1; text-align: center; font-size: 0.6rem; font-weight: 800; color: #64748b; text-transform: uppercase; white-space: nowrap;">Período</div>
+            <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)" style="flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: #000000; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none;">
+            <button style="background:none; border:none; font-size:1.4rem; visibility: hidden; flex-shrink: 0;">⚙️</button>
+        </div>
     </div>
     </div>
 
