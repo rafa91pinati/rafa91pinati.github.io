@@ -1980,72 +1980,138 @@ window.abrirCronogramaVisual = async (evento) => {
 
 
 
-window.gerarRelatorioPDF = async (evento) => {
-    if (evento) evento.stopPropagation();
-    
-    // Trava de segurança 1: Categoria
-    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
-        return alert("📄 Selecione apenas UMA categoria específica.");
-    }
-
-    // Trava de segurança 2: Biblioteca
-    if (typeof html2pdf === 'undefined') {
-        return alert("❌ Erro: Biblioteca PDF não carregada. Recarregue a página.");
-    }
-
-    const btn = evento.currentTarget;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Processando..."; btn.disabled = true;
-
-    try {
-        const categoriaDoPDF = categoriasAtivas[0];
-        const tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
-        if (tarefasDoPDF.length === 0) throw new Error("Não há tarefas para esta categoria.");
-
-        // ... (Lógica de montagem do HTML permanece igual) ...
-        // 
-
-        const relatorioTemp = document.createElement('div');
-        relatorioTemp.innerHTML = htmlPdf; // htmlPdf deve ser gerado antes como no seu código
-
-        const opcoes = { 
-            margin: [10, 10, 25, 10], 
-            filename: `Relatorio_${categoriaDoPDF}.pdf`,
-            html2canvas: { scale: 2, useCORS: true }, 
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
-        };
-
-        // Gerando o Blob do PDF
-        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
-
-        // Trava de segurança 3: Usuário Logado
-        if (!window.usuarioLogado || !window.usuarioLogado.uid) {
-            throw new Error("Usuário não identificado. Faça login novamente.");
-        }
-
-        const nomeArquivoBase = `Relatorio_${categoriaDoPDF}_${Date.now()}`;
-        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeArquivoBase}.pdf`);
-        
-        await uploadBytes(sRef, pdfBlob);
-        const urlFinal = await getDownloadURL(sRef);
-
-        await addDoc(collection(db, "arquivos_fixos"), {
-            uid: window.usuarioLogado.uid,
-            Nomearquivo: nomeArquivoBase,
-            categoria: categoriaDoPDF,
-            link: urlFinal,
-            dataUpload: new Date()
-        });
-
-        alert("✅ Relatório salvo com sucesso!");
-        if (typeof carregarArquivosFixos === "function") carregarArquivosFixos();
-
-    } catch (error) {
-        console.error("Erro no PDF:", error);
-        alert("Erro: " + error.message);
-    } finally {
-        btn.innerHTML = textoOriginal; btn.disabled = false;
-    }
+window.gerarRelatorioPDF = async (evento) => {
+
+    if (evento) evento.stopPropagation();
+
+    
+
+    // Trava de segurança 1: Categoria
+
+    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
+
+        return alert("📄 Selecione apenas UMA categoria específica.");
+
+    }
+
+
+
+    // Trava de segurança 2: Biblioteca
+
+    if (typeof html2pdf === 'undefined') {
+
+        return alert("❌ Erro: Biblioteca PDF não carregada. Recarregue a página.");
+
+    }
+
+
+
+    const btn = evento.currentTarget;
+
+    const textoOriginal = btn.innerHTML;
+
+    btn.innerHTML = "⏳ Processando..."; btn.disabled = true;
+
+
+
+    try {
+
+        const categoriaDoPDF = categoriasAtivas[0];
+
+        const tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
+
+        if (tarefasDoPDF.length === 0) throw new Error("Não há tarefas para esta categoria.");
+
+
+
+        // ... (Lógica de montagem do HTML permanece igual) ...
+
+        // 
+
+
+
+        const relatorioTemp = document.createElement('div');
+
+        relatorioTemp.innerHTML = htmlPdf; // htmlPdf deve ser gerado antes como no seu código
+
+
+
+        const opcoes = { 
+
+            margin: [10, 10, 25, 10], 
+
+            filename: `Relatorio_${categoriaDoPDF}.pdf`,
+
+            html2canvas: { scale: 2, useCORS: true }, 
+
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+
+        };
+
+
+
+        // Gerando o Blob do PDF
+
+        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
+
+
+
+        // Trava de segurança 3: Usuário Logado
+
+        if (!window.usuarioLogado || !window.usuarioLogado.uid) {
+
+            throw new Error("Usuário não identificado. Faça login novamente.");
+
+        }
+
+
+
+        const nomeArquivoBase = `Relatorio_${categoriaDoPDF}_${Date.now()}`;
+
+        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeArquivoBase}.pdf`);
+
+        
+
+        await uploadBytes(sRef, pdfBlob);
+
+        const urlFinal = await getDownloadURL(sRef);
+
+
+
+        await addDoc(collection(db, "arquivos_fixos"), {
+
+            uid: window.usuarioLogado.uid,
+
+            Nomearquivo: nomeArquivoBase,
+
+            categoria: categoriaDoPDF,
+
+            link: urlFinal,
+
+            dataUpload: new Date()
+
+        });
+
+
+
+        alert("✅ Relatório salvo com sucesso!");
+
+        if (typeof carregarArquivosFixos === "function") carregarArquivosFixos();
+
+
+
+    } catch (error) {
+
+        console.error("Erro no PDF:", error);
+
+        alert("Erro: " + error.message);
+
+    } finally {
+
+        btn.innerHTML = textoOriginal; btn.disabled = false;
+
+    }
+
 };
 
 
@@ -2098,7 +2164,11 @@ window.gerarRelatorioPDF = async (evento) => {
 
 
 
-        const criarCabecalho = (tagAtual) => `
+           const criarCabecalho = (tagAtual) => `
+
+
+
+
 
 
 
@@ -2106,7 +2176,15 @@ window.gerarRelatorioPDF = async (evento) => {
 
 
 
+
+
+
+
                 <div>
+
+
+
+
 
 
 
@@ -2114,7 +2192,15 @@ window.gerarRelatorioPDF = async (evento) => {
 
 
 
+
+
+
+
                     <div style="font-size: 14px; font-weight: 900; color: #1e293b; margin-top: 2px;">ETAPA: ${tagAtual}</div>
+
+
+
+
 
 
 
@@ -2122,7 +2208,15 @@ window.gerarRelatorioPDF = async (evento) => {
 
 
 
+
+
+
+
                 <div>${logoImgHtml}</div>
+
+
+
+  
 
 
 
