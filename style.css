@@ -61,10 +61,10 @@ body {
     display: flex; 
     flex-wrap: wrap; 
     gap: 8px; 
-    padding: 5px 2px 5px 2px; 
+    padding: 0px 2px 5px 2px; /* Reduzi o padding superior e inferior */
     margin-top: 10px; 
-    margin-bottom: 5px; /* Reduzi aqui para aproximar da TAG */
-    max-height: 95px; /* Trava em 2 linhas exatas */
+    margin-bottom: 2px; /* Margem mínima para encostar na TAG */
+    max-height: 85px; /* Altura rigorosa para apenas 2 linhas */
     overflow-y: auto; 
     scrollbar-width: none; 
 }
