@@ -48,7 +48,7 @@ window.selecionarTime = (valor) => {
 };
 
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('firebase-messaging-sw.js').catch(err => console.log('Erro SW:', err));
+    navigator.serviceWorker.register('firebase-messaging-sw.js').catch(error => console.log('Erro SW:', error));
 }
 
 // --- LOGIN E AUTH ---
@@ -81,14 +81,14 @@ window.fazerLogin = () => {
     const e = document.getElementById('emailLogin').value;
     const s = document.getElementById('senhaLogin').value;
     if(!e || !s) return alert("Preencha tudo!");
-    signInWithEmailAndPassword(auth, e, s).catch(err => alert("Erro ao entrar: " + err.code));
+    signInWithEmailAndPassword(auth, e, s).catch(error => alert("Erro ao entrar: " + error.code));
 };
 
 window.criarConta = () => {
     const e = document.getElementById('emailLogin').value;
     const s = document.getElementById('senhaLogin').value;
     if(s.length < 6) return alert("A senha deve ter 6 números/letras!");
-    createUserWithEmailAndPassword(auth, e, s).then(() => alert("Conta criada e logada!")).catch(err => alert("Erro ao criar: " + err.code));
+    createUserWithEmailAndPassword(auth, e, s).then(() => alert("Conta criada e logada!")).catch(error => alert("Erro ao criar: " + error.code));
 };
 
 window.fazerLogout = () => { if(confirm("Deseja sair da agenda?")) signOut(auth); };
@@ -143,7 +143,7 @@ window.solicitarPermissaoNotificacao = () => {
                         btn.style.background = "#28a745";
                         alert("Aparelho sincronizado na Nuvem!");
                     }
-                }).catch(err => { alert("Erro de conexão."); btn.innerHTML = textoOriginal; });
+                }).catch(error => { alert("Erro de conexão."); btn.innerHTML = textoOriginal; });
             });
         } else alert("Você precisa logar e permitir notificações.");
     });
@@ -655,7 +655,7 @@ window.atualizarSeletorMarcadores = async () => {
 
     } catch (error) {
 
-        console.error("Erro ao gerar PDF:", err);
+        console.error("Erro ao gerar PDF:", error);
 
         alert("Erro técnico ao gerar o arquivo.");
 
@@ -1687,7 +1687,7 @@ window.gerarRelatorioPDF = async (evento) => {
 
     } catch (error) {
 
-        console.error(err);
+        console.error(error);
 
         alert("Erro ao processar o PDF.");
 
