@@ -21,14 +21,22 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
 }
 
-.timeline-header { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 4px !important; /* Diminui o espaço entre as duas linhas de botões */
-    margin-bottom: 10px !important; 
-    padding: 4px !important; /* Diminui o contêiner */
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 18px;
+.timeline-header { 
+
+    display: flex; 
+
+    flex-direction: column; 
+
+    gap: 4px !important; /* Diminui o espaço entre as duas linhas de botões */
+
+    margin-bottom: 10px !important; 
+
+    padding: 4px !important; /* Diminui o contêiner */
+
+    background: rgba(255, 255, 255, 0.05);
+
+    border-radius: 18px;
+
 }
 .btn-date { 
     flex: 1; 
@@ -54,16 +62,16 @@ body {
 #dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: #000000; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none; }
 #dataSeletor::-webkit-calendar-picker-indicator { filter: invert(0); cursor: pointer; } 
 
-.category-tabs { 
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 8px; 
-    padding: 5px 2px; 
-    margin-top: 10px; 
-    margin-bottom: 2px; 
-    max-height: 92px !important; /* Altura ideal para 2 linhas de botões redondos */
-    overflow-y: auto; 
-    scrollbar-width: none; 
+.category-tabs { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 6px; 
+    padding: 5px 2px; 
+    margin-top: 10px; 
+    margin-bottom: 2px; 
+    max-height: 85px !important; /* Este é o valor real para travar em 2 linhas */
+    overflow-y: auto; 
+    scrollbar-width: none; 
 }
 
 .category-tabs::-webkit-scrollbar { display: none; }
