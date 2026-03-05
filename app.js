@@ -273,32 +273,57 @@ window.renderizarCategoriasNoFiltro = () => {
     
     container.innerHTML = ''; 
     
-    // Junta a categoria "Geral" (fixa) com as categorias do banco
-    const listaCompleta = [{nome: "Geral", cor: "#94a3b8"}, ...(window.todasAsCategorias || [])];
+    // 1. Pega o histórico e isola a Geral
+    let todas = window.todasAsCategorias || [];
+    let semGeral = todas.filter(c => c.nome !== "Geral");
+    let recents = semGeral.slice(0, 3); // Extrai APENAS as 3 últimas/recentes
     
-    // Pega só as 3 primeiras para não quebrar o layout da pílula
-    const categoriasParaMostrar = listaCompleta.slice(0, 3); 
+    // 2. Monta a lista: 1 Geral + 3 Recentes (Total de 4 botões de categorias na tela)
+    let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
 
     categoriasParaMostrar.forEach((cat, index) => {
         const btn = document.createElement('button');
         const isActive = categoriasAtivas.includes(cat.nome); 
+        
+        // Ícone inline formatado para não quebrar a linha
+        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? `<span style="font-size: 0.8rem; margin-right: 3px; display: inline-flex; align-items: center;">👥</span>` : "";
+
+        // Estilo base do botão grudadinho
+        btn.style.cssText = "display: flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; white-space: nowrap; transition: all 0.2s;";
 
         if (isActive) {
-            btn.style.cssText = "background: #54627b; color: white; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; box-shadow: 0 4px 8px rgba(0,0,0,0.15); cursor: pointer; white-space: nowrap;";
-            btn.innerHTML = `Categoria: <span style="text-decoration: underline;">${cat.nome}</span>`;
+            // SE ESTIVER ATIVA: Fica pintadinho com a cor dela
+            btn.style.background = cat.cor || "#54627b";
+            btn.style.color = "white";
+            btn.style.padding = "6px 14px";
+            btn.style.borderRadius = "15px"; // Deixa com visual de pílula arredondada
+            btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
+            
+            if (cat.nome === "Geral") {
+                btn.innerHTML = `Categoria: <span style="text-decoration: underline; margin-left: 3px;">${cat.nome}</span>`;
+            } else {
+                btn.innerHTML = `${iconeTime}${cat.nome}`;
+            }
         } else {
-            btn.style.cssText = "background: transparent; color: #94a3b8; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; padding: 8px 5px; white-space: nowrap;";
-            btn.innerText = cat.nome;
+            // SE INATIVA: Transparente
+            btn.style.background = "transparent";
+            btn.style.color = "#94a3b8";
+            btn.style.padding = "6px 8px";
+            btn.innerHTML = `${iconeTime}${cat.nome}`;
         }
 
         btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
         container.appendChild(btn);
 
+        // Barra divisória (se a de cá e a de lá não estiverem ativas, ele põe a barrinha)
         if (index < categoriasParaMostrar.length - 1) {
-            const separador = document.createElement('span');
-            separador.innerText = '|';
-            separador.style.cssText = "color: #cbd5e1; font-weight: bold; margin: 0 2px;";
-            container.appendChild(separador);
+            const proxAtivo = categoriasAtivas.includes(categoriasParaMostrar[index + 1].nome);
+            if (!isActive && !proxAtivo) {
+                const separador = document.createElement('span');
+                separador.innerText = '|';
+                separador.style.cssText = "color: #cbd5e1; font-weight: bold; margin: 0 1px;";
+                container.appendChild(separador);
+            }
         }
     });
 };
