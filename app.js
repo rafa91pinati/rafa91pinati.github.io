@@ -876,7 +876,7 @@ window.carregarTarefas = async () => {
 
         let tarefasBrutas = [];
 
-        // Busca Pessoal (sem filtro de data no Firestore para permitir range flexível)
+        // Busca Pessoal
         const qPessoal = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid));
         const snapPessoal = await getDocs(qPessoal);
         snapPessoal.forEach(d => tarefasBrutas.push({ id: d.id, ...d.data() }));
@@ -894,21 +894,16 @@ window.carregarTarefas = async () => {
             }
         }
 
-        // --- LÓGICA DE FILTRAGEM LOCAL ---
+        // Filtro de Data Inteligente
         let tarefas = tarefasBrutas.filter(t => {
             if (tipoFiltroTempo === 'tudo') return true;
             if (tipoFiltroTempo === 'semana') return window.arrayDiasSemana.includes(t.dataString);
-            
-            // Filtro de Range (Período ou Mês)
             if (dataDeFiltroIni && dataDeFiltroFim) {
                 return t.dataString >= dataDeFiltroIni && t.dataString <= dataDeFiltroFim;
             }
-            
-            // Filtro de Data Única (Hoje, Amanhã ou Escolha Única)
             if (dataDeFiltroIni && !dataDeFiltroFim) {
                 return t.dataString === dataDeFiltroIni;
             }
-
             return true;
         });
 
@@ -919,13 +914,11 @@ window.carregarTarefas = async () => {
             return a.dataString.localeCompare(b.dataString); 
         });
 
-        // Filtro por Categoria e Marcador
         if (categoriasAtivas.includes("Geral")) {
             tarefas = tarefas.filter(t => t.categoria !== "Pessoal");
         } else {
             tarefas = tarefas.filter(t => categoriasAtivas.includes(t.categoria));
         }
-        
         if (tagFiltroAtiva !== "") tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
 
         lista.innerHTML = "";
