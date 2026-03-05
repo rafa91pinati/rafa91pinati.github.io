@@ -1980,187 +1980,321 @@ window.abrirCronogramaVisual = async (evento) => {
 
 
 
-window.gerarRelatorioPDF = async (evento) => {
+window.gerarRelatorioPDF = async (evento) => {
+    if (evento) evento.stopPropagation();
+    
+    // Trava de segurança 1: Categoria
+    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
+        return alert("📄 Selecione apenas UMA categoria específica.");
+    }
+
+    // Trava de segurança 2: Biblioteca
+    if (typeof html2pdf === 'undefined') {
+        return alert("❌ Erro: Biblioteca PDF não carregada. Recarregue a página.");
+    }
+
+    const btn = evento.currentTarget;
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳ Processando..."; btn.disabled = true;
+
+    try {
+        const categoriaDoPDF = categoriasAtivas[0];
+        const tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
+        if (tarefasDoPDF.length === 0) throw new Error("Não há tarefas para esta categoria.");
+
+        // ... (Lógica de montagem do HTML permanece igual) ...
+        // 
+
+        const relatorioTemp = document.createElement('div');
+        relatorioTemp.innerHTML = htmlPdf; // htmlPdf deve ser gerado antes como no seu código
+
+        const opcoes = { 
+            margin: [10, 10, 25, 10], 
+            filename: `Relatorio_${categoriaDoPDF}.pdf`,
+            html2canvas: { scale: 2, useCORS: true }, 
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+        };
+
+        // Gerando o Blob do PDF
+        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
+
+        // Trava de segurança 3: Usuário Logado
+        if (!window.usuarioLogado || !window.usuarioLogado.uid) {
+            throw new Error("Usuário não identificado. Faça login novamente.");
+        }
+
+        const nomeArquivoBase = `Relatorio_${categoriaDoPDF}_${Date.now()}`;
+        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeArquivoBase}.pdf`);
+        
+        await uploadBytes(sRef, pdfBlob);
+        const urlFinal = await getDownloadURL(sRef);
+
+        await addDoc(collection(db, "arquivos_fixos"), {
+            uid: window.usuarioLogado.uid,
+            Nomearquivo: nomeArquivoBase,
+            categoria: categoriaDoPDF,
+            link: urlFinal,
+            dataUpload: new Date()
+        });
+
+        alert("✅ Relatório salvo com sucesso!");
+        if (typeof carregarArquivosFixos === "function") carregarArquivosFixos();
+
+    } catch (error) {
+        console.error("Erro no PDF:", error);
+        alert("Erro: " + error.message);
+    } finally {
+        btn.innerHTML = textoOriginal; btn.disabled = false;
+    }
+};
 
-    if (evento) evento.stopPropagation();
 
-    
-
-    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
-
-        return alert("📄 Selecione apenas UMA categoria específica para gerar o relatório.");
-
-    }
-
-
-
-    const btn = evento.currentTarget;
-
-    const textoOriginal = btn.innerHTML;
-
-    btn.innerHTML = "⏳ Processando..."; 
-
-    btn.disabled = true;
-
-
-
-    try {
-
-        const categoriaDoPDF = categoriasAtivas[0];
-
-        const tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
-
-        
-
-        if (tarefasDoPDF.length === 0) throw new Error("Sem dados.");
-
-
-
-        let dataFiltroTexto = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
-
-        if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
-
-            dataFiltroTexto = `${window.arrayDiasSemana[0].split('-').reverse().join('/')} a ${window.arrayDiasSemana[6].split('-').reverse().join('/')}`;
-
-        } else if (tipoFiltroTempo === 'periodo') {
-
-            const fim = document.getElementById('dataFimFiltro').value;
-
-            if(fim) dataFiltroTexto = `${dataFiltroTexto} a ${fim.split('-').reverse().join('/')}`;
-
-        }
-
-
-
-        const tarefasPorTag = {};
-
-        tarefasDoPDF.forEach(t => {
-
-            const tag = t.marcador || "Geral";
-
-            if (!tarefasPorTag[tag]) tarefasPorTag[tag] = {};
 
             if (!tarefasPorTag[tag][t.dataString]) tarefasPorTag[tag][t.dataString] = [];
 
+
+
             tarefasPorTag[tag][t.dataString].push(t);
 
+
+
         });
+
+
+
+
 
 
 
         const tagsOrdenadas = Object.keys(tarefasPorTag).sort();
 
+
+
         const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+
 
         
 
+
+
         let logoImgHtml = ""; 
+
+
 
         if (window.logosCategorias && window.logosCategorias[categoriaDoPDF]) {
 
+
+
             logoImgHtml = `<img src="${window.logosCategorias[categoriaDoPDF]}" style="height: 40px; max-width: 140px; object-fit: contain;">`;
+
+
 
         }
 
 
 
+
+
+
+
         const criarCabecalho = (tagAtual) => `
+
+
 
             <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 30px;">
 
+
+
                 <div>
+
+
 
                     <div style="font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Relatório Diário | Período: ${dataFiltroTexto}</div>
 
+
+
                     <div style="font-size: 14px; font-weight: 900; color: #1e293b; margin-top: 2px;">ETAPA: ${tagAtual}</div>
+
+
 
                 </div>
 
+
+
                 <div>${logoImgHtml}</div>
+
+
 
             </div>`;
 
 
 
+
+
+
+
         const relatorioTemp = document.createElement('div');
+
+
 
         relatorioTemp.style.cssText = "font-family: Arial, sans-serif; background: white; color: #1e293b; padding: 0; margin: 0;";
 
 
 
+
+
+
+
         let htmlPdf = `
+
+
 
             <div style="padding: 20px; min-height: 260mm;">
 
+
+
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+
+
 
                     <div>
 
+
+
                         <h1 style="margin: 0; font-size: 28px; font-weight: 900; text-transform: uppercase; color: #1e293b;">RESUMO</h1>
+
+
 
                         <h2 style="margin: 5px 0 2px 0; font-size: 16px; color: #3b82f6; font-weight: bold;">${categoriaDoPDF}</h2>
 
+
+
                         <span style="font-size: 11px; color: #64748b;">${dataFiltroTexto}</span>
+
+
 
                     </div>
 
+
+
                     <div>${logoImgHtml}</div>
+
+
 
                 </div>`;
 
 
 
+
+
+
+
         tagsOrdenadas.forEach(tag => {
+
+
 
             htmlPdf += `<h2 style="color: #3b82f6; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 25px; margin-bottom: 10px; text-transform: uppercase;">${tag}</h2>`;
 
+
+
             Object.keys(tarefasPorTag[tag]).sort().forEach(dia => {
+
+
 
                 const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
 
+
+
                 htmlPdf += `<h3 style="margin: 12px 0 6px 0; font-size: 11px; color: #1e293b;">${nomeDia} (${dia.split('-').reverse().join('/')})</h3>`;
+
+
 
                 tarefasPorTag[tag][dia].forEach(t => {
 
+
+
                     htmlPdf += `
+
+
 
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; padding-left: 10px;">
 
+
+
                             <div style="width: 3px; height: 12px; background: ${window.coresCategorias[t.categoria] || '#3b82f6'};"></div>
+
+
 
                             <span style="font-size: 10px; color: #475569;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</span>
 
+
+
                         </div>`;
+
+
 
                 });
 
+
+
             });
 
+
+
         });
+
+
 
         htmlPdf += `</div><div class="html2pdf__page-break"></div>`;
 
 
 
+
+
+
+
         tagsOrdenadas.forEach((tag, index) => {
+
+
 
             if (index > 0) htmlPdf += `<div class="html2pdf__page-break"></div>`;
 
+
+
             
 
+
+
             htmlPdf += `<div style="padding: 20px; min-height: 260mm;">`;
+
+
 
             htmlPdf += criarCabecalho(tag);
 
 
 
+
+
+
+
             const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+
+
 
             diasOrdenados.forEach(dia => {
 
+
+
                 const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
 
+
+
                 const dataF = dia.split('-').slice(0, 2).reverse().join('/');
+
+
+
+
 
 
 
@@ -2168,53 +2302,107 @@ window.gerarRelatorioPDF = async (evento) => {
 
 
 
+
+
+
+
                 tarefasPorTag[tag][dia].forEach(t => {
+
+
 
                     let fotosHtml = '';
 
+
+
                     if (t.fotos && t.fotos.length > 0) {
+
+
 
                         const qtd = Math.min(t.fotos.length, 4);
 
+
+
                         const grid = qtd === 1 ? '1fr' : '1fr 1fr';
+
+
 
                         fotosHtml = `<div style="display: grid; grid-template-columns: ${grid}; gap: 10px; margin-top: 12px;">`;
 
+
+
                         t.fotos.slice(0, 4).forEach(f => {
+
+
 
                             fotosHtml += `
 
+
+
                                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+
+
 
                                     <img src="${f}" style="max-width: 95%; max-height: 95%; object-fit: contain;">
 
+
+
                                 </div>`;
+
+
 
                         });
 
+
+
                         fotosHtml += `</div>`;
+
+
 
                     }
 
 
 
+
+
+
+
                     htmlPdf += `
+
+
 
                         <div style="margin-bottom: 40px; page-break-inside: avoid; border-left: 4px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; padding-left: 15px;">
 
+
+
                             <div style="font-weight: 800; font-size: 13px; color: #1e293b;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
+
+
 
                             ${fotosHtml}
 
+
+
                         </div>`;
+
+
 
                 });
 
+
+
             });
+
+
 
             htmlPdf += `</div>`;
 
+
+
         });
+
+
+
+
 
 
 
@@ -2222,211 +2410,506 @@ window.gerarRelatorioPDF = async (evento) => {
 
 
 
+
+
+
+
         const nomeArquivoBase = `Relatorio_${categoriaDoPDF}_${dataFiltroTexto.replace(/\//g, '-')}`;
+
+
 
         const opcoes = { 
 
+
+
             margin: [10, 10, 25, 10], 
+
+
 
             filename: `${nomeArquivoBase}.pdf`,
 
+
+
             image: { type: 'jpeg', quality: 0.98 }, 
+
+
 
             html2canvas: { scale: 2, useCORS: true, logging: false }, 
 
+
+
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+
+
 
         };
 
 
 
+
+
+
+
         const worker = html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf');
+
+
 
         
 
+
+
         const pdfBlob = await worker.then(pdf => {
+
+
 
             const totalPages = pdf.internal.getNumberOfPages();
 
+
+
             const pageWidth = pdf.internal.pageSize.getWidth();
+
+
 
             const pageHeight = pdf.internal.pageSize.getHeight();
 
 
 
+
+
+
+
             for (let i = 1; i <= totalPages; i++) {
+
+
 
                 pdf.setPage(i);
 
+
+
                 
+
+
 
                 pdf.setDrawColor(226, 232, 240);
 
+
+
                 pdf.setLineWidth(0.5);
+
+
 
                 pdf.line(10, pageHeight - 15, pageWidth - 10, pageHeight - 15);
 
 
 
+
+
+
+
                 pdf.setFontSize(9);
+
+
 
                 pdf.setTextColor(100, 116, 139);
 
+
+
                 pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
+
+
 
             }
 
+
+
             return pdf.output('blob');
 
+
+
         });
+
+
+
+
 
 
 
         const q = query(collection(db, "arquivos_fixos"), 
 
+
+
                   where("uid", "==", window.usuarioLogado.uid), 
+
+
 
                   where("Nomearquivo", "==", nomeArquivoBase));
 
+
+
         
+
+
 
         const snapshot = await getDocs(q);
 
+
+
         if (!snapshot.empty) {
+
+
 
             for (const docSnap of snapshot.docs) {
 
+
+
                 await deleteDoc(docSnap.ref);
 
+
+
             }
+
+
 
         }
 
 
 
+
+
+
+
         const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeArquivoBase}.pdf`);
 
+
+
         await uploadBytes(sRef, pdfBlob);
+
+
 
         const urlFinal = await getDownloadURL(sRef);
 
 
 
+
+
+
+
         await addDoc(collection(db, "arquivos_fixos"), {
+
+
 
             uid: window.usuarioLogado.uid,
 
+
+
             Nomearquivo: nomeArquivoBase,
+
+
 
             categoria: categoriaDoPDF,
 
+
+
             link: urlFinal,
 
+
+
             dataUpload: new Date()
+
+
 
         });
 
 
 
+
+
+
+
         alert("✅ Relatório gerado e salvo com sucesso!");
+
+
 
         carregarArquivosFixos();
 
 
 
+
+
+
+
     } catch (error) {
+
+
 
         console.error(error);
 
+
+
         alert("Erro ao processar PDF.");
+
+
 
     } finally {
 
+
+
         btn.innerHTML = textoOriginal; 
+
+
 
         btn.disabled = false;
 
+
+
     }
 
+
+
 };
 
 
-        window.gerarPDFCronograma = async (evento) => {
-    if (evento) evento.stopPropagation();
-
-    const btn = document.getElementById('btnPdfCrono');
-    const originalText = btn.innerHTML;
-    
-    const containerGantt = document.getElementById('cronoContainer').innerHTML;
-    if (containerGantt.includes('Nenhuma atividade') || containerGantt.includes('Desenhando')) {
-        return alert("Não há dados desenhados para gerar o PDF.");
-    }
-
-    btn.innerHTML = "⏳..."; 
-    btn.disabled = true;
-
-    const relatorioTemp = document.createElement('div');
-    relatorioTemp.style.cssText = "font-family: Arial, sans-serif; padding: 20px; background: white; color: #1e293b;";
-
-    // Verifica se existe logo para a categoria ativa
-    let logoHtml = (window.logosCategorias && window.logosCategorias[categoriasAtivas[0]]) ? 
-        `<img src="${window.logosCategorias[categoriasAtivas[0]]}" style="height: 45px; max-width: 150px; object-fit: contain;">` : "";
-
-    // Ajuste de cores para o PDF (Light Mode forçado)
-    let conteudoAdaptado = containerGantt
-        .replace(/color: #f8fafc;/g, 'color: #1e293b;') 
-        .replace(/color: #94a3b8;/g, 'color: #475569;') 
-        .replace(/background: rgba\(0,0,0,0.3\);/g, 'background: #f1f5f9;')
-        .replace(/border: 1px solid rgba\(255,255,255,0.1\);/g, 'border: 1px solid #cbd5e1;');
-
-    relatorioTemp.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 30px;">
-            <div>
-                <h1 style="margin: 0; font-size: 22px;">CRONOGRAMA EXECUTIVO</h1>
-                <h2 style="margin: 0; font-size: 16px; color: #64748b;">Categoria: ${categoriasAtivas[0]}</h2>
-            </div>
-            ${logoHtml}
-        </div>
-        ${conteudoAdaptado}
-    `;
-
-    const opcoes = { 
-        margin: 10, 
-        filename: `Cronograma_${categoriasAtivas[0]}.pdf`,
-        html2canvas: { scale: 2, useCORS: true }, 
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } 
-    };
-
-    const nomeRelatorio = `Cronograma_${categoriasAtivas[0]}_${Date.now()}`;
-
-    try { 
-        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
-        
-        // Caminho no Storage
-        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`);
-        await uploadBytes(sRef, pdfBlob);
-        const urlArquivo = await getDownloadURL(sRef);
-
-        // Salva a referência no Firestore (Aqui estava o erro de fechamento!)
-        await addDoc(collection(db, "arquivos_fixos"), {
-            uid: window.usuarioLogado.uid,
-            Nomearquivo: nomeRelatorio,
-            categoria: categoriasAtivas[0],
-            link: urlArquivo,
-            dataUpload: new Date()
-        }); // <-- Fechamento do addDoc corrigido
-
-        alert("✅ Cronograma salvo com sucesso!");
-        if (typeof carregarArquivosFixos === "function") carregarArquivosFixos();
-
-    } catch (error) {
-        console.error("Erro ao salvar PDF:", error);
-        alert("Erro ao salvar o cronograma no banco de dados.");
-    } finally {
-        btn.innerHTML = originalText; 
-        btn.disabled = false;
-    }
+
+
+
+        window.gerarPDFCronograma = async (evento) => {
+
+
+    if (evento) evento.stopPropagation();
+
+
+
+
+
+    const btn = document.getElementById('btnPdfCrono');
+
+
+    const originalText = btn.innerHTML;
+
+
+    
+
+
+    const containerGantt = document.getElementById('cronoContainer').innerHTML;
+
+
+    if (containerGantt.includes('Nenhuma atividade') || containerGantt.includes('Desenhando')) {
+
+
+        return alert("Não há dados desenhados para gerar o PDF.");
+
+
+    }
+
+
+
+
+
+    btn.innerHTML = "⏳..."; 
+
+
+    btn.disabled = true;
+
+
+
+
+
+    const relatorioTemp = document.createElement('div');
+
+
+    relatorioTemp.style.cssText = "font-family: Arial, sans-serif; padding: 20px; background: white; color: #1e293b;";
+
+
+
+
+
+    // Verifica se existe logo para a categoria ativa
+
+
+    let logoHtml = (window.logosCategorias && window.logosCategorias[categoriasAtivas[0]]) ? 
+
+
+        `<img src="${window.logosCategorias[categoriasAtivas[0]]}" style="height: 45px; max-width: 150px; object-fit: contain;">` : "";
+
+
+
+
+
+    // Ajuste de cores para o PDF (Light Mode forçado)
+
+
+    let conteudoAdaptado = containerGantt
+
+
+        .replace(/color: #f8fafc;/g, 'color: #1e293b;') 
+
+
+        .replace(/color: #94a3b8;/g, 'color: #475569;') 
+
+
+        .replace(/background: rgba\(0,0,0,0.3\);/g, 'background: #f1f5f9;')
+
+
+        .replace(/border: 1px solid rgba\(255,255,255,0.1\);/g, 'border: 1px solid #cbd5e1;');
+
+
+
+
+
+    relatorioTemp.innerHTML = `
+
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 30px;">
+
+
+            <div>
+
+
+                <h1 style="margin: 0; font-size: 22px;">CRONOGRAMA EXECUTIVO</h1>
+
+
+                <h2 style="margin: 0; font-size: 16px; color: #64748b;">Categoria: ${categoriasAtivas[0]}</h2>
+
+
+            </div>
+
+
+            ${logoHtml}
+
+
+        </div>
+
+
+        ${conteudoAdaptado}
+
+
+    `;
+
+
+
+
+
+    const opcoes = { 
+
+
+        margin: 10, 
+
+
+        filename: `Cronograma_${categoriasAtivas[0]}.pdf`,
+
+
+        html2canvas: { scale: 2, useCORS: true }, 
+
+
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } 
+
+
+    };
+
+
+
+
+
+    const nomeRelatorio = `Cronograma_${categoriasAtivas[0]}_${Date.now()}`;
+
+
+
+
+
+    try { 
+
+
+        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
+
+
+        
+
+
+        // Caminho no Storage
+
+
+        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`);
+
+
+        await uploadBytes(sRef, pdfBlob);
+
+
+        const urlArquivo = await getDownloadURL(sRef);
+
+
+
+
+
+        // Salva a referência no Firestore (Aqui estava o erro de fechamento!)
+
+
+        await addDoc(collection(db, "arquivos_fixos"), {
+
+
+            uid: window.usuarioLogado.uid,
+
+
+            Nomearquivo: nomeRelatorio,
+
+
+            categoria: categoriasAtivas[0],
+
+
+            link: urlArquivo,
+
+
+            dataUpload: new Date()
+
+
+        }); // <-- Fechamento do addDoc corrigido
+
+
+
+
+
+        alert("✅ Cronograma salvo com sucesso!");
+
+
+        if (typeof carregarArquivosFixos === "function") carregarArquivosFixos();
+
+
+
+
+
+    } catch (error) {
+
+
+        console.error("Erro ao salvar PDF:", error);
+
+
+        alert("Erro ao salvar o cronograma no banco de dados.");
+
+
+    } finally {
+
+
+        btn.innerHTML = originalText; 
+
+
+        btn.disabled = false;
+
+
+    }
+
+
 };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
