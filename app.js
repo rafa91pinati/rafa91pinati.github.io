@@ -94,10 +94,10 @@ const storage = getStorage(app);
 
 
 // Chamar uma vez ao carregar a página
-window.onload = function() {
-    marcarComoAtualizado();
+//window.onload = function() {
+  //  marcarComoAtualizado();
     // Suas outras funções de carregamento aqui...
-};
+//};
 
 
 // VARIÁVEIS GLOBAIS
