@@ -1179,7 +1179,7 @@ window.salvarNovaTarefa = async () => {
 
 
 
-        const promessas = datasParaSalvar.map(dataStr => addDoc(collection(db, "tarefas"), { 
+                const promessas = datasParaSalvar.map(dataStr => addDoc(collection(db, "tarefas"), { 
 
             uid: window.usuarioLogado.uid, 
 
@@ -1190,9 +1190,8 @@ window.salvarNovaTarefa = async () => {
             descricao: desc, 
 
             marcador: marcadorAtivo, 
- 
-
-            hora: document.getElementById('horaTask').value, 
+
+            hora: document.getElementById('horaTask').value,  
 
             dataString: dataStr, 
 
