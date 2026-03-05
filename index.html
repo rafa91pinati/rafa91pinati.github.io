@@ -527,14 +527,9 @@
     </div>
 </div>
 
-<script>
-        // Esse bloco garante que o script sempre carregue a versão nova 
-        // e, o mais importante, define que ele é um MÓDULO.
-        const versao = Math.floor(Date.now() / 60000); 
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.src = 'app.js?v=' + versao;
-        document.body.appendChild(script);
-    </script>
-</body>
+<script type="module">
+        const versao = Math.floor(Date.now() / 60000); 
+        import('./app.js?v=' + versao);
+    </script>
+</body>
 </html>
