@@ -9,7 +9,7 @@ const firebaseConfig = {
     authDomain: "agenda-4efa7.firebaseapp.com",
     projectId: "agenda-4efa7",
     storageBucket: "agenda-4efa7.firebasestorage.app",
-    appId: "1:299659202964:web:e358210feb4d7784f63f81",
+    appId: "1:299659202964:web:e358210feb4d7784f63f81", 
     messagingSenderId: "299659202964" 
 };
 
@@ -18,6 +18,25 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const messaging = getMessaging(app);
 const storage = getStorage(app);
+
+
+function registrarAtualizacao() {
+    const agora = new Date();
+    const horas = String(agora.getHours()).padStart(2, '0');
+    const minutos = String(agora.getMinutes()).padStart(2, '0');
+    
+    const statusEl = document.getElementById('status-atualizacao');
+    if (statusEl) {
+        statusEl.innerText = `Atualizado às ${horas}:${minutos}`;
+        
+        // Efeito visual opcional: dá uma piscadinha no texto ao atualizar
+        statusEl.style.color = '#10b981'; // Fica verde momentaneamente
+        setTimeout(() => {
+            statusEl.style.color = '#94a3b8'; // Volta para o cinza
+        }, 1000);
+    }
+}
+
 
 // VARIÁVEIS GLOBAIS
 window.coresCategorias = { "Geral": "#94a3b8" }; 
