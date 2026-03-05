@@ -1179,18 +1179,30 @@ window.salvarNovaTarefa = async () => {
 
 
 
-                const promessas = datasParaSalvar.map(dataStr => addDoc(collection(db, "tarefas"), { 
-
-            uid: window.usuarioLogado.uid, 
-
-            timeId: idDoTimeDaCategoria,
-
-            categoria: categoriaPrincipal,
-
-            descricao: desc, 
-
-            marcador: marcadorAtivo, 
-
+                const promessas = datasParaSalvar.map(dataStr => addDoc(collection(db, "tarefas"), { 
+
+
+
+            uid: window.usuarioLogado.uid, 
+
+
+
+            timeId: idDoTimeDaCategoria,
+
+
+
+            categoria: categoriaPrincipal,
+
+
+
+            descricao: desc, 
+
+
+
+            marcador: marcadorAtivo, 
+
+
+
             hora: document.getElementById('horaTask').value,  
 
             dataString: dataStr, 
@@ -1208,9 +1220,9 @@ window.salvarNovaTarefa = async () => {
         
 
         await Promise.all(promessas);
-        cancelarNovaTarefa(); carregarTarefas(); 
-        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
-    } catch (e) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+        cancelarNovaTarefa(); carregarTarefas(); 
+        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
+    } catch (e) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
 };
 
 window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
