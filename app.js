@@ -1053,19 +1053,32 @@ window.cancelarNovaTarefa = () => {
 
 
 
-// Funções de Controle dos Pop-ups
-function abrirModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) {
-        modal.classList.remove('escondido');
-        // Se for o de tarefa, foca no input para digitar rápido
-        if (id === 'modalTarefa') document.getElementById('descTask').focus();
-    }
-}
-
-function fecharModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.classList.add('escondido');
+// Funções de Controle dos Pop-ups
+
+function abrirModal(id) {
+
+    const modal = document.getElementById(id);
+
+    if (modal) {
+
+        modal.classList.remove('escondido');
+
+        // Se for o de tarefa, foca no input para digitar rápido
+
+        if (id === 'modalTarefa') document.getElementById('descTask').focus();
+
+    }
+
+}
+
+
+
+function fecharModal(id) {
+
+    const modal = document.getElementById(id);
+
+    if (modal) modal.classList.add('escondido');
+
 }
 
 // Otimização: Fecha o modal automaticamente após salvar
@@ -1166,17 +1179,18 @@ window.salvarNovaTarefa = async () => {
 
 
 
-        const promessas = datasParaSalvar.map(dataStr => addDoc(collection(db, "tarefas"), { 
-
-            uid: window.usuarioLogado.uid, 
-
-            timeId: idDoTimeDaCategoria,
-
-            categoria: categoriaPrincipal,
-
-            descricao: desc, 
-
-            marcador: marcadorAtivo, 
+        const promessas = datasParaSalvar.map(dataStr => addDoc(collection(db, "tarefas"), { 
+
+            uid: window.usuarioLogado.uid, 
+
+            timeId: idDoTimeDaCategoria,
+
+            categoria: categoriaPrincipal,
+
+            descricao: desc, 
+
+            marcador: marcadorAtivo, 
+ 
 
             hora: document.getElementById('horaTask').value, 
 
