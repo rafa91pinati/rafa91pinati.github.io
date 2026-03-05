@@ -1,5 +1,11 @@
 /* --- CONFIGURAÇÕES GERAIS --- */
 
+/* --- CLASSES UTILITÁRIAS --- */
+.escondido {
+    display: none !important;
+}
+
+
 body { 
 
     font-family: 'Segoe UI', system-ui, sans-serif; 
