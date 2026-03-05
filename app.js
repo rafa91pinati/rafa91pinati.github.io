@@ -1702,31 +1702,44 @@ window.excluirTransacao = async (id) => {
 
 // --- GRÁFICO GANTT E PDF ---
 window.abrirCronogramaVisual = async (evento) => {
-    evento.stopPropagation();
+    if (evento) evento.stopPropagation();
     if (!window.usuarioLogado) return alert("Faça login primeiro!");
     
-    if (categoriasAtivas.length > 1) {
+    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
         return alert("📊 Por favor, deixe apenas UMA categoria selecionada para gerar o Gráfico.");
-    }
-    if (categoriasAtivas.includes("Geral")) {
-        return alert("📊 Por favor, selecione uma categoria específica (desmarque a Geral) para gerar o Gráfico.");
     }
 
     const modal = document.getElementById('modalCronograma');
     const container = document.getElementById('cronoContainer');
-    const badge = document.getElementById('cronoBadge');
     
+    if (modal.classList.contains('escondido')) {
+        modal.classList.remove('escondido');
+    }
     modal.style.display = 'flex';
-    container.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>⏳ Desenhando linha do tempo...</p>";
+
+    const modalContent = modal.querySelector('.modal-content') || modal.firstElementChild;
+    if (modalContent) {
+        modalContent.style.background = '#ffffff';
+        modalContent.style.borderRadius = '16px';
+        modalContent.style.border = 'none';
+        
+        const headerAntigo = modalContent.querySelector('div[style*="border-bottom"]');
+        if(headerAntigo && headerAntigo !== container) headerAntigo.style.display = 'none';
+    }
+
+    container.innerHTML = "<p style='text-align:center; color:#64748b; padding: 20px;'>⏳ Desenhando linha do tempo...</p>";
 
     const categoriaDoGrafico = categoriasAtivas[0];
-    badge.innerText = categoriaDoGrafico;
 
     try {
         let tarefas = window.tarefasMonitoramento.filter(t => t.categoria == categoriaDoGrafico);
         
         if (!tarefas || tarefas.length == 0) { 
-            container.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma atividade na tela para gerar o gráfico.</p>"; 
+            container.innerHTML = `
+                <div style="text-align: right; margin-bottom: 10px;">
+                    <button onclick="document.getElementById('modalCronograma').style.display='none'; document.getElementById('modalCronograma').classList.add('escondido');" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; color: #64748b; font-weight: bold;">✕</button>
+                </div>
+                <p style='text-align:center; color:#64748b; padding: 20px;'>Nenhuma atividade na tela para gerar o gráfico.</p>`; 
             return; 
         }
 
@@ -1734,7 +1747,7 @@ window.abrirCronogramaVisual = async (evento) => {
         let minGlobal = null; let maxGlobal = null;
 
         tarefas.forEach(t => {
-            const tag = t.marcador || "Geral ";
+            const tag = t.marcador || "Geral";
             const dStr = t.dataString;
             if (!tagsMap[tag]) tagsMap[tag] = { min: dStr, max: dStr };
             else {
@@ -1746,7 +1759,7 @@ window.abrirCronogramaVisual = async (evento) => {
         });
 
         if (!minGlobal || !maxGlobal) {
-            container.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Atividades sem data válida.</p>";
+            container.innerHTML = "<p style='text-align:center; color:#64748b;'>Atividades sem data válida.</p>";
             return;
         }
 
@@ -1754,7 +1767,27 @@ window.abrirCronogramaVisual = async (evento) => {
         const dateMaxGlobal = new Date(maxGlobal + 'T12:00:00');
         const totalDiasGlobais = Math.round((dateMaxGlobal - dateMinGlobal) / (1000 * 60 * 60 * 24)) + 1;
 
-        let htmlCrono = `<div style="display:flex; flex-direction:column; gap:20px;">`;
+        let logoHtml = window.logosCategorias[categoriaDoGrafico] ? 
+            `<img src="${window.logosCategorias[categoriaDoGrafico]}" style="height: 45px; max-width: 150px; object-fit: contain;">` : "";
+
+        let htmlCrono = `
+            <div id="areaGraficoExportar" style="background: #ffffff; padding: 10px; font-family: Arial, sans-serif;">
+                
+                <div class="botoes-crono-acao" style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px;">
+                    <button onclick="gerarPDFCronograma(event)" id="btnPdfCrono" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">📄 GERAR PDF</button>
+                    <button onclick="document.getElementById('modalCronograma').style.display='none'; document.getElementById('modalCronograma').classList.add('escondido');" style="background: #e2e8f0; color: #64748b; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer;">FECHAR</button>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 30px;">
+                    <div>
+                        <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #1e293b; text-transform: uppercase;">CRONOGRAMA EXECUTIVO</h1>
+                        <h2 style="margin: 5px 0 0 0; font-size: 14px; color: #64748b; font-weight: bold;">Categoria: ${categoriaDoGrafico}</h2>
+                    </div>
+                    <div>${logoHtml}</div>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:25px;">
+        `;
 
         Object.keys(tagsMap).sort().forEach(tag => {
             const dMin = new Date(tagsMap[tag].min + 'T12:00:00');
@@ -1763,8 +1796,8 @@ window.abrirCronogramaVisual = async (evento) => {
             const diasDeslocamento = Math.round((dMin - dateMinGlobal) / (1000 * 60 * 60 * 24));
             const duracaoDias = Math.round((dMax - dMin) / (1000 * 60 * 60 * 24)) + 1;
 
-            const percLeft = totalDiasGlobais == 1 ? 0 : (diasDeslocamento / totalDiasGlobais) * 100;
-            const percWidth = totalDiasGlobais == 1 ? 100 : (duracaoDias / totalDiasGlobais) * 100;
+            const percLeft = totalDiasGlobais === 1 ? 0 : (diasDeslocamento / totalDiasGlobais) * 100;
+            const percWidth = totalDiasGlobais === 1 ? 100 : (duracaoDias / totalDiasGlobais) * 100;
 
             const fMin = `${String(dMin.getDate()).padStart(2,'0')}/${String(dMin.getMonth()+1).padStart(2,'0')}`;
             const fMax = `${String(dMax.getDate()).padStart(2,'0')}/${String(dMax.getMonth()+1).padStart(2,'0')}`;
@@ -1772,10 +1805,12 @@ window.abrirCronogramaVisual = async (evento) => {
 
             htmlCrono += `
                 <div>
-                    <div style="font-size: 0.8rem; font-weight: bold; color: #f8fafc; margin-bottom: 6px; display: flex; justify-content: space-between;"><span>🏷️ ${tag}</span></div>
-                    <div style="background: rgba(0,0,0,0.3); width: 100%; height: 32px; border-radius: 8px; position: relative; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="position: absolute; left: ${percLeft}%; width: ${percWidth}%; height: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; min-width: fit-content; padding: 0 8px; z-index: 2;">
-                            <span style="color: white; font-size: 0.7rem; font-weight: bold; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${textoBarra}</span>
+                    <div style="font-size: 13px; font-weight: 800; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <span style="color: #f59e0b;">🏷️</span> ${tag}
+                    </div>
+                    <div style="background: #f1f5f9; width: 100%; height: 36px; border-radius: 8px; position: relative; border: 1px solid #e2e8f0; overflow: hidden;">
+                        <div style="position: absolute; left: ${percLeft}%; width: ${percWidth}%; height: 100%; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 8px; display: flex; align-items: center; justify-content: center; min-width: fit-content; padding: 0 12px; z-index: 2;">
+                            <span style="color: white; font-size: 11px; font-weight: bold; white-space: nowrap;">${textoBarra}</span>
                         </div>
                     </div>
                 </div>`;
@@ -1784,180 +1819,350 @@ window.abrirCronogramaVisual = async (evento) => {
         const fMinGlob = `${String(dateMinGlobal.getDate()).padStart(2,'0')}/${String(dateMinGlobal.getMonth()+1).padStart(2,'0')}/${dateMinGlobal.getFullYear()}`;
         const fMaxGlob = `${String(dateMaxGlobal.getDate()).padStart(2,'0')}/${String(dateMaxGlobal.getMonth()+1).padStart(2,'0')}/${dateMaxGlobal.getFullYear()}`;
         
-        htmlCrono += `</div><div style="display: flex; justify-content: space-between; margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; font-size: 0.75rem; color: #94a3b8; font-weight: bold;">
-            <span>🏁 Início: ${fMinGlob}</span><span style="color: #f59e0b;">⏳ Total: ${totalDiasGlobais} dias</span><span>🎯 Fim: ${fMaxGlob}</span>
-        </div>`;
+        htmlCrono += `
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 15px; font-size: 12px; color: #64748b; font-weight: bold;">
+                    <span style="display:flex; align-items:center; gap:5px;">🏁 Início: ${fMinGlob}</span>
+                    <span style="color: #f59e0b; display:flex; align-items:center; gap:5px;">⏳ Total: ${totalDiasGlobais} dias</span>
+                    <span style="display:flex; align-items:center; gap:5px;">🎯 Fim: ${fMaxGlob}</span>
+                </div>
+            </div>`;
+        
         container.innerHTML = htmlCrono;
     } catch (e) { 
+        console.error(e);
         container.innerHTML = "<p style='color:#ef4444; text-align:center;'>Erro ao montar o gráfico.</p>"; 
     }
 };
 
 
 
-window.gerarRelatorioPDF = async (evento) => {
-    if (evento) evento.stopPropagation();
-    
-    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
-        return alert("📄 Por favor, selecione apenas UMA categoria específica para o PDF.");
-    }
-    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
-        return alert("Não há atividades na tela para gerar o PDF.");
-    }
-
-    const btn = evento.currentTarget;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Gerando..."; 
-    btn.disabled = true;
-
-    try {
-        const categoriaDoPDF = categoriasAtivas[0];
-        const tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
-        
-        if (tarefasDoPDF.length === 0) throw new Error("Nenhuma tarefa encontrada.");
-
-        let dataFiltroTexto = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
-        if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
-            dataFiltroTexto = `${window.arrayDiasSemana[0].split('-').reverse().join('/')} a ${window.arrayDiasSemana[6].split('-').reverse().join('/')}`;
-        } else if (tipoFiltroTempo === 'periodo') {
-            const fim = document.getElementById('dataFimFiltro').value;
-            if(fim) dataFiltroTexto = `${dataFiltroTexto} a ${fim.split('-').reverse().join('/')}`;
-        }
-
-        const tarefasPorTag = {};
-        tarefasDoPDF.forEach(t => {
-            const tag = t.marcador || "Geral";
-            if (!tarefasPorTag[tag]) tarefasPorTag[tag] = {};
-            if (!tarefasPorTag[tag][t.dataString]) tarefasPorTag[tag][t.dataString] = [];
-            tarefasPorTag[tag][t.dataString].push(t);
-        });
-
-        const tagsOrdenadas = Object.keys(tarefasPorTag).sort();
-        const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-
-        const relatorioTemp = document.createElement('div');
-        relatorioTemp.style.cssText = "font-family: Arial, sans-serif; padding: 20px; background: white; color: #1e293b; font-size: 12px;";
-
-        let logoImgHtml = ""; 
-        if (window.logosCategorias && window.logosCategorias[categoriaDoPDF]) {
-            logoImgHtml = `<img src="${window.logosCategorias[categoriaDoPDF]}" style="height: 40px; max-width: 150px; object-fit: contain;">`;
-        }
-
-        let htmlPdf = `
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
-                <div>
-                    <h1 style="margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase;">RESUMO</h1>
-                    <h2 style="margin: 5px 0 2px 0; font-size: 14px; color: #3b82f6; font-weight: bold;">Categoria: ${categoriaDoPDF}</h2>
-                    <span style="font-size: 10px; color: #64748b;">Período: ${dataFiltroTexto}</span>
-                </div>
-                <div>${logoImgHtml}</div>
-            </div>`;
-
-        tagsOrdenadas.forEach(tag => {
-            htmlPdf += `<h2 style="color: #3b82f6; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 20px; margin-bottom: 10px;">Etapa: ${tag}</h2>`;
-            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
-            
-            diasOrdenados.forEach(dia => {
-                const dataObj = new Date(dia + 'T12:00:00');
-                const nomeDia = diasSemanaNomes[dataObj.getDay()];
-                const dataF = dia.split('-').reverse().join('/');
-
-                htmlPdf += `<h3 style="margin: 10px 0 5px 0; font-size: 11px; color: #1e293b;">${nomeDia} (${dataF})</h3>`;
-
-                tarefasPorTag[tag][dia].forEach(t => {
-                    const corBorda = window.coresCategorias[t.categoria] || '#6b21a8';
-                    htmlPdf += `
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding-left: 5px;">
-                            <div style="width: 3px; height: 12px; background: ${corBorda};"></div>
-                            <span style="font-size: 10px; color: #475569;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</span>
-                        </div>`;
-                });
-            });
-        });
-
-        htmlPdf += `<div class="html2pdf__page-break"></div>`;
-
-        tagsOrdenadas.forEach(tag => {
-            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
-            
-            diasOrdenados.forEach(dia => {
-                const dataObj = new Date(dia + 'T12:00:00');
-                const nomeDia = diasSemanaNomes[dataObj.getDay()];
-                const dataF = dia.split('-').slice(0, 2).reverse().join('/'); 
-
-                htmlPdf += `
-                    <div style="page-break-inside: avoid; margin-bottom: 30px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 15px;">
-                            <span style="font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase;">RELATÓRIO TÉCNICO | ETAPA: ${tag}</span>
-                            ${logoImgHtml}
-                        </div>
-                        <h2 style="font-size: 16px; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;">${nomeDia} (${dataF})</h2>`;
-
-                tarefasPorTag[tag][dia].forEach(t => {
-                    const corBorda = window.coresCategorias[t.categoria] || '#6b21a8';
-                    
-                    let fotosHtml = '';
-                    if (t.fotos && t.fotos.length > 0) {
-                        const qtdFotos = Math.min(t.fotos.length, 4);
-                        const colunasGrid = qtdFotos === 1 ? '1fr' : '1fr 1fr';
-                        
-                        fotosHtml = `<div style="display: grid; grid-template-columns: ${colunasGrid}; gap: 8px; margin-top: 10px;">`;
-                        
-                        t.fotos.slice(0, 4).forEach(f => {
-                            fotosHtml += `
-                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px; height: 160px; display: flex; align-items: center; justify-content: center;">
-                                    <img src="${f}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px;">
-                                </div>`;
-                        });
-                        fotosHtml += `</div>`;
-                    }
-
-                    htmlPdf += `
-                        <div style="margin-bottom: 20px; padding-left: 10px; border-left: 4px solid ${corBorda};">
-                            <div style="font-weight: 800; font-size: 12px; color: #1e293b;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
-                            ${fotosHtml}
-                        </div>`;
-                });
-
-                htmlPdf += `</div>`;
-            });
-        });
-
-        relatorioTemp.innerHTML = htmlPdf;
-
-        const opcoes = { 
-            margin: 10, 
-            filename: `Relatorio_${categoriaDoPDF}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 }, 
-            html2canvas: { scale: 2, useCORS: true, letterRendering: true }, 
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
-        };
-
-        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
-
-        const nomeRelatorio = `Relatorio_${categoriaDoPDF}_${Date.now()}`;
-        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`);
-        await uploadBytes(sRef, pdfBlob);
-        const urlFinal = await getDownloadURL(sRef);
-
-        await addDoc(collection(db, "arquivos_fixos"), {
-            uid: window.usuarioLogado.uid,
-            Nomearquivo: nomeRelatorio,
-            categoria: categoriaDoPDF,
-            link: urlFinal,
-            dataUpload: new Date()
-        });
-
-        alert("✅ Relatório salvo na nuvem!");
-        carregarArquivosFixos();
-
-    } catch (error) {
-        console.error("Erro no PDF:", error);
-        alert("Erro ao gerar ou salvar o PDF.");
-    } finally {
-        btn.innerHTML = textoOriginal; 
-        btn.disabled = false;
-    }
+window.gerarRelatorioPDF = async (evento) => {
+
+    if (evento) evento.stopPropagation();
+
+    
+
+    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
+
+        return alert("📄 Por favor, selecione apenas UMA categoria específica para o PDF.");
+
+    }
+
+    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
+
+        return alert("Não há atividades na tela para gerar o PDF.");
+
+    }
+
+
+
+    const btn = evento.currentTarget;
+
+    const textoOriginal = btn.innerHTML;
+
+    btn.innerHTML = "⏳ Gerando..."; 
+
+    btn.disabled = true;
+
+
+
+    try {
+
+        const categoriaDoPDF = categoriasAtivas[0];
+
+        const tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
+
+        
+
+        if (tarefasDoPDF.length === 0) throw new Error("Nenhuma tarefa encontrada.");
+
+
+
+        let dataFiltroTexto = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
+
+        if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
+
+            dataFiltroTexto = `${window.arrayDiasSemana[0].split('-').reverse().join('/')} a ${window.arrayDiasSemana[6].split('-').reverse().join('/')}`;
+
+        } else if (tipoFiltroTempo === 'periodo') {
+
+            const fim = document.getElementById('dataFimFiltro').value;
+
+            if(fim) dataFiltroTexto = `${dataFiltroTexto} a ${fim.split('-').reverse().join('/')}`;
+
+        }
+
+
+
+        const tarefasPorTag = {};
+
+        tarefasDoPDF.forEach(t => {
+
+            const tag = t.marcador || "Geral";
+
+            if (!tarefasPorTag[tag]) tarefasPorTag[tag] = {};
+
+            if (!tarefasPorTag[tag][t.dataString]) tarefasPorTag[tag][t.dataString] = [];
+
+            tarefasPorTag[tag][t.dataString].push(t);
+
+        });
+
+
+
+        const tagsOrdenadas = Object.keys(tarefasPorTag).sort();
+
+        const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+
+
+        const relatorioTemp = document.createElement('div');
+
+        relatorioTemp.style.cssText = "font-family: Arial, sans-serif; padding: 20px; background: white; color: #1e293b; font-size: 12px;";
+
+
+
+        let logoImgHtml = ""; 
+
+        if (window.logosCategorias && window.logosCategorias[categoriaDoPDF]) {
+
+            logoImgHtml = `<img src="${window.logosCategorias[categoriaDoPDF]}" style="height: 40px; max-width: 150px; object-fit: contain;">`;
+
+        }
+
+
+
+        let htmlPdf = `
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+
+                <div>
+
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase;">RESUMO</h1>
+
+                    <h2 style="margin: 5px 0 2px 0; font-size: 14px; color: #3b82f6; font-weight: bold;">Categoria: ${categoriaDoPDF}</h2>
+
+                    <span style="font-size: 10px; color: #64748b;">Período: ${dataFiltroTexto}</span>
+
+                </div>
+
+                <div>${logoImgHtml}</div>
+
+            </div>`;
+
+
+
+        tagsOrdenadas.forEach(tag => {
+
+            htmlPdf += `<h2 style="color: #3b82f6; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 20px; margin-bottom: 10px;">Etapa: ${tag}</h2>`;
+
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+
+            
+
+            diasOrdenados.forEach(dia => {
+
+                const dataObj = new Date(dia + 'T12:00:00');
+
+                const nomeDia = diasSemanaNomes[dataObj.getDay()];
+
+                const dataF = dia.split('-').reverse().join('/');
+
+
+
+                htmlPdf += `<h3 style="margin: 10px 0 5px 0; font-size: 11px; color: #1e293b;">${nomeDia} (${dataF})</h3>`;
+
+
+
+                tarefasPorTag[tag][dia].forEach(t => {
+
+                    const corBorda = window.coresCategorias[t.categoria] || '#6b21a8';
+
+                    htmlPdf += `
+
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding-left: 5px;">
+
+                            <div style="width: 3px; height: 12px; background: ${corBorda};"></div>
+
+                            <span style="font-size: 10px; color: #475569;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</span>
+
+                        </div>`;
+
+                });
+
+            });
+
+        });
+
+
+
+        htmlPdf += `<div class="html2pdf__page-break"></div>`;
+
+
+
+        tagsOrdenadas.forEach(tag => {
+
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+
+            
+
+            diasOrdenados.forEach(dia => {
+
+                const dataObj = new Date(dia + 'T12:00:00');
+
+                const nomeDia = diasSemanaNomes[dataObj.getDay()];
+
+                const dataF = dia.split('-').slice(0, 2).reverse().join('/'); 
+
+
+
+                htmlPdf += `
+
+                    <div style="page-break-inside: avoid; margin-bottom: 30px;">
+
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 15px;">
+
+                            <span style="font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase;">RELATÓRIO TÉCNICO | ETAPA: ${tag}</span>
+
+                            ${logoImgHtml}
+
+                        </div>
+
+                        <h2 style="font-size: 16px; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;">${nomeDia} (${dataF})</h2>`;
+
+
+
+                tarefasPorTag[tag][dia].forEach(t => {
+
+                    const corBorda = window.coresCategorias[t.categoria] || '#6b21a8';
+
+                    
+
+                    let fotosHtml = '';
+
+                    if (t.fotos && t.fotos.length > 0) {
+
+                        const qtdFotos = Math.min(t.fotos.length, 4);
+
+                        const colunasGrid = qtdFotos === 1 ? '1fr' : '1fr 1fr';
+
+                        
+
+                        fotosHtml = `<div style="display: grid; grid-template-columns: ${colunasGrid}; gap: 8px; margin-top: 10px;">`;
+
+                        
+
+                        t.fotos.slice(0, 4).forEach(f => {
+
+                            fotosHtml += `
+
+                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px; height: 160px; display: flex; align-items: center; justify-content: center;">
+
+                                    <img src="${f}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px;">
+
+                                </div>`;
+
+                        });
+
+                        fotosHtml += `</div>`;
+
+                    }
+
+
+
+                    htmlPdf += `
+
+                        <div style="margin-bottom: 20px; padding-left: 10px; border-left: 4px solid ${corBorda};">
+
+                            <div style="font-weight: 800; font-size: 12px; color: #1e293b;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
+
+                            ${fotosHtml}
+
+                        </div>`;
+
+                });
+
+
+
+                htmlPdf += `</div>`;
+
+            });
+
+        });
+
+
+
+        relatorioTemp.innerHTML = htmlPdf;
+
+
+
+        const opcoes = { 
+
+            margin: 10, 
+
+            filename: `Relatorio_${categoriaDoPDF}.pdf`,
+
+            image: { type: 'jpeg', quality: 0.98 }, 
+
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true }, 
+
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+
+        };
+
+
+
+        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
+
+
+
+        const nomeRelatorio = `Relatorio_${categoriaDoPDF}_${Date.now()}`;
+
+        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`);
+
+        await uploadBytes(sRef, pdfBlob);
+
+        const urlFinal = await getDownloadURL(sRef);
+
+
+
+        await addDoc(collection(db, "arquivos_fixos"), {
+
+            uid: window.usuarioLogado.uid,
+
+            Nomearquivo: nomeRelatorio,
+
+            categoria: categoriaDoPDF,
+
+            link: urlFinal,
+
+            dataUpload: new Date()
+
+        });
+
+
+
+        alert("✅ Relatório salvo na nuvem!");
+
+        carregarArquivosFixos();
+
+
+
+    } catch (error) {
+
+        console.error("Erro no PDF:", error);
+
+        alert("Erro ao gerar ou salvar o PDF.");
+
+    } finally {
+
+        btn.innerHTML = textoOriginal; 
+
+        btn.disabled = false;
+
+    }
+
 };
 
 
