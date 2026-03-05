@@ -1,344 +1,228 @@
-/* --- CONFIGURAÇÕES GERAIS --- */
-
-body { 
-
-    font-family: 'Segoe UI', system-ui, sans-serif; 
-
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
-
-    background-size: 200% 200%; 
-
-    animation: gradientBG 15s ease infinite; 
-
-    padding: 10px; 
-
-    margin: 0; 
-
-    color: #000000; 
-
-    min-height: 100vh; 
-
-}
-
-
-
-@keyframes gradientBG { 
-
-    0% { background-position: 0% 50%; } 
-
-    50% { background-position: 100% 50%; } 
-
-    100% { background-position: 0% 50%; } 
-
-}
-
-
-
-.container { 
-
-    max-width: 480px; 
-
-    margin: auto; 
-
-    background: rgba(255, 255, 255, 0.03); 
-
-    backdrop-filter: blur(16px); 
-
-    -webkit-backdrop-filter: blur(16px); 
-
-    padding: 20px; 
-
-    border-radius: 24px; 
-
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
-
-}
-
-
-
-/* --- CABEÇALHO E FILTROS --- */
-
-.novo-header-filtros {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 8px;
-
-    width: 100%;
-
-}
-
-
-
-/* Ajuste das fontes e alinhamento dos botões Hoje/Amanhã/Semana */
-
-.btn-date { 
-
-    flex: 1; 
-
-    padding: 8px 2px; 
-
-    border-radius: 20px; 
-
-    border: none; 
-
-    background: transparent; 
-
-    color: #475569; 
-
-    cursor: pointer; 
-
-    font-size: 0.8rem; /* Fonte pequena para caber tudo */
-
-    font-weight: 800; 
-
-    text-transform: uppercase; 
-
-    text-align: center; 
-
-    transition: all 0.3s ease; 
-
-}
-
-
-
-#btnHoje { background: #54627b; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
-
-
-
-/* Centralização do texto PERÍODO e inputs de data */
-
-#dataSeletor, #dataFimFiltro {
-
-    width: 100%;
-
-    border: none;
-
-    background: transparent;
-
-    font-weight: 800;
-
-    color: #475569;
-
-    font-size: 0.80rem;
-
-    text-align: center;
-
-    outline: none;
-
-    padding: 0;
-
-}
-
-
-
-/* --- BARRA DE CATEGORIAS (Onde você pediu o "Mais") --- */
-
-#listaCategorias {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-    flex-wrap: nowrap; /* Força ficar em uma linha só */
-
-    overflow-x: auto; /* Permite scroll se tiver muitas */
-
-    scrollbar-width: none; /* Esconde scroll no Firefox */
-
-    padding: 4px 0;
-
-}
-
-
-
-#listaCategorias::-webkit-scrollbar {
-
-    display: none; /* Esconde scroll no Chrome */
-
-}
-
-
-
-/* --- MODAL E COMPONENTES --- */
-
-.modal-overlay {
-
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-
-    display: flex; align-items: center; justify-content: center; z-index: 9999;
-
-}
-
-
-
-.modal-card {
-
-    background: #ffffff;
-
-    width: 92%;
-
-    max-width: 450px;
-
-    max-height: 85vh;
-
-    display: flex;
-
-    flex-direction: column;
-
-    border-radius: 28px;
-
-    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-
-    overflow: hidden;
-
-}
-
-
-
-.modal-body {
-
-    padding: 20px 25px;
-
-    overflow-y: auto;
-
-    flex: 1;
-
-}
-
-
-
-/* Inputs padrão dentro de modais */
-
-input[type="text"], input[type="time"], input[type="date"], select {
-
-    width: 100%;
-
-    padding: 12px;
-
-    background: #f8fafc;
-
-    border: 1px solid #e2e8f0;
-
-    border-radius: 12px;
-
-    font-size: 0.8rem;
-
-    font-weight: 600;
-
-    box-sizing: border-box;
-
-}
-
-
-
-/* --- ITENS DA LISTA DE TAREFAS --- */
-
-.tarefa-item {
-
-    background: white;
-
-    margin-bottom: 12px;
-
-    padding: 16px;
-
-    border-radius: 16px;
-
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-}
-
-
-
-.dia-badge {
-
-    font-size: 1.4rem;
-
-    font-weight: 900;
-
-    color: #1e293b;
-
-    text-align: center;
-
-    line-height: 1;
-
-}
-
-
-
-.dia-badge span {
-
-    display: block;
-
-    font-size: 0.6rem;
-
-    color: #64748b;
-
-}
-
-
-
-/* --- BARRA DE AÇÕES (Botões flutuantes lá embaixo) --- */
-
-.barra-acoes-rapidas {
-
-    display: flex;
-
-    justify-content: space-around;
-
-    padding: 15px;
-
-    background: rgba(255, 255, 255, 0.4);
-
-    backdrop-filter: blur(10px);
-
-    border-radius: 24px;
-
-    margin-top: 20px;
-
-}
-
-
-
+/* --- CONFIGURAÇÕES GERAIS --- */
+body { 
+    font-family: 'Segoe UI', system-ui, sans-serif; 
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+    background-size: 200% 200%; 
+    animation: gradientBG 15s ease infinite; 
+    padding: 10px; 
+    margin: 0; 
+    color: #000000; 
+    min-height: 100vh; 
+}
+
+@keyframes gradientBG { 
+    0% { background-position: 0% 50%; } 
+    50% { background-position: 100% 50%; } 
+    100% { background-position: 0% 50%; } 
+}
+
+.container { 
+    max-width: 480px; 
+    margin: auto; 
+    background: rgba(255, 255, 255, 0.03); 
+    backdrop-filter: blur(16px); 
+    -webkit-backdrop-filter: blur(16px); 
+    padding: 20px; 
+    border-radius: 24px; 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
+}
+
+/* --- CABEÇALHO E FILTROS --- */
+.novo-header-filtros {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Ajuste das fontes e alinhamento dos botões Hoje/Amanhã/Semana */
+.btn-date { 
+    flex: 1; 
+    padding: 6px 2px !important; 
+    border-radius: 20px !important; 
+    border: none !important; 
+    background: transparent; 
+    color: #475569; 
+    cursor: pointer; 
+    font-size: 0.65rem !important; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    text-align: center; 
+    transition: all 0.3s ease; 
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+#btnHoje, .btn-date.ativo { 
+    background: #54627b !important; 
+    color: white !important; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important; 
+}
+
+/* BLINDAGEM: Garante que os inputs de data fiquem perfeitos e sem bordas nativas */
+.novo-header-filtros input[type="date"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    width: 100%;
+    font-weight: 800;
+    color: #475569;
+    font-size: 0.70rem !important;
+    outline: none;
+    cursor: pointer;
+    text-align: center;
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none !important;
+}
+
+/* TRAVA O TAMANHO DAS DATAS PARA FICAREM IDÊNTICAS */
+.data-container-white {
+    flex: 1;
+    min-width: 0; 
+    width: 100%;
+    background: white !important;
+    border-radius: 15px !important;
+    padding: 2px 6px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+    height: 26px !important;
+    box-sizing: border-box;
+    border: none !important;
+}
+
+/* --- BARRA DE CATEGORIAS --- */
+#listaCategorias {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap; 
+    overflow-x: auto; 
+    scrollbar-width: none; 
+    padding: 4px 0;
+}
+
+#listaCategorias::-webkit-scrollbar {
+    display: none; 
+}
+
+/* --- MODAL E COMPONENTES --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+    display: flex; align-items: center; justify-content: center; z-index: 9999;
+}
+
+.modal-card {
+    background: #ffffff;
+    width: 92%;
+    max-width: 450px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 28px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+.modal-body {
+    padding: 20px 25px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Inputs padrão dentro de modais */
+input[type="text"], input[type="time"], select {
+    width: 100%;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-sizing: border-box;
+}
+
+/* --- ITENS DA LISTA DE TAREFAS --- */
+.tarefa-item {
+    background: white;
+    margin-bottom: 12px;
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dia-badge {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #1e293b;
+    text-align: center;
+    line-height: 1;
+}
+
+.dia-badge span {
+    display: block;
+    font-size: 0.6rem;
+    color: #64748b;
+}
+
+/* --- BARRA DE AÇÕES (Botões flutuantes lá embaixo) --- */
+.barra-acoes-rapidas {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    margin-top: 20px;
+}
+
+/* BORDAS DO BOTÃO INFERIOR CORRIGIDAS E CHAVE FECHADA */
 .btn-acao-modal {
     background: transparent !important;
     border: none !important;
     outline: none !important;
     box-shadow: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
     cursor: pointer;
     padding: 0 !important;
+    margin: 0 !important;
+}
+
+.btn-acao-modal .icon {
+    font-size: 1.4rem;
+    background: #ffffff;
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.btn-acao-modal .label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+}
 
 /* Utilitários */
-.escondido { display: none !important; }
-
-
-
-.header-secao { 
-
-    display: flex; justify-content: space-between; align-items: center; 
-
-    padding: 12px 15px; margin: 20px 0 10px; 
-
-    color: #ffffff; font-size: 0.75rem; font-weight: 800; 
-
-    background: #94a3b8; border-radius: 12px; 
-
+.escondido { display: none !important; }
+
+.header-secao { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 12px 15px; margin: 20px 0 10px; 
+    color: #ffffff; font-size: 0.75rem; font-weight: 800; 
+    background: #94a3b8; border-radius: 12px; 
 }
