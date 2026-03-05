@@ -1630,14 +1630,11 @@ window.gerarPDFCronograma = async (evento) => {
         return alert("Desenhe o gráfico na tela antes de gerar o PDF.");
     }
 
-    btn.innerHTML = "⏳..."; 
-    btn.disabled = true;
+    btn.innerHTML = "⏳..."; btn.disabled = true;
 
     const relatorioTemp = document.createElement('div');
-    relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
-    relatorioTemp.style.color = '#1e293b';
-    relatorioTemp.style.width = '1000px'; 
-    relatorioTemp.style.padding = '20px 30px';
+    relatorioTemp.style.fontFamily = 'Arial, sans-serif';
+    relatorioTemp.style.padding = '20px';
     relatorioTemp.style.background = '#ffffff';
 
     let logoHtml = "";
