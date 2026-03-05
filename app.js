@@ -37,6 +37,32 @@ function registrarAtualizacao() {
     }
 }
 
+function marcarComoAtualizado() {
+    const agora = new Date();
+    const hora = String(agora.getHours()).padStart(2, '0');
+    const minuto = String(agora.getMinutes()).padStart(2, '0');
+    const horarioFinal = `${hora}:${minuto}`;
+
+    // 1. Atualiza o texto visual no topo do app
+    const elementoStatus = document.getElementById('txt-ultima-atualizacao');
+    if (elementoStatus) {
+        elementoStatus.innerText = `• ATUALIZADO ÀS ${horarioFinal}`;
+        
+        // Efeito de "piscar" verde para confirmar o salvamento
+        elementoStatus.style.color = '#10b981'; 
+        setTimeout(() => { elementoStatus.style.color = '#94a3b8'; }, 1000);
+    }
+
+    // 2. Atualiza o <title> lá no <head> dinamicamente
+    document.title = `Agenda v4.3.6 - ${horarioFinal}`;
+}
+
+// Chamar uma vez ao carregar a página
+window.onload = function() {
+    marcarComoAtualizado();
+    // Suas outras funções de carregamento aqui...
+};
+
 
 // VARIÁVEIS GLOBAIS
 window.coresCategorias = { "Geral": "#94a3b8" }; 
