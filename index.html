@@ -51,126 +51,51 @@
 </div>
     </div>
 	
+
+
+
+
+
+
+    
+
+<div class="barra-acoes-rapidas">
+    <button class="btn-acao-flutuante" onclick="abrirModal('modalTarefa')">
+        <span class="icon">➕</span>
+        <span class="label">Tarefa</span>
+    </button>
+    <button class="btn-acao-flutuante" onclick="abrirModal('modalArquivos')">
+        <span class="icon">📂</span>
+        <span class="label">Arquivos</span>
+    </button>
+    <button class="btn-acao-flutuante" onclick="abrirModal('modalFinanceiro')">
+        <span class="icon">💰</span>
+        <span class="label">Financeiro</span>
+    </button>
 </div>
 
-
-
-    
-
-    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado"></div> ADD TAREFA
-        </span>
-        <span id="setaAdd" class="seta-secao">▼</span>
-    </div>
-    
-    <div id="secaoAdd" class="secao-card escondido">
-        <input type="text" id="descTask" placeholder="O que agendar hoje?">
-        
-        <div id="previewFotosNovas" class="container-fotos"></div>
-        
-        <div class="grid-50">
-            <input type="time" id="horaTask">
-            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
-            <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
+<div id="modalTarefa" class="modal-container escondido">
+    <div class="modal-content">
+        <span class="fechar-modal" onclick="fecharModal('modalTarefa')">×</span>
+        <h3>Nova Atividade</h3>
         </div>
+</div>
 
-        <div class="grid-50" style="margin-top: 15px; margin-bottom: 5px;">
-            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
-                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
-                <select id="tipoRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
-                    <option value="nenhuma">Sem recorrência</option>
-                    <option value="diario">Diário</option>
-                    <option value="2dias">A cada 2 dias</option>
-                    <option value="semanal">A cada 1 semana</option>
-                    <option value="mensal">A cada 1 mês</option>
-                </select>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
-                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
-                <input type="date" id="dataFimRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
-            </div>
+<div id="modalArquivos" class="modal-container escondido">
+    <div class="modal-content">
+        <span class="fechar-modal" onclick="fecharModal('modalArquivos')">×</span>
+        <h3>Repositório de Arquivos</h3>
         </div>
-        
-        <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
-            <button id="btnCancelarAdd" onclick="cancelarNovaTarefa()" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">
-                Cancelar
-            </button>
-            <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
-                Salvar
-            </button>
+</div>
+
+<div id="modalFinanceiro" class="modal-container escondido">
+    <div class="modal-content">
+        <span class="fechar-modal" onclick="fecharModal('modalFinanceiro')">×</span>
+        <h3>Controle Financeiro</h3>
         </div>
-    </div>
+</div>
 
-    <div class="header-secao" onclick="toggleSecao('secaoArquivos', 'setaArq')">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado"></div> ARQUIVOS FIXOS
-        </span>
-        <span id="setaArq" class="seta-secao">▼</span>
-    </div>
-
-    <div id="secaoArquivos" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
-        <input type="text" id="nomeArquivoFixo" placeholder="Descrição do arquivo (ex: Manual Gás)" style="width: 100%; margin-bottom: 12px; box-sizing: border-box;">
-        
-        <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
-            <div style="flex: 1; position: relative; overflow: hidden; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 12px 10px; text-align: center; cursor: pointer; transition: 0.3s;">
-                <span id="file-label" style="font-size: 0.85rem; color: #1e293b; font-weight: 700;">📁 Escolher Arquivo</span>
-                <input type="file" id="inputArquivoFixo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" onchange="document.getElementById('file-label').innerText = this.files[0] ? this.files[0].name : '📁 Escolher Arquivo'">
-            </div>
-            <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); white-space: nowrap;">
-                📤 Subir
-            </button>
-        </div>
-
-        <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px;"></div>
-    </div>
-
-    <div class="header-secao" onclick="toggleSecao('secaoFinanceiro', 'setaFin')">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado" style="background-color: #10b981;"></div> FINANCEIRO
-        </span>
-        <span id="setaFin" class="seta-secao">▼</span>
-    </div>
-
-    <div id="secaoFinanceiro" class="secao-card escondido" style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px;">
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; text-align: center;">
-            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #10b981;">
-                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">RECEITAS</div>
-                <div id="totalReceitas" style="color: #10b981; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-            </div>
-            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #ef4444;">
-                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">DESPESAS</div>
-                <div id="totalDespesas" style="color: #ef4444; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-            </div>
-            <div style="flex: 1; background: rgba(255,255,255,0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #3b82f6;">
-                <div style="font-size: 0.65rem; font-weight: bold; color: #64748b;">SALDO</div>
-                <div id="saldoTotal" style="color: #3b82f6; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-            </div>
-        </div>
-
-        <input type="text" id="descFinanceiro" placeholder="Descrição (ex: Compra de material)" style="width: 100%; box-sizing: border-box;">
-        
-        <div class="grid-50">
-            <input type="number" id="valorFinanceiro" placeholder="Valor (R$)" step="0.01" style="box-sizing: border-box;">
-            <select id="tipoFinanceiro" style="box-sizing: border-box;">
-                <option value="despesa">Despesa (-)</option>
-                <option value="receita">Receita (+)</option>
-            </select>
-        </div>
-        
-        <div class="grid-50">
-            <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: rgba(255,255,255,0.7); color: #334155; border: 1px dashed #94a3b8; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-sizing: border-box; width: 100%;">
-                📎 Anexar Recibo
-            </button>
-            <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '📎 ' + this.files[0].name : '📎 Anexar Recibo'">
-            
-            <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); box-sizing: border-box; width: 100%;">
-                Adicionar
-            </button>
-        </div>
-
-        <div id="listaFinanceiro" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;"></div>
-    </div>
+   
 
     <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
         <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
