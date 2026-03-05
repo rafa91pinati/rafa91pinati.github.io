@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, setDoc, getDoc, arrayUnion, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
@@ -1368,171 +1368,102 @@ const originalSalvar = window.salvarNovaTarefa;
 // Otimização: Fecha o modal automaticamente após salvar
 
 window.salvarNovaTarefa = async () => {
-
     const btn = document.getElementById('btnSalvar');
-
     const textoOriginal = btn.innerHTML;
-
     
-
     try {
-
         const desc = document.getElementById('descTask').value;
-
         const hora = document.getElementById('horaTask').value;
-
         const dataInicioTexto = document.getElementById('dataSeletor').value;
-
         const tipoRec = document.getElementById('tipoRecorrencia').value;
-
         const dataFimInput = document.getElementById('dataFimRecorrencia').value;
 
-
-
         if (!desc || !dataInicioTexto || !window.usuarioLogado) {
-
             return alert("Preencha a descrição e a data de início!");
-
         }
 
-
-
-        // 1. BLOQUEIA O BOTÃO E AVISA O USUÁRIO
-
-        btn.innerHTML = "⌛ Enviando Fotos...";
-
+        btn.innerHTML = "⌛ Enviando...";
         btn.disabled = true;
 
-
-
-        // 2. UPLOAD DAS FOTOS PARA O STORAGE
-
+        // 2. UPLOAD DAS FOTOS (Mantido intacto, está ótimo)
         let linksFinais = [];
-
         for (let fotoFile of fotosNovasArray) {
-
             const nomeArquivo = `${Date.now()}_${fotoFile.name}`;
-
             const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
-
             const snap = await uploadBytes(sRef, fotoFile);
-
             const url = await getDownloadURL(snap.ref);
-
             linksFinais.push(url);
-
         }
 
-
-
-        // 3. LÓGICA DE DATAS (PARA RECORRÊNCIA)
-
+        // 3. LÓGICA DE DATAS COM TRAVA DE SEGURANÇA COMERCIAL
         let datasParaSalvar = [];
-
         let dataAtual = new Date(dataInicioTexto + 'T00:00:00');
-
         datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
 
-
-
         if (tipoRec !== 'nenhuma' && dataFimInput) {
-
             const dataFim = new Date(dataFimInput + 'T23:59:59');
+            let contadorOcorrencias = 0; // Trava de segurança
 
             while (true) {
-
                 if (tipoRec === 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
-
                 else if (tipoRec === '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
-
                 else if (tipoRec === 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
-
                 else if (tipoRec === 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
-
                 
-
-                if (dataAtual > dataFim) break;
-
+                if (dataAtual > dataFim || contadorOcorrencias >= 365) break; // Limita a 1 ano ou 365 eventos
+                
                 datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
-
+                contadorOcorrencias++;
             }
-
         }
 
+        // 4. SALVAMENTO NO FIRESTORE USANDO BATCH (LOTE)
+        const categoriaPrincipal = window.todasAsCategorias && window.todasAsCategorias.includes("Geral") ? "Geral" : (categoriasAtivas[0] || "Geral");
+        const idDoTimeDaCategoria = window.timesDasCategorias ? (window.timesDasCategorias[categoriaPrincipal] || null) : null;
 
+        // Inicia o lote
+        const lote = writeBatch(db);
+        
+        // Pega a referência da coleção apenas uma vez
+        const tarefasRef = collection(db, "tarefas");
 
-        // 4. SALVAMENTO NO FIREBASE (FIRESTORE)
+        // Corta para as primeiras 500 para respeitar o limite máximo do batch do Firestore
+        const datasLimitadas = datasParaSalvar.slice(0, 500); 
 
-        const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[0];
-
-        const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
-
-
-
-        const promessas = datasParaSalvar.map(dataStr => {
-
-            return addDoc(collection(db, "tarefas"), { 
-
+        datasLimitadas.forEach(dataStr => {
+            const novaTarefaRef = doc(tarefasRef); // Cria uma referência com ID automático
+            lote.set(novaTarefaRef, { 
                 uid: window.usuarioLogado.uid, 
-
                 timeId: idDoTimeDaCategoria,
-
                 categoria: categoriaPrincipal,
-
                 descricao: desc, 
-
                 marcador: tagFiltroAtiva || null, 
-
                 hora: hora, 
-
                 dataString: dataStr,
-
-                fotos: linksFinais, // LINKS REAIS DAS FOTOS
-
-                criadoEm: new Date(),
-
+                fotos: linksFinais,
+                criadoEm: serverTimestamp(), // Pega a hora exata do servidor do Google
                 alarmeAtivo: true,
-
                 alertaDisparado: false
-
             });
-
         });
 
-
-
-        await Promise.all(promessas);
-
-
+        // Executa todas as gravações de uma vez só
+        await lote.commit();
 
         // 5. LIMPEZA E FECHAMENTO
-
-        fecharModal('modalTarefa'); 
-
+        if (typeof window.fecharModal === 'function') window.fecharModal('modalTarefa'); 
         if (typeof cancelarNovaTarefa === 'function') cancelarNovaTarefa();
-
-        await carregarTarefas();
-
+        if (typeof window.carregarTarefas === 'function') await window.carregarTarefas();
         
-
-        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
-
-
+        alert(datasLimitadas.length > 1 ? `${datasLimitadas.length} tarefas agendadas!` : "Tarefa salva!");
 
     } catch (e) { 
-
         console.error("Erro completo:", e);
-
         alert("Erro ao salvar a tarefa. Verifique o console."); 
-
     } finally { 
-
         btn.innerHTML = textoOriginal; 
-
         btn.disabled = false; 
-
     }
-
 };
 
 window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
