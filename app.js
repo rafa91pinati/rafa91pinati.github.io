@@ -17,50 +17,12 @@ if ('caches' in window) {
         for (let name of names) caches.delete(name);
     });
 }
-
-async function sincronizarVersaoGithub() {
-    const usuario = 'rafa91pinati'; 
-    const repositorio = 'rafa91pinati.github.io'; 
-    const branch = 'main'; 
-    const url = `https://api.github.com/repos/${usuario}/${repositorio}/commits/${branch}`;
-
-    try {
-        const resposta = await fetch(url);
-        if (!resposta.ok) throw new Error('Erro na API');
+  
         
-        const dados = await resposta.json();
-        const dataCommit = new Date(dados.commit.committer.date);
-         
-        const dataFormatada = dataCommit.toLocaleDateString('pt-BR');
-        const horaFormatada = dataCommit.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-        const elStatus = document.getElementById('txt-ultima-atualizacao');
-        if (elStatus) {
-            elStatus.innerText = `v4.6.0 • PUBLICADO: ${dataFormatada} ÀS ${horaFormatada}`;
-        }
-        
-        document.title = `Life Sync v4.6.0 (${horaFormatada})`; 
-        
-    } catch (erro) {
-        console.error('Falha ao buscar versão:', erro);
-    }
-}`;
-        
-        
-// A crase é obrigatória para usar o dentro do texto
-document.title = \Life Sync v4.8 (${horaFormatada})`;`
-        
-     catch (erro) {
-        console.error('Falha ao buscar versão:', erro);
-        const elStatus = document.getElementById('txt-ultima-atualizacao');
-        if (elStatus) elStatus.innerText = 'v4.3.6 • VERSÃO LOCAL (OFFLINE)';
-    }
-
-
 async function buscarUltimaAtualizacaoGithub() {
     const usuario = 'rafa91pinati';
     const repositorio = 'rafa91pinati.github.io';
-    const url = `https://api.github.com/repos/${usuario}/${repositorio}/commits/main`;
+    const url = `https://api.github.com/repos/${usuario}/${repositorio}/commits/versao-estavel`;
 
     try {
         const resposta = await fetch(url);
@@ -69,28 +31,32 @@ async function buscarUltimaAtualizacaoGithub() {
         const dados = await resposta.json();
         const dataCommit = new Date(dados.commit.committer.date);
         
-        // Formata para o padrão brasileiro
         const dataFormatada = dataCommit.toLocaleDateString('pt-BR');
         const horaFormatada = dataCommit.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-        // Preenche os campos no HTML
+        // COLOQUE O TÍTULO AQUI DENTRO, ONDE A HORA EXISTE 👇
+       document.title = `Life Sync v4.8 (${horaFormatada})`;
+
         const lbVersao = document.getElementById('label-versao');
         const lbData = document.getElementById('data-versao');
 
-        if (lbVersao) lbVersao.innerText = 'v4.3.6';
+        if (lbVersao) lbVersao.innerText = 'v4.8';
         if (lbData) lbData.innerText = `• PUBLICADO: ${dataFormatada} ÀS ${horaFormatada}`;
         
-    } catch (erro) {
-        console.error('Erro ao buscar versão:', erro);
-        document.getElementById('data-versao').innerText = 'OFFLINE';
+    } catch (error) {
+        console.error('Erro ao buscar versão:', error);
+        if (document.getElementById('data-versao')) {
+            document.getElementById('data-versao').innerText = 'OFFLINE';
+        }
     }
 }
+
+// Chame a função para ela rodar assim que o site abrir
+buscarUltimaAtualizacaoGithub();
 
 // Inicia a busca assim que o app abrir
 document.addEventListener('DOMContentLoaded', buscarUltimaAtualizacaoGithub);
 
-// Inicia a busca assim que o navegador carregar o DOM
-document.addEventListener('DOMContentLoaded', sincronizarVersaoGithub);
 
 
 
