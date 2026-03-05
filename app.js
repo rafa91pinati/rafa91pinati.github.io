@@ -4,6 +4,25 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-messaging.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-storage.js";
 
+
+// OPÇÃO NUCLEAR: Executa uma vez para limpar Service Workers travados
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+            console.log("Limpando Service Worker antigo...");
+            registration.unregister();
+        }
+    });
+}
+
+// Limpa o cache de arquivos do próprio navegador
+if ('caches' in window) {
+    caches.keys().then(function(names) {
+        for (let name of names) caches.delete(name);
+    });
+}
+
+
  
 async function sincronizarVersaoGithub() {
     const usuario = 'rafa91pinati'; //
