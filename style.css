@@ -24,13 +24,14 @@ body {
 .timeline-header { 
     display: flex; 
     flex-direction: column; 
-    gap: 6px !important; /* Espaço entre a linha 1 e 2 */
-    margin-bottom: 10px !important; 
-    padding: 6px 12px !important; /* AQUI controla a altura total do container */
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    width: 100%;
-    box-sizing: border-box;
+    gap: 8px !important; 
+    margin-bottom: 12px; 
+    align-items: center; 
+    width: 100%; 
+    box-sizing: border-box; 
+    background: rgba(255, 255, 255, 0.05); 
+    padding: 6px 12px !important; 
+    border-radius: 24px;
 }
 .btn-date { 
     flex: 1; 
