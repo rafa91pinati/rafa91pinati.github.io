@@ -130,14 +130,11 @@ body {
 
 
 
-#btnHoje, .btn-date.ativo { 
-
+/* Cor para o botão de data quando estiver ATIVO */
+.btn-date.ativo, #btnHoje.ativo { 
     background: #54627b !important; 
-
     color: white !important; 
-
     box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important; 
-
 }
 
 
