@@ -52,19 +52,38 @@ if ('serviceWorker' in navigator) {
 }
 
 // --- LOGIN E AUTH ---
-onAuthStateChanged(auth, async (user) => {
-    const tela = document.getElementById('telaLogin');
-    if (user) {
-    document.getElementById('telaLogin').style.display = 'none'; // Esconde o bloqueio
-    await carregarCategorias(); // Carrega os dados
-    renderizarCategoriasNoFiltro(); // Desenha os botões gordinhos
-} else {
-    document.getElementById('telaLogin').style.display = 'flex'; // Mostra o bloqueio
-}
-    } else {
-        window.usuarioLogado = null;
-        if(tela) tela.classList.remove('escondido');
-    }
+onAuthStateChanged(auth, async (user) => {
+    const tela = document.getElementById('telaLogin');
+
+    if (user) {
+        // Usuário logado: Salva os dados e esconde a tela de bloqueio
+        window.usuarioLogado = user;
+        if(tela) tela.style.display = 'none';
+        
+        // Carrega as informações do Firebase
+        await atualizarSeletorTimes();
+        await carregarCategorias();
+        
+        // Desenha as categorias "gordinhas" e atualiza a interface
+        renderizarCategoriasNoFiltro();
+        
+        // Define a visualização inicial (Hoje)
+        setarData('hoje', document.getElementById('btnHoje'));
+        carregarPreferenciasNuvem();
+        
+        // Aguarda um pouco para carregar os marcadores/tags
+        setTimeout(() => { 
+            atualizarSeletorMarcadores();
+        }, 800);
+
+    } else {
+        // Usuário deslogado: Limpa os dados e mostra o bloqueio
+        window.usuarioLogado = null;
+        if(tela) {
+            tela.style.display = 'flex';
+            tela.classList.remove('escondido');
+        }
+    }
 });
 
 window.fazerLogin = () => {
