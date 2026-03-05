@@ -45,17 +45,17 @@ async function sincronizarVersaoGithub() {
         console.error('Falha ao buscar versão:', erro);
     }
 }`;
-        }
         
-// A crase é obrigatória para usar o ${} dentro do texto
-document.title = `Life Sync v4.8 (${horaFormatada})`;
         
-    } catch (erro) {
+// A crase é obrigatória para usar o dentro do texto
+document.title = \Life Sync v4.8 (${horaFormatada})`;`
+        
+     catch (erro) {
         console.error('Falha ao buscar versão:', erro);
         const elStatus = document.getElementById('txt-ultima-atualizacao');
         if (elStatus) elStatus.innerText = 'v4.3.6 • VERSÃO LOCAL (OFFLINE)';
     }
-}
+
 
 async function buscarUltimaAtualizacaoGithub() {
     const usuario = 'rafa91pinati';
