@@ -528,8 +528,12 @@
 </div>
 
 <script type="module">
-        const versao = Math.floor(Date.now() / 60000); 
-        import('./app.js?v=' + versao);
-    </script>
+    // Isso gera um número de versão baseado no tempo para limpar o cache
+    const versao = Math.floor(Date.now() / 60000); 
+    
+    // O comando import() dinâmico garante que o app.js seja lido como MÓDULO
+    import('./app.js?v=' + versao);
+</script>
+
 </body>
 </html>
