@@ -1017,9 +1017,15 @@ window.adicionarFotosEdicao = (input) => {
     input.value = ""; // Limpa o input para permitir selecionar a mesma foto de novo
 };
 
-window.salvarAlteracoes = async (id) => { 
-    const btnSalvar = document.querySelector('.btn-salvar-azul');
-    if (btnSalvar) { btnSalvar.innerHTML = "⏳ SALVANDO..."; btnSalvar.disabled = true; }
+window.salvarAlteracoes = async (id) => {
+    const btnSalvar = document.querySelector(`#btn-salvar-${id}`);
+    const textoOriginal = btnSalvar ? btnSalvar.innerHTML : "SALVAR";
+    
+    if (btnSalvar) {
+        btnSalvar.innerHTML = "⏳ SUBINDO...";
+        btnSalvar.disabled = true;
+    }
+
     try {
         let linksFinais = [];
         for (let foto of fotosTemporarias) {
