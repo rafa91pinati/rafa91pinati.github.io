@@ -21,17 +21,28 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
 }
 
-.timeline-header { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px; 
-    margin-bottom: 12px; 
-    align-items: center; 
-    width: 100%; 
-    box-sizing: border-box; 
-    background: rgba(255, 255, 255, 0.05); 
-    padding: 6px; /* Espaço igual em cima e embaixo */
-    border-radius: 24px;
+.timeline-header { 
+
+    display: flex; 
+
+    flex-direction: column; 
+
+    gap: 10px; 
+
+    margin-bottom: 12px; 
+
+    align-items: center; 
+
+    width: 100%; 
+
+    box-sizing: border-box; 
+
+    background: rgba(255, 255, 255, 0.05); 
+
+    padding: 6px; /* Espaço igual em cima e embaixo */
+
+    border-radius: 24px;
+
 }
 .btn-date { 
     flex: 1; 
@@ -63,8 +74,8 @@ body {
     gap: 8px; 
     padding: 5px 2px; 
     margin-top: 10px; 
-    margin-bottom: 2px; /* Encostando na TAG */
-    max-height: 30px; /* Trava em 2 linhas exatas */
+    margin-bottom: 2px; 
+    max-height: 92px !important; /* Altura ideal para 2 linhas de botões redondos */
     overflow-y: auto; 
     scrollbar-width: none; 
 }
