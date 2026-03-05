@@ -280,20 +280,34 @@ setInterval(() => {
 
 // --- UI GERAL ---
 
-window.abrirConfig = () => {
-    const modal = document.getElementById('modalConfiguracoes');
-    if (modal) {
-        modal.classList.remove('escondido');
-    }
-    
-    carregarCategoriasModal();
-    carregarMarcadoresModal();
-    carregarTimes();
-
-    const abaPadrao = document.getElementById('btnAbaAlarme');
-    if (abaPadrao) {
-        abaPadrao.click();
-    }
+window.abrirConfig = () => {
+
+    const modal = document.getElementById('modalConfiguracoes');
+
+    if (modal) {
+
+        modal.classList.remove('escondido');
+
+    }
+
+    
+
+    carregarCategoriasModal();
+
+    carregarMarcadoresModal();
+
+    carregarTimes();
+
+
+
+    const abaPadrao = document.getElementById('btnAbaAlarme');
+
+    if (abaPadrao) {
+
+        abaPadrao.click();
+
+    }
+
 };
 
 
@@ -418,96 +432,43 @@ window.carregarCategorias = async () => {
 
 // ==========================================
 
-window.renderizarCategoriasNoFiltro = () => {
-
-    const container = document.getElementById('listaCategorias');
-
-    if (!container) return;
-
-    container.innerHTML = ''; 
-
-
-
-    // Recupera categorias do sistema e do que está ativo no momento
-
-    let todas = window.todasAsCategorias || [];
-
-    let ativas = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
-
-    
-
-    let semGeral = todas.filter(c => c.nome !== "Geral");
-
-    let recents = semGeral.slice(0, 3); 
-
-    let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
-
-
-
-    categoriasParaMostrar.forEach((cat) => {
-
-        const btn = document.createElement('button');
-
-        const isActive = ativas.includes(cat.nome);
-
-        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
-
-            `<span style="margin-right: 4px;">👥</span>` : "";
-
-
-
-        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
-
-
-
-        if (isActive) {
-
-            // AQUI VOLTA A COR: Usa a cor da categoria quando selecionada
-
-            btn.style.background = cat.cor || "#54627b";
-
-            btn.style.color = "white";
-
-            btn.style.padding = "10px 18px";
-
-            btn.innerHTML = (cat.nome === "Geral") ? `Cat: ${cat.nome}` : `${iconeTime}${cat.nome}`;
-
-        } else {
-
-            // Estilo padrão para categorias não selecionadas
-
-            btn.style.background = "rgba(255,255,255,0.5)";
-
-            btn.style.color = "#64748b";
-
-            btn.style.padding = "10px 14px";
-
-            btn.innerHTML = `${iconeTime}${cat.nome}`;
-
-        }
-
-
-
-        btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
-
-        container.appendChild(btn);
-
-    });
-
-
-
-    // Botão "Mais" gordinho
-
-    const btnOutras = document.createElement('button');
-
-    btnOutras.innerHTML = "•••";
-
-    btnOutras.style.cssText = "background: #e2e8f0; color: #64748b; border: none; font-weight: 900; font-size: 0.9rem; padding: 10px 18px; cursor: pointer; border-radius: 16px; flex-shrink: 0;";
-
-    btnOutras.onclick = () => window.abrirOutrasCategorias();
-
-    container.appendChild(btnOutras);
-
+window.renderizarCategoriasNoFiltro = () => {
+    const container = document.getElementById('listaCategorias');
+    if (!container) return;
+    container.innerHTML = ''; 
+
+    let todas = window.todasAsCategorias || [];
+    let ativas = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
+    
+    let semGeral = todas.filter(c => c.nome !== "Geral");
+    let recents = semGeral.slice(0, 3); 
+    let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
+
+    categoriasParaMostrar.forEach((cat) => {
+        const btn = document.createElement('button');
+        const isActive = ativas.includes(cat.nome);
+        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
+            `<span style="margin-right: 4px;">👥</span>` : "";
+
+        btn.style.cssText = "display: flex; flex: 1; min-width: 0; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; border-radius: 16px; padding: 10px 4px; overflow: hidden;";
+
+        let textoInterno = cat.nome === "Geral" && isActive ? "Cat: Geral" : cat.nome;
+        let corFundo = isActive ? (cat.cor || "#54627b") : "rgba(255,255,255,0.5)";
+        let corTexto = isActive ? "white" : "#64748b";
+
+        btn.style.background = corFundo;
+        btn.style.color = corTexto;
+        btn.innerHTML = `<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center;">${iconeTime}${textoInterno}</div>`;
+
+        btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
+        container.appendChild(btn);
+    });
+
+    const btnOutras = document.createElement('button');
+    btnOutras.innerHTML = "•••";
+    btnOutras.style.cssText = "display: flex; flex: 0 0 auto; background: #e2e8f0; color: #64748b; border: none; font-weight: 900; font-size: 0.9rem; padding: 10px 14px; cursor: pointer; border-radius: 16px; align-items: center; justify-content: center;";
+    btnOutras.onclick = () => window.abrirOutrasCategorias();
+    container.appendChild(btnOutras);
 };
 
 window.abrirOutrasCategorias = function() {
