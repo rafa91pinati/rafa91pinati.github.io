@@ -1960,7 +1960,7 @@ window.abrirCronogramaVisual = async (evento) => {
         container.innerHTML = htmlCrono;
     } catch (e) { 
         console.error(e);
-        container.innerHTML = "<p style='color:#ef4444; text-align:center;'>Erro ao gerar visualização.</p>"; 
+        container.innerHTML = "<p style='color:#ef4444; text-align:center;'>Erro ao gerar visualização.</p>"; 	}
     };
 
 
