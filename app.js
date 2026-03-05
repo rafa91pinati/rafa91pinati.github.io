@@ -442,8 +442,12 @@ window.carregarCategorias = async () => {
         carregarFinanceiro();
 
     } catch (e) {
-        console.error("Erro nas categorias:", e);
-        if(c) c.innerHTML = "<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>Erro ao carregar categorias.</span>";
+    // Adicione o e.message para ler o erro em texto claro
+    console.error("Erro detalhado nas categorias:", e.message); 
+    if(c) {
+        c.innerHTML = `<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>
+            Erro: ${e.message}
+        </span>`;
     }
 };
 
