@@ -456,7 +456,17 @@
     </div>
 </div>
 
-<script type="module" src="app.js"></script>
+<script>
+    // Gera um código baseado no minuto atual para garantir que o cache
+    // expire pelo menos uma vez a cada minuto enquanto você desenvolve.
+    const versao = Math.floor(Date.now() / 60000); 
+    
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = 'app.js?v=' + versao;
+    
+    document.body.appendChild(script);
+</script>
 
 </body>
 </html>
