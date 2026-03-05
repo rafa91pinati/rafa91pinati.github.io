@@ -102,14 +102,22 @@
 
 
 
-<div id="telaLogin" class="modal-login">
-    <div class="modal-login-content">
-        <h2 style="text-align:center; color: #1e293b; margin-bottom: 20px;">Agenda v4.3.5</h2>
-        <input type="email" id="emailLogin" placeholder="Seu e-mail">
-        <input type="password" id="senhaLogin" placeholder="Sua senha">
-        <button onclick="fazerLogin()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; border:none; padding:15px; width:100%; border-radius:12px; font-weight:bold; margin-top:10px; cursor:pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">Entrar</button>
-        <button onclick="criarConta()" style="background:none; color:#3b82f6; border:none; width:100%; margin-top:10px; cursor:pointer; font-weight: 600;">Criar nova conta</button>
-    </div>
+<div id="telaLogin" class="modal-login">
+
+    <div class="modal-login-content">
+
+        <h2 style="text-align:center; color: #1e293b; margin-bottom: 20px;">Agenda v4.3.5</h2>
+
+        <input type="email" id="emailLogin" placeholder="Seu e-mail">
+
+        <input type="password" id="senhaLogin" placeholder="Sua senha">
+
+        <button onclick="fazerLogin()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; border:none; padding:15px; width:100%; border-radius:12px; font-weight:bold; margin-top:10px; cursor:pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">Entrar</button>
+
+        <button onclick="criarConta()" style="background:none; color:#3b82f6; border:none; width:100%; margin-top:10px; cursor:pointer; font-weight: 600;">Criar nova conta</button>
+
+    </div>
+
 </div>
 
 
@@ -2171,67 +2179,50 @@
 
 
 
-    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
-
-
-
-        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%; cursor: pointer;">
-
-
-
-            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
-
-
-
-                <div class="icone-quadrado"></div> ATIVIDADES
-
-
-
-            </span>
-
-
-
-            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
-
-
-
-        </div>
-
-
-
-        
-
-
-
-        <div style="display: flex; gap: 8px;">
-
-
-
-            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-
-
-
-                📊 Gráfico
-
-
-
-            </button>
-
-
-
-            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-
-
-
-                📄 PDF
-
-
-
-            </button>
-
-
-
-        </div>
+    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
+        <span style="display: flex; align-items: center; gap: 10px;">
+            <div class="icone-quadrado"></div> ADD TAREFA
+        </span>
+        <span id="setaAdd" class="seta-secao">▼</span>
+    </div>
+    
+    <div id="secaoAdd" class="secao-card escondido">
+        <input type="text" id="descTask" placeholder="O que agendar hoje?">
+        
+        <div id="previewFotosNovas" class="container-fotos"></div>
+        
+        <div class="grid-50">
+            <input type="time" id="horaTask">
+            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
+            <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
+        </div>
+
+        <div class="grid-50" style="margin-top: 15px; margin-bottom: 5px;">
+            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
+                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
+                <select id="tipoRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
+                    <option value="nenhuma">Sem recorrência</option>
+                    <option value="diario">Diário</option>
+                    <option value="2dias">A cada 2 dias</option>
+                    <option value="semanal">A cada 1 semana</option>
+                    <option value="mensal">A cada 1 mês</option>
+                </select>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.7); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(255, 255, 255, 0.5);">
+                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
+                <input type="date" id="dataFimRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
+            <button id="btnCancelarAdd" onclick="cancelarNovaTarefa()" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+                Cancelar
+            </button>
+            <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
+                Salvar
+            </button>
+        </div>
+    </div>
 
 
 
