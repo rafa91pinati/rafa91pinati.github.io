@@ -86,8 +86,14 @@ body {
 
 /* Barra de Ações Rápidas */
 .barra-acoes-rapidas {
-    display: flex; justify-content: space-around; padding: 15px;
-    background: rgba(255, 255, 255, 0.05); border-radius: 20px; margin: 15px 5px;
+    display: flex;
+    justify-content: space-around;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    margin: 30px 5px 20px 5px; /* Aumentei o primeiro valor (30px) para descolar de cima */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 .btn-acao-modal {
     background: none; border: none; display: flex; flex-direction: column; 
