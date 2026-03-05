@@ -22,6 +22,7 @@ const storage = getStorage(app);
 // VARIÁVEIS GLOBAIS
 window.coresCategorias = { "Geral": "#94a3b8" }; 
 window.logosCategorias = {}; 
+window.todasAsCategorias = []; // NOVA: Para o modal de Outras... acessar
 let categoriasAtivas = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
 let idEmEdicao = null;
 let fotosTemporarias = []; 
@@ -200,203 +201,169 @@ window.fileToBase64 = (file) => new Promise((resolve, reject) => {
 });
 
 window.carregarCategorias = async () => {
-
     const c = document.getElementById('listaCategorias');
-
     if (!window.usuarioLogado) return;
 
-
-
     try {
-
         const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
-
         let meusTimesIds = [];
 
-
-
         if (meuEmail) {
-
             const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
-
             const snapTimes = await getDocs(qTimes);
-
             snapTimes.forEach(d => meusTimesIds.push(d.id));
-
         }
-
-
 
         const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
-
         const snapCatPessoal = await getDocs(qCatPessoal);
 
-
-
         let categoriasUnicas = new Map();
-
         snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
 
-
-
         if (meusTimesIds.length > 0) {
-
             const lotes = [];
-
             for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
-
             for (let lote of lotes) {
-
                 const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
-
                 const snapCatTime = await getDocs(qCatTime);
-
                 snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
-
             }
-
         }
 
-
-
         // --- LÓGICA DE ORDENAÇÃO POR CLIQUE ---
-
         let ordemCliques = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
-
         let arrayCategorias = Array.from(categoriasUnicas.values());
 
-
-
         arrayCategorias.sort((a, b) => {
-
             let idxA = ordemCliques.indexOf(a.nome);
-
             let idxB = ordemCliques.indexOf(b.nome);
-
-            // Se não foi clicado ainda, vai para o final
-
             if (idxA === -1) idxA = 999;
-
             if (idxB === -1) idxB = 999;
-
             return idxA - idxB;
-
         });
 
-
-
-        let categoriasAtivasIniciais = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
-
-        const taGeralAtiva = categoriasAtivasIniciais.includes("Geral");
-
-        const corGeral = taGeralAtiva ? "#94a3b8" : "rgba(255,255,255,0.05)";
-
-        const textoGeral = taGeralAtiva ? "white" : "#cbd5e1";
-
-        
-
-        let htmlTabs = `<div class="category-tab" data-nome="Geral" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8')">Geral</div>`;
-
-
+        // SALVA GLOBALMENTE PARA O NOVO RENDERIZADOR USAR
+        window.todasAsCategorias = arrayCategorias;
 
         arrayCategorias.forEach((cat) => {
-
             window.coresCategorias[cat.nome] = cat.cor;
-
             if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
-
             if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
-
-
-
-            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
-
-            const corFundo = taAtiva ? cat.cor : "rgba(255,255,255,0.05)";
-
-            const corTexto = taAtiva ? "white" : "#cbd5e1";
-
-            const iconeTime = cat.timeId ? "👥 " : "";
-
-
-
-            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${iconeTime}${cat.nome}</div>`;
-
         });
 
-
-
-        c.innerHTML = htmlTabs;
-
+        // CHAMA A NOVA FUNÇÃO DE DESENHAR O LAYOUT EM PÍLULA
+        window.renderizarCategoriasNoFiltro();
         
-
         await carregarTarefas();
-
         carregarArquivosFixos();
-
         carregarFinanceiro();
 
     } catch (e) {
-
         console.error("Erro nas categorias:", e);
-
-        c.innerHTML = "<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>Erro ao carregar categorias.</span>";
-
+        if(c) c.innerHTML = "<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>Erro ao carregar categorias.</span>";
     }
-
 };
 
-window.selecionarCat = (nome, cor) => {
+// ==========================================
+// FUNÇÕES NOVAS DE RENDERIZAÇÃO DO FILTRO 
+// ==========================================
+window.renderizarCategoriasNoFiltro = () => {
+    const container = document.getElementById('listaCategorias');
+    if (!container) return;
+    
+    container.innerHTML = ''; 
+    
+    // Junta a categoria "Geral" (fixa) com as categorias do banco
+    const listaCompleta = [{nome: "Geral", cor: "#94a3b8"}, ...(window.todasAsCategorias || [])];
+    
+    // Pega só as 3 primeiras para não quebrar o layout da pílula
+    const categoriasParaMostrar = listaCompleta.slice(0, 3); 
 
-    // Registra o clique para a ordenação (Geral não entra na lista pois é fixa no início)
+    categoriasParaMostrar.forEach((cat, index) => {
+        const btn = document.createElement('button');
+        const isActive = categoriasAtivas.includes(cat.nome); 
 
-    if (nome !== "Geral") {
-
-        let ordem = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
-
-        // Remove se já existir na lista e coloca na primeira posição (ao lado da Geral)
-
-        ordem = ordem.filter(n => n !== nome);
-
-        ordem.unshift(nome);
-
-        localStorage.setItem('ordemCliquesCategorias', JSON.stringify(ordem.slice(0, 50))); // Guarda os últimos 50
-
-    }
-
-
-
-    if (nome == "Geral") {
-
-        categoriasAtivas = ["Geral"]; 
-
-    } else {
-
-        categoriasAtivas = categoriasAtivas.filter(c => c !== "Geral"); 
-
-        if (categoriasAtivas.includes(nome)) {
-
-            categoriasAtivas = categoriasAtivas.filter(c => c !== nome); 
-
-            if (categoriasAtivas.length == 0) categoriasAtivas = ["Geral"]; 
-
+        if (isActive) {
+            btn.style.cssText = "background: #54627b; color: white; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; box-shadow: 0 4px 8px rgba(0,0,0,0.15); cursor: pointer; white-space: nowrap;";
+            btn.innerHTML = `Categoria: <span style="text-decoration: underline;">${cat.nome}</span>`;
         } else {
-
-            categoriasAtivas.push(nome); 
-
+            btn.style.cssText = "background: transparent; color: #94a3b8; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; padding: 8px 5px; white-space: nowrap;";
+            btn.innerText = cat.nome;
         }
 
+        btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
+        container.appendChild(btn);
+
+        if (index < categoriasParaMostrar.length - 1) {
+            const separador = document.createElement('span');
+            separador.innerText = '|';
+            separador.style.cssText = "color: #cbd5e1; font-weight: bold; margin: 0 2px;";
+            container.appendChild(separador);
+        }
+    });
+};
+
+window.abrirOutrasCategorias = function() {
+    const containerModal = document.getElementById('listaTodasCategoriasModal');
+    if (!containerModal) return;
+    
+    containerModal.innerHTML = ''; 
+
+    const listaCompleta = [{nome: "Geral", cor: "#94a3b8"}, ...(window.todasAsCategorias || [])];
+
+    listaCompleta.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.innerText = cat.nome;
+        
+        const isActive = categoriasAtivas.includes(cat.nome);
+        
+        btn.style.cssText = `background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-left: 5px solid ${cat.cor || '#cbd5e1'}; padding: 12px 15px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; text-align: left; cursor: pointer; transition: all 0.2s; margin-bottom: 5px;`;
+        
+        if (isActive) {
+            btn.style.background = "#54627b";
+            btn.style.color = "white";
+            btn.style.borderColor = "#54627b";
+            btn.style.borderLeft = `5px solid ${cat.cor || 'white'}`;
+        }
+
+        btn.onclick = () => {
+            window.selecionarCat(cat.nome, cat.cor); 
+            window.fecharModal('modalOutrasCategorias'); 
+        };
+        
+        containerModal.appendChild(btn);
+    });
+
+    window.abrirModal('modalOutrasCategorias'); 
+};
+// ==========================================
+
+
+window.selecionarCat = (nome, cor) => {
+    // Registra o clique para a ordenação (Geral não entra na lista pois é fixa no início)
+    if (nome !== "Geral") {
+        let ordem = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
+        ordem = ordem.filter(n => n !== nome);
+        ordem.unshift(nome);
+        localStorage.setItem('ordemCliquesCategorias', JSON.stringify(ordem.slice(0, 50))); 
     }
 
-
+    if (nome == "Geral") {
+        categoriasAtivas = ["Geral"]; 
+    } else {
+        categoriasAtivas = categoriasAtivas.filter(c => c !== "Geral"); 
+        if (categoriasAtivas.includes(nome)) {
+            categoriasAtivas = categoriasAtivas.filter(c => c !== nome); 
+            if (categoriasAtivas.length == 0) categoriasAtivas = ["Geral"]; 
+        } else {
+            categoriasAtivas.push(nome); 
+        }
+    }
 
     localStorage.setItem('categoriasAgendaAtivas', JSON.stringify(categoriasAtivas));
 
-
-
-    // Re-renderiza as categorias para aplicar a nova ordem visual imediatamente
-
+    // Re-renderiza chamando a função principal
     carregarCategorias();
-
 };
 
 window.adicionarCategoria = async () => {
@@ -772,233 +739,122 @@ window.atualizarSeletorTimes = async () => {
 window.setarData = (tipo, el) => {
 
     const inputIni = document.getElementById('dataSeletor');
-
     const inputFim = document.getElementById('dataFimFiltro');
-
     const hoje = new Date();
-
     
-
     // Atualiza a variável global de controle
-
     tipoFiltroTempo = tipo;
 
-
-
     // Reset visual dos botões
-
     document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
-
     if (el && el.tagName === 'BUTTON') el.classList.add('ativo');
 
-
-
     // Limpa o filtro de data final se não for um período manual ou mês
-
     if (['hoje', 'amanha', 'semana', 'tudo', 'custom'].includes(tipo)) {
-
         inputFim.value = "";
-
     }
-
-
 
     if (tipo === 'hoje') {
-
         inputIni.value = hoje.toLocaleDateString('en-CA');
-
     } else if (tipo === 'amanha') {
-
         const am = new Date();
-
         am.setDate(hoje.getDate() + 1);
-
         inputIni.value = am.toLocaleDateString('en-CA');
-
     } else if (tipo === 'semana') {
-
         const p = new Date(hoje);
-
         p.setDate(hoje.getDate() - hoje.getDay());
-
         window.arrayDiasSemana = [];
-
         for(let i = 0; i < 7; i++) {
-
             const d = new Date(p); d.setDate(p.getDate() + i);
-
             window.arrayDiasSemana.push(d.toLocaleDateString('en-CA'));
-
         }
-
         inputIni.value = window.arrayDiasSemana[0];
-
     } else if (tipo === 'mes') {
-
         // Define o intervalo do mês atual
-
         const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-
         const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-
         inputIni.value = primeiroDia.toLocaleDateString('en-CA');
-
         inputFim.value = ultimoDia.toLocaleDateString('en-CA');
-
         tipoFiltroTempo = 'periodo'; 
-
     } else if (tipo === 'tudo') {
-
         inputIni.value = "";
-
         inputFim.value = "";
-
     }
 
-
-
     carregarTarefas();
-
 };
 
 window.carregarTarefas = async () => {
 
     if (!window.usuarioLogado) return; 
-
     const lista = document.getElementById('listaTarefas');
-
     const dataIni = document.getElementById('dataSeletor').value;
-
     const dataFim = document.getElementById('dataFimFiltro').value;
 
-
-
     try {
-
         const meuEmail = window.usuarioLogado.email.toLowerCase();
-
         const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
-
         const snapTimes = await getDocs(qTimes);
-
         let meusTimesIds = [];
-
         snapTimes.forEach(d => meusTimesIds.push(d.id));
 
-
-
         let tarefasBrutas = [];
-
         const qPessoal = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid));
-
         const snapPessoal = await getDocs(qPessoal);
-
         snapPessoal.forEach(d => tarefasBrutas.push({ id: d.id, ...d.data() }));
 
-
-
         if (meusTimesIds.length > 0) {
-
             const lotes = [];
-
             for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
-
             for (let lote of lotes) {
-
                 const qTime = query(collection(db, "tarefas"), where("timeId", "in", lote));
-
                 const snapTime = await getDocs(qTime);
-
                 snapTime.forEach(d => { if (!tarefasBrutas.some(t => t.id === d.id)) tarefasBrutas.push({ id: d.id, ...d.data() }); });
-
             }
-
         }
 
-
-
         // --- FILTRAGEM DE DATAS ---
-
         let tarefas = tarefasBrutas.filter(t => {
-
             if (tipoFiltroTempo === 'tudo') return true;
-
             if (tipoFiltroTempo === 'semana') return (window.arrayDiasSemana || []).includes(t.dataString);
-
             if (dataIni && dataFim) return t.dataString >= dataIni && t.dataString <= dataFim;
-
             if (dataIni && !dataFim) return t.dataString === dataIni;
-
             return true;
-
         });
-
-
 
         tarefas.sort((a, b) => a.dataString.localeCompare(b.dataString) || (a.hora || "00:00").localeCompare(b.hora || "00:00"));
 
-
-
         if (categoriasAtivas.includes("Geral")) {
-
             tarefas = tarefas.filter(t => t.categoria !== "Pessoal");
-
         } else {
-
             tarefas = tarefas.filter(t => categoriasAtivas.includes(t.categoria));
-
         }
-
         if (tagFiltroAtiva) tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
 
-
-
         lista.innerHTML = "";
-
         tarefas.forEach(t => {
-
             const dataObj = new Date(t.dataString + 'T00:00:00');
-
             const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-
             const corBorda = window.coresCategorias[t.categoria] || "#94a3b8";
-
             const fotosStringSegura = JSON.stringify(t.fotos || []).split('"').join('&quot;');
-
             
-
             lista.innerHTML += `
-
             <div class="tarefa-item" style="border-left: 6px solid ${corBorda}; margin-bottom: 12px; border-radius: 16px;">
-
                 <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${fotosStringSegura})" style="display: flex; align-items: center; gap: 15px;">
-
                     <div class="dia-badge" style="min-width: 50px; text-align: center;">
-
                         <span style="font-size: 1.8rem; font-weight: 900; display: block;">${dataObj.getDate()}</span>
-
                         <span style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800;">${diasSemana[dataObj.getDay()]}</span>
-
                     </div>
-
                     <div style="flex: 1;">
-
                         <div style="font-size: 0.65rem; font-weight: bold; margin-bottom: 4px;">🏷️ ${t.marcador || 'Geral'}</div>
-
                         <div style="font-weight: 700;">${t.hora ? '<span style="color: #3b82f6;">'+t.hora+'</span> ' : ''}${t.descricao}</div>
-
                     </div>
-
                 </div>
-
             </div>`;
-
         });
-
         if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
 
     } catch (e) { console.error(e); }
-
 }; 
 
 window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao == id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
@@ -1047,8 +903,8 @@ window.cancelarNovaTarefa = () => {
     document.getElementById('fotoTask').value = ""; document.getElementById('previewFotosNovas').innerHTML = "";
     document.getElementById('tipoRecorrencia').value = "nenhuma"; document.getElementById('dataFimRecorrencia').value = "";
     fotosNovasArray = []; 
-    document.getElementById('secaoAdd').classList.add('escondido');
-    document.getElementById('setaAdd').classList.remove('seta-expandida');
+    document.getElementById('secaoAdd')?.classList.add('escondido');
+    document.getElementById('setaAdd')?.classList.remove('seta-expandida');
 };
 
 
@@ -1077,82 +933,83 @@ const originalSalvar = window.salvarNovaTarefa;
 
 // Otimização: Fecha o modal automaticamente após salvar
 
-window.salvarNovaTarefa = async () => {
-    const btn = document.getElementById('btnSalvar');
-    const textoOriginal = btn.innerHTML;
-    
-    try {
-        const desc = document.getElementById('descTask').value;
-        const hora = document.getElementById('horaTask').value;
-        const dataInicioTexto = document.getElementById('dataSeletor').value;
-        const tipoRec = document.getElementById('tipoRecorrencia').value;
-        const dataFimInput = document.getElementById('dataFimRecorrencia').value;
-
-        if (!desc || !dataInicioTexto || !window.usuarioLogado) {
-            return alert("Preencha a descrição e a data de início!");
-        }
-
-        if (tipoRec !== 'nenhuma' && !dataFimInput) {
-            return alert("Para recorrência, selecione uma data final!");
-        }
-
-        btn.innerHTML = "⌛ Salvando...";
-        btn.disabled = true;
-
-        // --- LÓGICA DE GERAR O ARRAY DE DATAS ---
-        let datasParaSalvar = [];
-        let dataAtual = new Date(dataInicioTexto + 'T00:00:00');
-        datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
-
-        if (tipoRec !== 'nenhuma' && dataFimInput) {
-            const dataFim = new Date(dataFimInput + 'T23:59:59');
-            while (true) {
-                if (tipoRec === 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
-                else if (tipoRec === '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
-                else if (tipoRec === 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
-                else if (tipoRec === 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
-                
-                if (dataAtual > dataFim) break;
-                datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
-            }
-        }
-
-        // --- SALVAMENTO NO FIREBASE ---
-        const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[0];
-        const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
-
-        const promessas = datasParaSalvar.map(dataStr => {
-            return addDoc(collection(db, "tarefas"), { 
-                uid: window.usuarioLogado.uid, 
-                timeId: idDoTimeDaCategoria,
-                categoria: categoriaPrincipal,
-                descricao: desc, 
-                marcador: marcadorAtivo || null, 
-                hora: hora, 
-                dataString: dataStr,
-                fotos: window.linksFotosUpload || [],
-                criadoEm: new Date(),
-                alarmeAtivo: true,
-                alertaDisparado: false
-            });
-        });
-
-        await Promise.all(promessas);
-
-        // --- FINALIZAÇÃO ---
-        fecharModal('modalTarefa'); 
-        if (typeof cancelarNovaTarefa === 'function') cancelarNovaTarefa();
-        await carregarTarefas();
-        
-        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
-
-    } catch (e) { 
-        console.error("Erro completo:", e);
-        alert("Erro ao salvar. Verifique o console."); 
-    } finally { 
-        btn.innerHTML = textoOriginal; 
-        btn.disabled = false; 
-    }
+window.salvarNovaTarefa = async () => {
+
+    const btn = document.getElementById('btnSalvar');
+    const textoOriginal = btn.innerHTML;
+    
+    try {
+        const desc = document.getElementById('descTask').value;
+        const hora = document.getElementById('horaTask').value;
+        const dataInicioTexto = document.getElementById('dataSeletor').value;
+        const tipoRec = document.getElementById('tipoRecorrencia').value;
+        const dataFimInput = document.getElementById('dataFimRecorrencia').value;
+
+        if (!desc || !dataInicioTexto || !window.usuarioLogado) {
+            return alert("Preencha a descrição e a data de início!");
+        }
+
+        if (tipoRec !== 'nenhuma' && !dataFimInput) {
+            return alert("Para recorrência, selecione uma data final!");
+        }
+
+        btn.innerHTML = "⌛ Salvando...";
+        btn.disabled = true;
+
+        // --- LÓGICA DE GERAR O ARRAY DE DATAS ---
+        let datasParaSalvar = [];
+        let dataAtual = new Date(dataInicioTexto + 'T00:00:00');
+        datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
+
+        if (tipoRec !== 'nenhuma' && dataFimInput) {
+            const dataFim = new Date(dataFimInput + 'T23:59:59');
+            while (true) {
+                if (tipoRec === 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
+                else if (tipoRec === '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
+                else if (tipoRec === 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
+                else if (tipoRec === 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
+                
+                if (dataAtual > dataFim) break;
+                datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
+            }
+        }
+
+        // --- SALVAMENTO NO FIREBASE ---
+        const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[0];
+        const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
+
+        const promessas = datasParaSalvar.map(dataStr => {
+            return addDoc(collection(db, "tarefas"), { 
+                uid: window.usuarioLogado.uid, 
+                timeId: idDoTimeDaCategoria,
+                categoria: categoriaPrincipal,
+                descricao: desc, 
+                marcador: tagFiltroAtiva || null, 
+                hora: hora, 
+                dataString: dataStr,
+                fotos: window.linksFotosUpload || [],
+                criadoEm: new Date(),
+                alarmeAtivo: true,
+                alertaDisparado: false
+            });
+        });
+
+        await Promise.all(promessas);
+
+        // --- FINALIZAÇÃO ---
+        fecharModal('modalTarefa'); 
+        if (typeof cancelarNovaTarefa === 'function') cancelarNovaTarefa();
+        await carregarTarefas();
+        
+        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
+
+    } catch (e) { 
+        console.error("Erro completo:", e);
+        alert("Erro ao salvar. Verifique o console."); 
+    } finally { 
+        btn.innerHTML = textoOriginal; 
+        btn.disabled = false; 
+    }
 };
 
 window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
@@ -1546,6 +1403,7 @@ window.gerarRelatorioPDF = async (evento) => {
     relatorioTemp.style.color = '#1e293b';
 
     let logoPequenaHtml = ""; let logoResumoHtml = "";
+    
     if (window.logosCategorias && window.logosCategorias[categoriaDoPDF]) {
         let logoData = window.logosCategorias[categoriaDoPDF];
         logoPequenaHtml = `<img src="${logoData}" style="height: 28px; max-width: 120px; object-fit: contain; border-radius: 4px;">`;
