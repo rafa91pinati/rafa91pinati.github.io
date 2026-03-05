@@ -14,7 +14,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-   <link rel="stylesheet" href="style.css?v=7">
+   
 
 </head>
 
@@ -586,19 +586,24 @@
             </div>
 
         </div>
-
+ 
     </div>
 
 
 
-    <script type="module">
+<link rel="stylesheet" href="style.css?v=20260305_1330">
 
-        const versao = Math.floor(Date.now() / 60000); 
+<script type="module">
+    // Gera um código único baseado no minuto atual para "enganar" o cache do navegador
+    const cacheBuster = Math.floor(Date.now() / 60000); 
+    
+    // Importa o JS principal com a versão dinâmica
+    import('./app.js?v=' + cacheBuster);
 
-        import('./app.js?v=' + versao);
-
-    </script>
-
+    // Força a atualização do CSS injetando o link via código, se preferir automação total:
+    const css = document.querySelector('link[rel="stylesheet"]');
+    css.href = 'style.css?v=' + cacheBuster;
+</script>
 
 
 </body>
