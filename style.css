@@ -557,16 +557,16 @@ body {
     transition: 0.2s;
 }
 
-.tarefa-item {
-    background: white;
-    margin-bottom: 20px !important;
-    padding: 18px !important;
-    border-radius: 20px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.04);
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border: 1px solid rgba(0,0,0,0.02);
+.tarefa-item {
+    background: white;
+    margin-bottom: 20px !important; /* Espaço aumentado entre as tarefas */
+    padding: 18px !important; /* Padding interno mais confortável */
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid rgba(0,0,0,0.02);
 }
 
 .modal-card {
