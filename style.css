@@ -47,10 +47,9 @@ body {
     flex-wrap: wrap; 
     gap: 8px; 
     padding: 5px 2px 5px 2px; 
-    margin-top: 15px; 
-    margin-bottom: 15px; 
-    border-bottom: 1px solid rgba(255,255,255,0.1); 
-    max-height: 92px; /* Altura calculada para 2 linhas exatas */
+    margin-top: 10px; 
+    margin-bottom: 5px; /* Reduzi aqui para aproximar da TAG */
+    max-height: 95px; /* Trava em 2 linhas exatas */
     overflow-y: auto; 
     scrollbar-width: none; 
 }
