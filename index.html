@@ -231,11 +231,14 @@
         <div class="modal-body">
             
             <div class="category-tabs" style="margin-bottom: 20px; display: flex; gap: 8px; padding-bottom: 10px;">
-                <button class="category-tab active tablink" onclick="abrirAba(event, 'abaAlarme')" title="Alarmes" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔔</button>
-                <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')" title="Categorias" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">📂</button>
-                <button class="category-tab tablink" onclick="abrirAba(event, 'abaMarcadores')" title="Marcadores" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔖</button>
-                <button class="category-tab tablink" onclick="abrirAba(event, 'abaTimes')" title="Times" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">👥</button>
-            </div>
+    <button id="btnAbaAlarme" class="category-tab tablink" onclick="abrirAba(event, 'abaAlarme')" title="Alarmes" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔔</button>
+    
+    <button class="category-tab tablink" onclick="abrirAba(event, 'abaCategorias')" title="Categorias" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">📂</button>
+    
+    <button class="category-tab tablink" onclick="abrirAba(event, 'abaMarcadores')" title="Marcadores" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">🔖</button>
+    
+    <button class="category-tab tablink" onclick="abrirAba(event, 'abaTimes')" title="Times" style="flex: 1; font-size: 1.4rem; padding: 12px 0; display: flex; justify-content: center; align-items: center;">👥</button>
+</div>
 
             <div id="abaAlarme" class="tabcontent" style="display: block;">
                 <label for="tempoAntecedencia" style="display:block; margin-bottom:5px; font-weight:bold;">Avisar com antecedência:</label>
