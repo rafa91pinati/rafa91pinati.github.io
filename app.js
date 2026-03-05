@@ -277,36 +277,32 @@ window.carregarCategorias = async () => {
 window.renderizarCategoriasNoFiltro = () => {
     const container = document.getElementById('listaCategorias');
     if (!container) return;
-
     container.innerHTML = ''; 
 
-    // Pega as categorias da memória global
+    // Recupera categorias do sistema e do que está ativo no momento
     let todas = window.todasAsCategorias || [];
+    let ativas = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
+    
     let semGeral = todas.filter(c => c.nome !== "Geral");
-
-    // Mostra a Geral + as 3 últimas clicadas
     let recents = semGeral.slice(0, 3); 
     let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
 
     categoriasParaMostrar.forEach((cat) => {
         const btn = document.createElement('button');
-        
-        // Verifica se a categoria está selecionada na lista global
-        const isActive = (window.categoriasAtivas || []).includes(cat.nome); 
+        const isActive = ativas.includes(cat.nome);
         const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
             `<span style="margin-right: 4px;">👥</span>` : "";
 
-        // ESTILO: Fonte 0.9rem e Padding gordinho conforme você pediu
         btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
 
         if (isActive) {
-            // Estilo do botão quando está selecionado
+            // AQUI VOLTA A COR: Usa a cor da categoria quando selecionada
             btn.style.background = cat.cor || "#54627b";
             btn.style.color = "white";
             btn.style.padding = "10px 18px";
             btn.innerHTML = (cat.nome === "Geral") ? `Cat: ${cat.nome}` : `${iconeTime}${cat.nome}`;
         } else {
-            // Estilo do botão quando NÃO está selecionado
+            // Estilo padrão para categorias não selecionadas
             btn.style.background = "rgba(255,255,255,0.5)";
             btn.style.color = "#64748b";
             btn.style.padding = "10px 14px";
@@ -317,7 +313,7 @@ window.renderizarCategoriasNoFiltro = () => {
         container.appendChild(btn);
     });
 
-    // Adiciona o botão "mais" (•••) no final da linha
+    // Botão "Mais" gordinho
     const btnOutras = document.createElement('button');
     btnOutras.innerHTML = "•••";
     btnOutras.style.cssText = "background: #e2e8f0; color: #64748b; border: none; font-weight: 900; font-size: 0.9rem; padding: 10px 18px; cursor: pointer; border-radius: 16px; flex-shrink: 0;";
