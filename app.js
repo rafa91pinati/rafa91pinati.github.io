@@ -1046,83 +1046,89 @@ const originalSalvar = window.salvarNovaTarefa;
 
 // Otimização: Fecha o modal automaticamente após salvar
 
-window.salvarNovaTarefa = async () => {
-
-    const btn = document.getElementById('btnSalvar');
-    const textoOriginal = btn.innerHTML;
-    
-    try {
-        const desc = document.getElementById('descTask').value;
-        const hora = document.getElementById('horaTask').value;
-        const dataInicioTexto = document.getElementById('dataSeletor').value;
-        const tipoRec = document.getElementById('tipoRecorrencia').value;
-        const dataFimInput = document.getElementById('dataFimRecorrencia').value;
-
-        if (!desc || !dataInicioTexto || !window.usuarioLogado) {
-            return alert("Preencha a descrição e a data de início!");
-        }
-
-        if (tipoRec !== 'nenhuma' && !dataFimInput) {
-            return alert("Para recorrência, selecione uma data final!");
-        }
-
-        btn.innerHTML = "⌛ Salvando...";
-        btn.disabled = true;
-
-        // --- LÓGICA DE GERAR O ARRAY DE DATAS ---
-        let datasParaSalvar = [];
-        let dataAtual = new Date(dataInicioTexto + 'T00:00:00');
-        datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
-
-        if (tipoRec !== 'nenhuma' && dataFimInput) {
-            const dataFim = new Date(dataFimInput + 'T23:59:59');
-            while (true) {
-                if (tipoRec === 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
-                else if (tipoRec === '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
-                else if (tipoRec === 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
-                else if (tipoRec === 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
-                
-                if (dataAtual > dataFim) break;
-                datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
-            }
-        }
-
-        // --- SALVAMENTO NO FIREBASE ---
-        const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[0];
-        const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
-
-        const promessas = datasParaSalvar.map(dataStr => {
-            return addDoc(collection(db, "tarefas"), { 
-                uid: window.usuarioLogado.uid, 
-                timeId: idDoTimeDaCategoria,
-                categoria: categoriaPrincipal,
-                descricao: desc, 
-                marcador: tagFiltroAtiva || null, 
-                hora: hora, 
-                dataString: dataStr,
-                fotos: window.linksFotosUpload || [],
-                criadoEm: new Date(),
-                alarmeAtivo: true,
-                alertaDisparado: false
-            });
-        });
-
-        await Promise.all(promessas);
-
-        // --- FINALIZAÇÃO ---
-        fecharModal('modalTarefa'); 
-        if (typeof cancelarNovaTarefa === 'function') cancelarNovaTarefa();
-        await carregarTarefas();
-        
-        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
-
-    } catch (e) { 
-        console.error("Erro completo:", e);
-        alert("Erro ao salvar. Verifique o console."); 
-    } finally { 
-        btn.innerHTML = textoOriginal; 
-        btn.disabled = false; 
-    }
+window.salvarNovaTarefa = async () => {
+    const btn = document.getElementById('btnSalvar');
+    const textoOriginal = btn.innerHTML;
+    
+    try {
+        const desc = document.getElementById('descTask').value;
+        const hora = document.getElementById('horaTask').value;
+        const dataInicioTexto = document.getElementById('dataSeletor').value;
+        const tipoRec = document.getElementById('tipoRecorrencia').value;
+        const dataFimInput = document.getElementById('dataFimRecorrencia').value;
+
+        if (!desc || !dataInicioTexto || !window.usuarioLogado) {
+            return alert("Preencha a descrição e a data de início!");
+        }
+
+        // 1. BLOQUEIA O BOTÃO E AVISA O USUÁRIO
+        btn.innerHTML = "⌛ Enviando Fotos...";
+        btn.disabled = true;
+
+        // 2. UPLOAD DAS FOTOS PARA O STORAGE
+        let linksFinais = [];
+        for (let fotoFile of fotosNovasArray) {
+            const nomeArquivo = `${Date.now()}_${fotoFile.name}`;
+            const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
+            const snap = await uploadBytes(sRef, fotoFile);
+            const url = await getDownloadURL(snap.ref);
+            linksFinais.push(url);
+        }
+
+        // 3. LÓGICA DE DATAS (PARA RECORRÊNCIA)
+        let datasParaSalvar = [];
+        let dataAtual = new Date(dataInicioTexto + 'T00:00:00');
+        datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
+
+        if (tipoRec !== 'nenhuma' && dataFimInput) {
+            const dataFim = new Date(dataFimInput + 'T23:59:59');
+            while (true) {
+                if (tipoRec === 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
+                else if (tipoRec === '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
+                else if (tipoRec === 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
+                else if (tipoRec === 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
+                
+                if (dataAtual > dataFim) break;
+                datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
+            }
+        }
+
+        // 4. SALVAMENTO NO FIREBASE (FIRESTORE)
+        const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[0];
+        const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
+
+        const promessas = datasParaSalvar.map(dataStr => {
+            return addDoc(collection(db, "tarefas"), { 
+                uid: window.usuarioLogado.uid, 
+                timeId: idDoTimeDaCategoria,
+                categoria: categoriaPrincipal,
+                descricao: desc, 
+                marcador: tagFiltroAtiva || null, 
+                hora: hora, 
+                dataString: dataStr,
+                fotos: linksFinais, // LINKS REAIS DAS FOTOS
+                criadoEm: new Date(),
+                alarmeAtivo: true,
+                alertaDisparado: false
+            });
+        });
+
+        await Promise.all(promessas);
+
+        // 5. LIMPEZA E FECHAMENTO
+        fecharModal('modalTarefa'); 
+        if (typeof cancelarNovaTarefa === 'function') cancelarNovaTarefa();
+        await carregarTarefas();
+        
+        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
+
+    } catch (e) { 
+        console.error("Erro completo:", e);
+        alert("Erro ao salvar a tarefa. Verifique o console."); 
+    } finally { 
+        btn.innerHTML = textoOriginal; 
+        btn.disabled = false; 
+    }
 };
 
 window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
