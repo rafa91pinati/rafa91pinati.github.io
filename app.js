@@ -2453,7 +2453,7 @@ window.gerarRelatorioPDF = async (evento) => {
 
             dataUpload: new Date()
 
-        });
+        };
 
 }
 
