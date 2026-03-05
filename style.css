@@ -259,148 +259,127 @@ body {
 
 /* --- MODAL E COMPONENTES --- */
 
-.modal-overlay {
-
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-
-    display: flex; align-items: center; justify-content: center; z-index: 9999;
-
-}
-
-
-
-.modal-card {
-
-    background: #ffffff;
-
-    width: 92%;
-
-    max-width: 450px;
-
-    max-height: 85vh;
-
-    display: flex;
-
-    flex-direction: column;
-
-    border-radius: 28px;
-
-    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-
-    overflow: hidden;
-
-}
-
-
-
-.modal-body {
-
-    padding: 20px 25px;
-
-    overflow-y: auto;
-
-    flex: 1;
-
-}
-
-
-
-/* Inputs padrão dentro de modais */
-
-input[type="text"], input[type="time"], select {
-
-    width: 100%;
-
-    padding: 12px;
-
-    background: #f8fafc;
-
-    border: 1px solid #e2e8f0;
-
-    border-radius: 12px;
-
-    font-size: 0.8rem;
-
-    font-weight: 600;
-
-    box-sizing: border-box;
-
-}
-
-
-
-/* --- ITENS DA LISTA DE TAREFAS --- */
-
-.tarefa-item {
-
-    background: white;
-
-    margin-bottom: 12px;
-
-    padding: 16px;
-
-    border-radius: 16px;
-
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-}
-
-
-
-.dia-badge {
-
-    font-size: 1.4rem;
-
-    font-weight: 900;
-
-    color: #1e293b;
-
-    text-align: center;
-
-    line-height: 1;
-
-}
-
-
-
-.dia-badge span {
-
-    display: block;
-
-    font-size: 0.6rem;
-
-    color: #64748b;
-
-}
-
-
-
-/* --- BARRA DE AÇÕES (Botões flutuantes lá embaixo) --- */
-
-.barra-acoes-rapidas {
-
-    display: flex;
-
-    justify-content: space-around;
-
-    padding: 15px;
-
-    background: rgba(255, 255, 255, 0.4);
-
-    backdrop-filter: blur(10px);
-
-    border-radius: 24px;
-
-    margin-top: 20px;
-
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-card {
+    background: #f8fafc;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.modal-header {
+    padding: 20px 25px;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.btn-fechar-modal {
+    background: #f1f5f9;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: #64748b;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.btn-fechar-modal:hover {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.input-principal {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.input-principal:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.input-card-mini {
+    background: white;
+    border-radius: 14px;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-card-mini label {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.input-card-mini input, 
+.input-card-mini select {
+    border: none;
+    background: transparent;
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.85rem;
+    outline: none;
+    width: 100%;
+    padding: 0;
+}
+
+.btn-modal-primario {
+    flex: 2;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-modal-secundario {
+    flex: 1;
+    background: #e2e8f0;
+    color: #64748b;
+    border: none;
+    padding: 16px;
+    border-radius: 16px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 
