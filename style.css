@@ -27,7 +27,16 @@ body {
 #dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: #000000; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none; }
 #dataSeletor::-webkit-calendar-picker-indicator { filter: invert(0); cursor: pointer; } 
 
-.category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); scrollbar-width: none; }
+.category-tabs { 
+    display: flex; 
+    gap: 8px; 
+    overflow-x: auto; 
+    padding-bottom: 15px; 
+    margin-top: 20px; /* Desce a aba de categorias */
+    margin-bottom: 15px; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    scrollbar-width: none; 
+}
 .category-tab { padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; color: #334155; transition: 0.3s; }
 .category-tab:hover { background: rgba(255,255,255,0.15); }
 
