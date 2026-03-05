@@ -1484,17 +1484,15 @@ window.abrirCronogramaVisual = async (evento) => {
 };
 
 window.gerarRelatorioPDF = async (evento) => {
-    evento.stopPropagation();
+    if (evento) evento.stopPropagation();
     
-    if (categoriasAtivas.length > 1) return alert("📄 Por favor, deixe apenas UMA categoria selecionada para gerar o Relatório PDF.");
-    if (categoriasAtivas.includes("Geral")) return alert("📄 Por favor, selecione uma categoria de projeto específica (desmarque a Geral) para gerar o PDF.");
-    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length == 0) return alert("Não há atividades na tela para gerar o PDF.");
+    if (categoriasAtivas.length > 1) return alert("📄 Por favor, deixe apenas UMA categoria selecionada para o PDF.");
+    if (categoriasAtivas.includes("Geral")) return alert("📄 Por favor, selecione uma categoria específica (desmarque a Geral).");
+    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length == 0) return alert("Não há atividades carregadas para gerar o PDF.");
 
     const categoriaDoPDF = categoriasAtivas[0];
     let tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria == categoriaDoPDF);
     
-    if (tarefasDoPDF.length == 0) return alert("Não há atividades nesta categoria.");
-
     const btn = evento.currentTarget;
     const textoOriginal = btn.innerHTML;
     btn.innerHTML = "⏳ Gerando..."; btn.disabled = true;
