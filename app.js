@@ -649,16 +649,16 @@ window.atualizarSeletorMarcadores = async () => {
     // (O restante da sua lógica de montagem do HTML do PDF está correta, 
     // certifique-se apenas de que window.coresCategorias esteja populado no carregarCategorias)
     
-    // EXECUÇÃO DO PDF (Igual ao seu código, mas com tratamento de erro)
-    try {
-        const opcoes = { margin: [10, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-        await html2pdf().set(opcoes).from(relatorioTemp).save(`Relatorio_${categoriaDoPDF}.pdf`);
-    } catch (err) {
-        console.error("Erro ao gerar PDF:", err);
-        alert("Erro técnico ao gerar o arquivo.");
-    } finally {
-        btn.innerHTML = textoOriginal; btn.disabled = false;
-    }
+      // EXECUÇÃO DO PDF (Igual ao seu código, mas com tratamento de erro)
+    try {
+        const opcoes = { margin: [10, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        await html2pdf().set(opcoes).from(relatorioTemp).save(`Relatorio_${categoriaDoPDF}.pdf`);
+    } catch (err) {
+        console.error("Erro ao gerar PDF:", err);
+        alert("Erro técnico ao gerar o arquivo.");
+    } finally {
+        btn.innerHTML = textoOriginal; btn.disabled = false;
+    }
 };
 
 window.carregarTimes = async () => {
@@ -1469,285 +1469,249 @@ window.abrirCronogramaVisual = async (evento) => {
     }
 };
 
-window.gerarRelatorioPDF = async (evento) => {
-    if (evento) evento.stopPropagation();
-    
-    // Validações Iniciais
-    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
-        return alert("📄 Selecione apenas UMA categoria específica (desmarque a Geral) para gerar o PDF.");
-    }
-    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
-        return alert("Não há atividades na tela para gerar o relatório.");
-    }
-
-    const categoriaDoPDF = categoriasAtivas[0];
-    const tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
-    
-    if (tarefasDoPDF.length === 0) return alert("Nenhuma tarefa encontrada para esta categoria.");
-
-    const btn = evento.currentTarget;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Gerando..."; btn.disabled = true;
-
-    // Formatação da Data do Título
-    let dataFiltroTexto = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
-    if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
-        dataFiltroTexto = `${window.arrayDiasSemana[0].split('-').reverse().join('/')} a ${window.arrayDiasSemana[6].split('-').reverse().join('/')}`;
-    }
-
-    // Agrupamento por Tag e Data
-    const tarefasPorTag = {};
-    tarefasDoPDF.forEach(t => {
-        const tag = t.marcador || "Geral";
-        if (!tarefasPorTag[tag]) tarefasPorTag[tag] = {};
-        if (!tarefasPorTag[tag][t.dataString]) tarefasPorTag[tag][t.dataString] = [];
-        tarefasPorTag[tag][t.dataString].push(t);
-    });
-
-    // Construção do HTML do PDF
-    const relatorioTemp = document.createElement('div');
-    relatorioTemp.style.cssText = "font-family: Arial, sans-serif; color: #1e293b; padding: 20px; background: white;";
-
-    let logoResumoHtml = window.logosCategorias[categoriaDoPDF] ? 
-        `<img src="${window.logosCategorias[categoriaDoPDF]}" style="height: 60px; max-width: 150px; object-fit: contain;">` : "";
-
-    let htmlContente = `
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 30px;">
-            <div>
-                <h1 style="margin: 0; font-size: 28px; text-transform: uppercase;">Relatório Técnico</h1>
-                <h2 style="margin: 5px 0; color: #3b82f6;">${categoriaDoPDF}</h2>
-                <p style="margin: 0; color: #64748b;">Período: ${dataFiltroTexto}</p>
-            </div>
-            ${logoResumoHtml}
-        </div>
-    `;
-
-    Object.keys(tarefasPorTag).sort().forEach(tag => {
-        htmlContente += `<h2 style="background: #f1f5f9; padding: 10px; color: #1e293b; border-left: 5px solid #3b82f6; margin-top: 30px;">ETAPA: ${tag}</h2>`;
-        
-        Object.keys(tarefasPorTag[tag]).sort().forEach(dia => {
-            const dataF = dia.split('-').reverse().join('/');
-            htmlContente += `<h3 style="color: #475569; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0;">📅 ${dataF}</h3>`;
-
-            tarefasPorTag[tag][dia].forEach(t => {
-                let fotosHtml = "";
-                if (t.fotos && t.fotos.length > 0) {
-                    fotosHtml = `<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">`;
-                    t.fotos.slice(0, 4).forEach(f => {
-                        fotosHtml += `<div style="border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1;"><img src="${f}" style="width: 100%; height: 150px; object-fit: cover;"></div>`;
-                    });
-                    fotosHtml += `</div>`;
-                }
-
-                htmlContente += `
-                    <div style="margin-bottom: 20px; padding: 15px; border-left: 4px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; page-break-inside: avoid;">
-                        <div style="font-weight: bold; font-size: 16px;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
-                        ${fotosHtml}
-                    </div>
-                `;
-            });
-        });
-    });
-
-    relatorioTemp.innerHTML = htmlContente;
-
-    // Geração do PDF e Upload para Nuvem
-    const nomeRelatorio = `Relatorio_${categoriaDoPDF}_${Date.now()}`;
-    const opcoes = { margin: 10, filename: `${nomeRelatorio}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-
-    try {
-        const pdfWorker = html2pdf().set(opcoes).from(relatorioTemp);
-        const pdfBlob = await pdfWorker.output('blob');
-
-        // Salva no Firebase Storage
-        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`);
-        await uploadBytes(sRef, pdfBlob);
-        const urlFinal = await getDownloadURL(sRef);
-
-        // Registra nos Arquivos Fixos
-        await addDoc(collection(db, "arquivos_fixos"), {
-            uid: window.usuarioLogado.uid,
-            Nomearquivo: nomeRelatorio,
-            categoria: categoriaDoPDF,
-            link: urlFinal,
-            dataUpload: new Date()
-        });
-
-        alert("✅ Relatório gerado e salvo na nuvem!");
-        carregarArquivosFixos();
-    } catch (err) {
-        console.error(err);
-        alert("Erro ao processar o PDF.");
-    } finally {
-        btn.innerHTML = textoOriginal; btn.disabled = false;
-    }
-}; margin-bottom: 6px; font-size: 14px; color: #475569;">${t.descricao}</div>`; });
-            htmlPdf += `</li>`;
-        });
-        htmlPdf += `</ul>`;
-    });
+window.gerarRelatorioPDF = async (evento) => {
+        evento.stopPropagation();
+        
+        if (categoriasAtivas.length > 1) return alert("📄 Por favor, deixe apenas UMA categoria selecionada para gerar o Relatório PDF.");
+        if (categoriasAtivas.includes("Geral")) return alert("📄 Por favor, selecione uma categoria de projeto específica (desmarque a Geral) para gerar o PDF.");
+        if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) return alert("Não há atividades na tela para gerar o PDF.");
 
-    const ALTURA_MAXIMA = 270; 
-    tagsOrdenadas.forEach(tag => {
-        const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
-        diasOrdenados.forEach(dia => {
-            const dataObj = new Date(dia + 'T00:00:00');
-            const nomeDia = diasSemanaNomes[dataObj.getDay()];
-            const partesDia = dia.split('-');
-            const dataFormatadaCurta = `${partesDia[2]}/${partesDia[1]}`;
-            
-            htmlPdf += `</div><div class="html2pdf__page-break"></div>
-            <div style="padding: 15px 30px 0 30px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 20px;">
-                    <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Relatório Técnico | Etapa: ${tag}</span>${logoPequenaHtml}
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">
-                    <h2 style="font-size: 22px; color: #1e293b; margin: 0;">${nomeDia} (${dataFormatadaCurta})</h2>
-                </div>`;
-            
-            let alturaAtual = 65; 
+        const categoriaDoPDF = categoriasAtivas[0];
+        let tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
+        
+        if (tarefasDoPDF.length === 0) return alert("Não há atividades nesta categoria.");
 
-            tarefasPorTag[tag][dia].forEach(t => {
-                let temFoto = t.fotos && t.fotos.length > 0;
-                let alturaTarefa = temFoto ? 100 : 25; 
+        const btn = evento.currentTarget;
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = "⏳ Gerando..."; btn.disabled = true;
 
-                if (alturaAtual + alturaTarefa > ALTURA_MAXIMA) {
-                    htmlPdf += `</div><div class="html2pdf__page-break"></div>
-                    <div style="padding: 15px 30px 0 30px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 20px;">
-                            <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Relatório Técnico | Etapa: ${tag}</span>${logoPequenaHtml}
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">
-                            <h2 style="font-size: 22px; color: #1e293b; margin: 0;">${nomeDia} (${dataFormatadaCurta})</h2>
-                        </div>`;
-                    alturaAtual = 65; 
-                }
+        let dataFiltroTexto = "";
+        if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
+            const inicio = window.arrayDiasSemana[0].split('-').reverse().join('/');
+            const fim = window.arrayDiasSemana[6].split('-').reverse().join('/');
+            dataFiltroTexto = `${inicio} a ${fim}`;
+        } else { 
+            dataFiltroTexto = document.getElementById('dataSeletor').value.split('-').reverse().join('/'); 
+        }
 
-                let fotosHtml = '';
-                if (temFoto) {
-                    const qtd = Math.min(t.fotos.length, 4); 
-                    let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 280px; margin-top: 15px;';
-                    if (qtd == 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
-                    else if (qtd == 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
-                    else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; 
+        const tarefasPorTag = {};
+        tarefasDoPDF.forEach(t => {
+            const tag = t.marcador ? t.marcador : "Geral ";
+            if (!tarefasPorTag[tag]) tarefasPorTag[tag] = {};
+            if (!tarefasPorTag[tag][t.dataString]) tarefasPorTag[tag][t.dataString] = [];
+            tarefasPorTag[tag][t.dataString].push(t);
+        });
 
-                    fotosHtml += `<div style="${gridStyles}">`;
-                    for(let i=0; i < qtd; i++) { fotosHtml += `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;"><img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>`; }
-                    fotosHtml += `</div>`;
-                }
-                htmlPdf += `<div style="margin-bottom: 25px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;"><div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">${t.descricao}</div>${fotosHtml}</div>`;
-                alturaAtual += alturaTarefa;
-            });
-        });
-    });
-    htmlPdf += `</div>`; 
+        const tagsOrdenadas = Object.keys(tarefasPorTag).sort();
+        const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
-    relatorioTemp.innerHTML = htmlPdf;
-    const opcoes = { margin: [10, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } };
-    const periodoSeguro = dataFiltroTexto.split('/').join('-').split(' ').join('_');
-    const nomeRelatorio = `Relatorio_${categoriaDoPDF}_${periodoSeguro}`;
+        const relatorioTemp = document.createElement('div');
+        relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
+        relatorioTemp.style.color = '#1e293b';
 
-    html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
-        const totalPages = pdf.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            pdf.setPage(i); pdf.setDrawColor(203, 213, 225); pdf.setLineWidth(0.5); pdf.line(15, 282, 195, 282);
-            pdf.setFont('helvetica', 'normal'); pdf.setTextColor(100, 116, 139); pdf.setFontSize(10); pdf.text(`Página ${i} de ${totalPages}`, 195, 287, { align: 'right' }); 
-        }
-        return pdf.output('blob');
-    }).then(async (pdfBlob) => {
-        btn.innerHTML = "☁️ Salvando...";
-        try {
-            const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`); 
-            await uploadBytes(sRef, pdfBlob);
-            const urlArquivo = await getDownloadURL(sRef);
-            const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid), where("Nomearquivo", "==", nomeRelatorio));
-            const busca = await getDocs(q);
-            if (!busca.empty) await updateDoc(doc(db, "arquivos_fixos", busca.docs[0].id), { link: urlArquivo, dataUpload: new Date() });
-            else await addDoc(collection(db, "arquivos_fixos"), { uid: window.usuarioLogado.uid, Nomearquivo: nomeRelatorio, categoria: categoriaDoPDF, link: urlArquivo, dataUpload: new Date() });
-            alert(`Relatório salvo nos Arquivos Fixos!`); carregarArquivosFixos(); 
-        } catch (error) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
-    });
-};
+        let logoPequenaHtml = ""; let logoResumoHtml = "";
+        if (window.logosCategorias && window.logosCategorias[categoriaDoPDF]) {
+            let logoData = window.logosCategorias[categoriaDoPDF];
+            logoPequenaHtml = `<img src="${logoData}" style="height: 28px; max-width: 120px; object-fit: contain; border-radius: 4px;">`;
+            logoResumoHtml = `<img src="${logoData}" style="height: 70px; max-width: 180px; object-fit: contain; border-radius: 8px;">`;
+        }
 
-window.gerarPDFCronograma = async (evento) => {
-if (evento) evento.stopPropagation();
-    const btn = document.getElementById('btnPdfCrono') || evento.currentTarget;
-    const originalText = btn.innerHTML;
-    const containerGantt = document.getElementById('cronoContainer');
-    if (!containerGantt || containerGantt.innerHTML.includes('Nenhuma atividade')) {
-        return alert("Desenhe o gráfico na tela antes de gerar o PDF.");
-    }
+        let htmlPdf = `
+            <div style="padding: 20px 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-top: 10px;">
+                    <div style="text-align: left;">
+                        <h1 style="margin: 0 0 10px 0; font-size: 32px; color: #1e293b; text-transform: uppercase;">Resumo</h1>
+                        <h2 style="margin: 0 0 5px 0; font-size: 20px; color: #3b82f6;">Categoria: ${categoriaDoPDF}</h2>
+                        <h3 style="margin: 0; font-size: 16px; color: #64748b; font-weight: normal;">Período: ${dataFiltroTexto}</h3>
+                    </div>
+                    <div style="text-align: right; margin-top: -25px;">${logoResumoHtml}</div>
+                </div>`;
 
-    btn.innerHTML = "⏳..."; btn.disabled = true;
+        tagsOrdenadas.forEach(tag => {
+            htmlPdf += `<h2 style="color: #3b82f6; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px; margin-top: 25px; font-size: 20px;">Etapa: ${tag}</h2><ul style="list-style-type: none; padding-left: 10px;">`;
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+            diasOrdenados.forEach(dia => {
+                const dataObj = new Date(dia + 'T00:00:00');
+                const nomeDia = diasSemanaNomes[dataObj.getDay()];
+                const dataFormatada = dia.split('-').reverse().join('/');
+                htmlPdf += `<li style="margin-bottom: 15px;"><h3 style="margin: 0 0 8px 0; font-size: 15px; color: #1e293b;">${nomeDia} (${dataFormatada})</h3>`;
+                tarefasPorTag[tag][dia].forEach(t => { htmlPdf += `<div style="padding-left: 12px; border-left: 3px solid ${window.coresCategorias[t.categoria] || '#94a3b8'}; margin-bottom: 6px; font-size: 14px; color: #475569;">${t.descricao}</div>`; });
+                htmlPdf += `</li>`;
+            });
+            htmlPdf += `</ul>`;
+        });
 
-    const relatorioTemp = document.createElement('div');
-    relatorioTemp.style.fontFamily = 'Arial, sans-serif';
-    relatorioTemp.style.padding = '20px';
-    relatorioTemp.style.background = '#ffffff';
+        const ALTURA_MAXIMA = 270; 
+        tagsOrdenadas.forEach(tag => {
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+            diasOrdenados.forEach(dia => {
+                const dataObj = new Date(dia + 'T00:00:00');
+                const nomeDia = diasSemanaNomes[dataObj.getDay()];
+                const partesDia = dia.split('-');
+                const dataFormatadaCurta = `${partesDia[2]}/${partesDia[1]}`;
+                
+                htmlPdf += `</div><div class="html2pdf__page-break"></div>
+                <div style="padding: 15px 30px 0 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 20px;">
+                        <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Relatório Técnico | Etapa: ${tag}</span>${logoPequenaHtml}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">
+                        <h2 style="font-size: 22px; color: #1e293b; margin: 0;">${nomeDia} (${dataFormatadaCurta})</h2>
+                    </div>`;
+                
+                let alturaAtual = 65; 
 
-    let logoHtml = "";
-    const categoriaPrincipal = categoriasAtivas[0];
-    if (window.logosCategorias && window.logosCategorias[categoriaPrincipal]) {
-        logoHtml = `<img src="${window.logosCategorias[categoriaPrincipal]}" crossorigin="anonymous" style="height: 45px; max-width: 150px; object-fit: contain; border-radius: 6px;">`;
-    }
+                tarefasPorTag[tag][dia].forEach(t => {
+                    let temFoto = t.fotos && t.fotos.length > 0;
+                    let alturaTarefa = temFoto ? 100 : 25; 
 
-    let conteudoAdaptado = containerGantt.innerHTML
-        .replace(/color: #f8fafc;/g, 'color: #1e293b;') 
-        .replace(/background: rgba\(0,0,0,0.3\);/g, 'background: #f1f5f9;')
-        .replace(/border: 1px solid rgba\(255,255,255,0.1\);/g, 'border: 1px solid #cbd5e1;');
+                    if (alturaAtual + alturaTarefa > ALTURA_MAXIMA) {
+                        htmlPdf += `</div><div class="html2pdf__page-break"></div>
+                        <div style="padding: 15px 30px 0 30px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 20px;">
+                                <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Relatório Técnico | Etapa: ${tag}</span>${logoPequenaHtml}
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">
+                                <h2 style="font-size: 22px; color: #1e293b; margin: 0;">${nomeDia} (${dataFormatadaCurta})</h2>
+                            </div>`;
+                        alturaAtual = 65; 
+                    }
 
-    relatorioTemp.innerHTML = `
-        <div style="border-bottom: 2px solid #3b82f6; margin-bottom: 20px; padding-bottom: 10px;">
-            <h1 style="font-size: 20px; color: #1e293b;">CRONOGRAMA VISUAL - ${categoriasAtivas[0]}</h1>
-        </div>
-        ${conteudoAdaptado}
-    `;
+                    let fotosHtml = '';
+                    if (temFoto) {
+                        const qtd = Math.min(t.fotos.length, 4); 
+                        let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 280px; margin-top: 15px;';
+                        if (qtd === 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
+                        else if (qtd === 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
+                        else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; 
 
-    const opcoes = { margin: 10, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'landscape' } };
+                        fotosHtml += `<div style="${gridStyles}">`;
+                        for(let i=0; i < qtd; i++) { fotosHtml += `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;"><img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>`; }
+                        fotosHtml += `</div>`;
+                    }
+                    htmlPdf += `<div style="margin-bottom: 25px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;"><div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">${t.descricao}</div>${fotosHtml}</div>`;
+                    alturaAtual += alturaTarefa;
+                });
+            });
+        });
+        htmlPdf += `</div>`; 
 
-    try {
-        await html2pdf().set(opcoes).from(relatorioTemp).save(`Cronograma_${categoriasAtivas[0]}.pdf`);
-    } finally {
-        btn.innerHTML = originalText; btn.disabled = false;
-    }
-};
+        relatorioTemp.innerHTML = htmlPdf;
+        const opcoes = { margin: [10, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } };
+        const periodoSeguro = dataFiltroTexto.split('/').join('-').split(' ').join('_');
+        const nomeRelatorio = `Relatorio_${categoriaDoPDF}_${periodoSeguro}`;
 
-    const nomeRelatorio = `Cronograma_Visual_${categoriaPrincipal}`;
+        html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
+            const totalPages = pdf.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                pdf.setPage(i); pdf.setDrawColor(203, 213, 225); pdf.setLineWidth(0.5); pdf.line(15, 282, 195, 282);
+                pdf.setFont('helvetica', 'normal'); pdf.setTextColor(100, 116, 139); pdf.setFontSize(10); pdf.text(`Página ${i} de ${totalPages}`, 195, 287, { align: 'right' }); 
+            }
+            return pdf.output('blob');
+        }).then(async (pdfBlob) => {
+            btn.innerHTML = "☁️ Salvando...";
+            try {
+                const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`); 
+                await uploadBytes(sRef, pdfBlob);
+                const urlArquivo = await getDownloadURL(sRef);
+                const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid), where("Nomearquivo", "==", nomeRelatorio));
+                const busca = await getDocs(q);
+                if (!busca.empty) await updateDoc(doc(db, "arquivos_fixos", busca.docs[0].id), { link: urlArquivo, dataUpload: new Date() });
+                else await addDoc(collection(db, "arquivos_fixos"), { uid: window.usuarioLogado.uid, Nomearquivo: nomeRelatorio, categoria: categoriaDoPDF, link: urlArquivo, dataUpload: new Date() });
+                alert(`Relatório salvo nos Arquivos Fixos!`); carregarArquivosFixos(); 
+            } catch (error) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+        });
+    };
 
-    html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function(pdf) {
-        return pdf.output('blob');
-    }).then(async (pdfBlob) => {
-        btn.innerHTML = "☁️...";
-        try {
-            const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`); 
-            await uploadBytes(sRef, pdfBlob);
-            const urlArquivo = await getDownloadURL(sRef);
-            
-            const q = query(collection(db, "arquivos_fixos"), 
-                where("uid", "==", window.usuarioLogado.uid),
-                where("Nomearquivo", "==", nomeRelatorio)
-            );
-            const busca = await getDocs(q);
+    window.gerarPDFCronograma = async (evento) => {
+        evento.stopPropagation();
+        const btn = document.getElementById('btnPdfCrono');
+        const originalText = btn.innerHTML;
+        
+        const containerGantt = document.getElementById('cronoContainer').innerHTML;
+        
+        if (containerGantt.includes('Nenhuma atividade') || containerGantt.includes('Desenhando')) {
+            return alert("Não há dados desenhados para gerar o PDF.");
+        }
 
-            if (!busca.empty) {
-                const idDocExistente = busca.docs[0].id;
-                await updateDoc(doc(db, "arquivos_fixos", idDocExistente), { link: urlArquivo, dataUpload: new Date() });
-            } else {
-                await addDoc(collection(db, "arquivos_fixos"), { 
-                    uid: window.usuarioLogado.uid, 
-                    Nomearquivo: nomeRelatorio, 
-                    categoria: categoriaPrincipal, 
-                    link: urlArquivo, 
-                    dataUpload: new Date() 
-                });
-            }
-            alert("Cronograma salvo e atualizado com sucesso!"); 
-            carregarArquivosFixos();
-        } catch (error) { 
-            alert("Erro ao salvar o cronograma na nuvem."); 
-        } finally { 
-            btn.innerHTML = originalText; 
-            btn.disabled = false; 
-        }
-    });
-};
+        btn.innerHTML = "⏳..."; 
+        btn.disabled = true;
+
+        const relatorioTemp = document.createElement('div');
+        relatorioTemp.style.fontFamily = 'Helvetica, Arial, sans-serif';
+        relatorioTemp.style.color = '#1e293b';
+        relatorioTemp.style.width = '1000px'; 
+        relatorioTemp.style.padding = '20px 30px';
+        relatorioTemp.style.background = '#ffffff';
+
+        let logoHtml = "";
+        const categoriaPrincipal = categoriasAtivas[0];
+        if (window.logosCategorias && window.logosCategorias[categoriaPrincipal]) {
+            logoHtml = `<img src="${window.logosCategorias[categoriaPrincipal]}" crossorigin="anonymous" style="height: 45px; max-width: 150px; object-fit: contain; border-radius: 6px;">`;
+        }
+
+        let conteudoAdaptado = containerGantt
+            .replace(/color: #f8fafc;/g, 'color: #1e293b;') 
+            .replace(/color: #94a3b8;/g, 'color: #475569;') 
+            .replace(/border: 1px solid rgba\(255,255,255,0.1\);/g, 'border: 1px solid #cbd5e1;') 
+            .replace(/background: rgba\(0,0,0,0.3\);/g, 'background: #f1f5f9;') 
+            .replace(/border-top: 1px solid rgba\(255,255,255,0.2\);/g, 'border-top: 2px solid #e2e8f0;');
+
+        relatorioTemp.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 30px;">
+                <div>
+                    <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #1e293b; text-transform: uppercase;">Cronograma Executivo</h1>
+                    <h2 style="margin: 0; font-size: 16px; color: #64748b; font-weight: bold;">Categoria: ${categoriaPrincipal}</h2>
+                </div>
+                ${logoHtml}
+            </div>
+            ${conteudoAdaptado}
+        `;
+
+        const opcoes = { 
+            margin: [15, 15, 15, 15], 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            html2canvas: { scale: 2, useCORS: true, logging: false }, 
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } 
+        };
+
+        const nomeRelatorio = `Cronograma_Visual_${categoriaPrincipal}`;
+
+        html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function(pdf) {
+            return pdf.output('blob');
+        }).then(async (pdfBlob) => {
+            btn.innerHTML = "☁️...";
+            try {
+                const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`); 
+                await uploadBytes(sRef, pdfBlob);
+                const urlArquivo = await getDownloadURL(sRef);
+                
+                const q = query(collection(db, "arquivos_fixos"), 
+                    where("uid", "==", window.usuarioLogado.uid),
+                    where("Nomearquivo", "==", nomeRelatorio)
+                );
+                const busca = await getDocs(q);
+
+                if (!busca.empty) {
+                    const idDocExistente = busca.docs[0].id;
+                    await updateDoc(doc(db, "arquivos_fixos", idDocExistente), { link: urlArquivo, dataUpload: new Date() });
+                } else {
+                    await addDoc(collection(db, "arquivos_fixos"), { 
+                        uid: window.usuarioLogado.uid, 
+                        Nomearquivo: nomeRelatorio, 
+                        categoria: categoriaPrincipal, 
+                        link: urlArquivo, 
+                        dataUpload: new Date() 
+                    });
+                }
+                alert("Cronograma salvo e atualizado com sucesso!"); 
+                carregarArquivosFixos();
+            } catch (error) { 
+                alert("Erro ao salvar o cronograma na nuvem."); 
+            } finally { 
+                btn.innerHTML = originalText; 
+                btn.disabled = false; 
+            }
+        });
+    };
+
