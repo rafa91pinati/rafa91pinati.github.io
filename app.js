@@ -2294,16 +2294,11 @@ window.gerarRelatorioPDF = async (evento) => {
             .replace(/background: rgba\(0,0,0,0.3\);/g, 'background: #f1f5f9;')
             .replace(/border: 1px solid rgba\(255,255,255,0.1\);/g, 'border: 1px solid #cbd5e1;');
 
-        relatorioTemp.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 30px;">
-                <div>
-                    <h1 style="margin: 0; font-size: 22px;">CRONOGRAMA EXECUTIVO</h1>
-                    <h2 style="margin: 0; font-size: 16px; color: #64748b;">Categoria: ${categoriasAtivas[0]}</h2>
-                </div>
-                ${logoHtml}
-            </div>
-            ${conteudoAdaptado}
-        `;
+ relatorioTemp.innerHTML = `
+    <div style="background: #ffffff;">
+        ${conteudoAdaptado}
+    </div>
+`;
 
         const opcoes = { 
             margin: 10, 
