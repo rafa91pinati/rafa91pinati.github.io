@@ -308,29 +308,19 @@ window.renderizarCategoriasNoFiltro = () => {
 
         // ESTILO: Fonte 0.8rem e Padding maior conforme você pediu
 
-        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
+        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
 
-
-
-        if (isActive) {
-
-            btn.style.background = cat.cor || "#54627b";
-
-            btn.style.color = "white";
-
-            btn.style.padding = "8px 14px"; 
-
-            btn.innerHTML = (cat.nome === "Geral") ? `Cat: ${cat.nome}` : `${iconeTime}${cat.nome}`;
-
-        } else {
-
-            btn.style.background = "rgba(255,255,255,0.5)";
-
-            btn.style.color = "#64748b";
-
-            btn.style.padding = "8px 12px";
-
-            btn.innerHTML = `${iconeTime}${cat.nome}`;
+if (isActive) {
+    btn.style.background = cat.cor || "#54627b";
+    btn.style.color = "white";
+    btn.style.padding = "10px 18px"; // Botão mais gordinho
+    // ... restante do código
+} else {
+    btn.style.background = "rgba(255,255,255,0.5)";
+    btn.style.color = "#64748b";
+    btn.style.padding = "10px 14px"; // Botão mais gordinho
+    // ... restante do código
+}${cat.nome}`;
 
         }
 
