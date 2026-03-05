@@ -52,19 +52,19 @@ if ('serviceWorker' in navigator) {
 }
 
 // --- LOGIN E AUTH ---
-onAuthStateChanged(auth, async (user) => {
-    const tela = document.getElementById('telaLogin');
-    if (user) {
-    document.getElementById('telaLogin').style.display = 'none'; // Esconde o bloqueio
-    await carregarCategorias(); // Carrega os dados
-    renderizarCategoriasNoFiltro(); // Desenha os botões gordinhos
-} else {
-    document.getElementById('telaLogin').style.display = 'flex'; // Mostra o bloqueio
-}, 800);
-    } else {
-        window.usuarioLogado = null;
-        if(tela) tela.classList.remove('escondido');
-    }
+onAuthStateChanged(auth, async (user) => {
+    const tela = document.getElementById('telaLogin');
+    if (user) {
+    document.getElementById('telaLogin').style.display = 'none'; // Esconde o bloqueio
+    await carregarCategorias(); // Carrega os dados
+    renderizarCategoriasNoFiltro(); // Desenha os botões gordinhos
+} else {
+    document.getElementById('telaLogin').style.display = 'flex'; // Mostra o bloqueio
+}
+    } else {
+        window.usuarioLogado = null;
+        if(tela) tela.classList.remove('escondido');
+    }
 });
 
 window.fazerLogin = () => {
