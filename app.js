@@ -1643,30 +1643,26 @@ window.gerarPDFCronograma = async (evento) => {
         logoHtml = `<img src="${window.logosCategorias[categoriaPrincipal]}" crossorigin="anonymous" style="height: 45px; max-width: 150px; object-fit: contain; border-radius: 6px;">`;
     }
 
-    let conteudoAdaptado = containerGantt
+    let conteudoAdaptado = containerGantt.innerHTML
         .replace(/color: #f8fafc;/g, 'color: #1e293b;') 
-        .replace(/color: #94a3b8;/g, 'color: #475569;') 
-        .replace(/border: 1px solid rgba\(255,255,255,0.1\);/g, 'border: 1px solid #cbd5e1;') 
-        .replace(/background: rgba\(0,0,0,0.3\);/g, 'background: #f1f5f9;') 
-        .replace(/border-top: 1px solid rgba\(255,255,255,0.2\);/g, 'border-top: 2px solid #e2e8f0;');
+        .replace(/background: rgba\(0,0,0,0.3\);/g, 'background: #f1f5f9;')
+        .replace(/border: 1px solid rgba\(255,255,255,0.1\);/g, 'border: 1px solid #cbd5e1;');
 
     relatorioTemp.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 30px;">
-            <div>
-                <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #1e293b; text-transform: uppercase;">Cronograma Executivo</h1>
-                <h2 style="margin: 0; font-size: 16px; color: #64748b; font-weight: bold;">Categoria: ${categoriaPrincipal}</h2>
-            </div>
-            ${logoHtml}
+        <div style="border-bottom: 2px solid #3b82f6; margin-bottom: 20px; padding-bottom: 10px;">
+            <h1 style="font-size: 20px; color: #1e293b;">CRONOGRAMA VISUAL - ${categoriasAtivas[0]}</h1>
         </div>
         ${conteudoAdaptado}
     `;
 
-    const opcoes = { 
-        margin: [15, 15, 15, 15], 
-        image: { type: 'jpeg', quality: 0.98 }, 
-        html2canvas: { scale: 2, useCORS: true, logging: false }, 
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } 
-    };
+    const opcoes = { margin: 10, html2canvas: { scale: 2, useCORS: true }, jsPDF: { format: 'a4', orientation: 'landscape' } };
+
+    try {
+        await html2pdf().set(opcoes).from(relatorioTemp).save(`Cronograma_${categoriasAtivas[0]}.pdf`);
+    } finally {
+        btn.innerHTML = originalText; btn.disabled = false;
+    }
+};
 
     const nomeRelatorio = `Cronograma_Visual_${categoriaPrincipal}`;
 
