@@ -2,6 +2,13 @@ name: Deploy Life Sync
 
 on:
   push:
+  
+  permissions:
+  contents: read
+  pages: write
+  id-token: write
+  
+  
     branches: ["main", "versao-estavel"] # Protege as duas rotas que você usou
 
 # ISSO AQUI É O QUE LIMPA A FILA AUTOMATICAMENTE 👇
