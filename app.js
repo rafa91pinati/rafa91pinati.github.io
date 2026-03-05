@@ -931,24 +931,70 @@ window.tarefasMonitoramento = tarefas;
 
         lista.innerHTML = "";
         tarefas.forEach(t => {
-            const dataObj = new Date(t.dataString + 'T00:00:00');
-            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-            const corBorda = window.coresCategorias[t.categoria] || "#94a3b8";
-            const fotosStringSegura = JSON.stringify(t.fotos || []).split('"').join('&quot;');
-            
-            lista.innerHTML += `
-            <div class="tarefa-item" style="border-left: 6px solid ${corBorda}; margin-bottom: 12px; border-radius: 16px;">
-                <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${fotosStringSegura})" style="display: flex; align-items: center; gap: 15px;">
-                    <div class="dia-badge" style="min-width: 50px; text-align: center;">
-                        <span style="font-size: 1.8rem; font-weight: 900; display: block;">${dataObj.getDate()}</span>
-                        <span style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800;">${diasSemana[dataObj.getDay()]}</span>
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="font-size: 0.65rem; font-weight: bold; margin-bottom: 4px;">🏷️ ${t.marcador || 'Geral'}</div>
-                        <div style="font-weight: 700;">${t.hora ? '<span style="color: #3b82f6;">'+t.hora+'</span> ' : ''}${t.descricao}</div>
-                    </div>
-                </div>
-            </div>`;
+           // No seu carregarTarefas, dentro do forEach:
+const corBorda = window.coresCategorias[t.categoria] || "#94a3b8";
+const dataObj = new Date(t.dataString + 'T00:00:00');
+const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+
+// 1. GERA AS OPÇÕES DO SELETOR DE ETAPAS (MARCADORES)
+let opcoesTags = `<option value="">Sem Etapa</option>`;
+// Pega os marcadores que você já carregou globalmente
+const seletorGlobal = document.getElementById('filtroTagGlobal');
+if (seletorGlobal) {
+    const todasAsOpcoes = Array.from(seletorGlobal.options).slice(1); // Pula o "Todas as Etapas"
+    opcoesTags += todasAsOpcoes.map(opt => 
+        `<option value="${opt.value}" ${t.marcador === opt.value ? 'selected' : ''}>${opt.text}</option>`
+    ).join('');
+}
+
+// 2. MONTAGEM DO HTML DO ITEM
+lista.innerHTML += `
+<div class="tarefa-item" style="border-left: 6px solid ${corBorda}; flex-direction: column; align-items: stretch; padding: 15px;">
+    
+    <div class="tarefa-content" onclick="window.ativarEdicao('${t.id}', ${JSON.stringify(t.fotos || []).split('"').join('&quot;')})" style="display: flex; align-items: center; gap: 15px; cursor: pointer;">
+        <div class="dia-badge" style="min-width: 50px; text-align: center;">
+            <span style="font-size: 1.8rem; font-weight: 900; display: block; color: #1e293b;">${dataObj.getDate()}</span>
+            <span style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800; color: #64748b;">${diasSemana[dataObj.getDay()]}</span>
+        </div>
+        <div style="flex: 1;">
+            <div style="font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: #3b82f6;">🏷️ ${t.marcador || 'Geral'}</div>
+            <div style="font-weight: 700; color: #1e293b;">${t.hora ? '<span style="color: #3b82f6;">'+t.hora+'</span> ' : ''}${t.descricao}</div>
+        </div>
+    </div>
+
+    <div id="painel-edicao-${t.id}" class="${idEmEdicao === t.id ? '' : 'escondido'}" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+        
+        <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Descrição:</label>
+        <input type="text" id="edit-desc-${t.id}" value="${t.descricao}" class="input-edit" style="width: 100%; margin-bottom: 10px;">
+        
+        <div class="grid-50" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <div>
+                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Hora:</label>
+                <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}" style="width: 100%;">
+            </div>
+            <div>
+                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Etapa:</label>
+                <select id="edit-tag-${t.id}" style="width: 100%;">${opcoesTags}</select>
+            </div>
+        </div>
+        
+        <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Evidências (Máx. 4):</label>
+        <div id="container-fotos-edit-${t.id}" class="container-fotos" style="display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap;"></div>
+        
+        <button onclick="document.getElementById('input-foto-edit-${t.id}').click()" 
+                style="width: 100%; background: #f1f5f9; border: 1px dashed #cbd5e1; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #475569; font-size: 0.75rem;">
+                + ADICIONAR FOTO
+        </button>
+        <input type="file" id="input-foto-edit-${t.id}" class="escondido" accept="image/*" onchange="window.adicionarFotosEdicao(this)">
+        
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button id="btn-salvar-${t.id}" onclick="window.salvarAlteracoes('${t.id}')" 
+                    style="flex: 1; background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">SALVAR</button>
+            <button onclick="window.excluirTask('${t.id}')" 
+                    style="background: #fee2e2; color: #ef4444; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">🗑️</button>
+        </div>
+    </div>
+</div>`;
         });
         if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
 
@@ -1610,8 +1656,12 @@ window.abrirCronogramaVisual = async (evento) => {
 window.gerarRelatorioPDF = async (evento) => {
     if (evento) evento.stopPropagation();
     
+    // 1. Validações Iniciais
     if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
-        return alert("📄 Selecione apenas UMA categoria específica para o PDF.");
+        return alert("📄 Por favor, selecione apenas UMA categoria específica para o PDF.");
+    }
+    if (!window.tarefasMonitoramento || window.tarefasMonitoramento.length === 0) {
+        return alert("Não há atividades na tela para gerar o PDF.");
     }
 
     const btn = evento.currentTarget;
@@ -1624,29 +1674,97 @@ window.gerarRelatorioPDF = async (evento) => {
         
         if (tarefasDoPDF.length === 0) throw new Error("Nenhuma tarefa encontrada.");
 
+        // 2. Formatação da Data do Título
+        let dataFiltroTexto = document.getElementById('dataSeletor').value.split('-').reverse().join('/');
+        if (tipoFiltroTempo === 'semana' && window.arrayDiasSemana) {
+            dataFiltroTexto = `${window.arrayDiasSemana[0].split('-').reverse().join('/')} a ${window.arrayDiasSemana[6].split('-').reverse().join('/')}`;
+        }
+
+        // 3. Agrupamento por Tag e Data
+        const tarefasPorTag = {};
+        tarefasDoPDF.forEach(t => {
+            const tag = t.marcador || "Geral";
+            if (!tarefasPorTag[tag]) tarefasPorTag[tag] = {};
+            if (!tarefasPorTag[tag][t.dataString]) tarefasPorTag[tag][t.dataString] = [];
+            tarefasPorTag[tag][t.dataString].push(t);
+        });
+
+        const tagsOrdenadas = Object.keys(tarefasPorTag).sort();
+        const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+        // 4. Montagem do HTML
         const relatorioTemp = document.createElement('div');
         relatorioTemp.style.cssText = "font-family: Arial; padding: 20px; background: white; color: #1e293b;";
-        
-        // --- Sua lógica de montagem do HTML (htmlContent) vai aqui ---
-        relatorioTemp.innerHTML = `<h1>Relatório: ${categoriaDoPDF}</h1>`; 
 
+        let logoPequenaHtml = ""; let logoResumoHtml = "";
+        if (window.logosCategorias && window.logosCategorias[categoriaDoPDF]) {
+            let logoData = window.logosCategorias[categoriaDoPDF];
+            logoPequenaHtml = `<img src="${logoData}" style="height: 28px; max-width: 120px; object-fit: contain;">`;
+            logoResumoHtml = `<img src="${logoData}" style="height: 70px; max-width: 180px; object-fit: contain;">`;
+        }
+
+        let htmlPdf = `
+            <div style="padding: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
+                    <div>
+                        <h1 style="margin: 0; font-size: 28px; text-transform: uppercase;">Resumo Executivo</h1>
+                        <h2 style="margin: 5px 0; color: #3b82f6;">Categoria: ${categoriaDoPDF}</h2>
+                        <h3 style="margin: 0; font-size: 14px; color: #64748b; font-weight: normal;">Período: ${dataFiltroTexto}</h3>
+                    </div>
+                    <div>${logoResumoHtml}</div>
+                </div>`;
+
+        tagsOrdenadas.forEach(tag => {
+            htmlPdf += `<h2 style="color: #3b82f6; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 25px;">Etapa: ${tag}</h2>`;
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+            
+            diasOrdenados.forEach(dia => {
+                const dataObj = new Date(dia + 'T00:00:00');
+                const nomeDia = diasSemanaNomes[dataObj.getDay()];
+                const dataF = dia.split('-').reverse().join('/');
+
+                htmlPdf += `<div style="margin-top: 15px; page-break-inside: avoid;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 16px;">${nomeDia} (${dataF})</h3>`;
+
+                tarefasPorTag[tag][dia].forEach(t => {
+                    let fotosHtml = '';
+                    if (t.fotos && t.fotos.length > 0) {
+                        fotosHtml = `<div style="display: flex; gap: 8px; margin-top: 10px;">`;
+                        t.fotos.slice(0, 4).forEach(f => {
+                            fotosHtml += `<img src="${f}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px;">`;
+                        });
+                        fotosHtml += `</div>`;
+                    }
+
+                    htmlPdf += `
+                        <div style="padding: 12px; border-left: 4px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; margin-bottom: 10px; border-radius: 0 8px 8px 0;">
+                            <div style="font-weight: bold;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
+                            ${fotosHtml}
+                        </div>`;
+                });
+                htmlPdf += `</div>`;
+            });
+        });
+
+        htmlPdf += `</div>`;
+        relatorioTemp.innerHTML = htmlPdf;
+
+        // 5. Geração e Upload
         const opcoes = { 
             margin: 10, 
+            filename: `Relatorio_${categoriaDoPDF}.pdf`,
             image: { type: 'jpeg', quality: 0.98 }, 
             html2canvas: { scale: 2, useCORS: true }, 
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
         };
 
-        const pdfWorker = html2pdf().set(opcoes).from(relatorioTemp);
-        const pdfBlob = await pdfWorker.output('blob');
+        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
 
-        // Salvando no Storage (Igual ao que você tinha)
         const nomeRelatorio = `Relatorio_${categoriaDoPDF}_${Date.now()}`;
         const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`);
         await uploadBytes(sRef, pdfBlob);
         const urlFinal = await getDownloadURL(sRef);
 
-        // Registrando no Firestore
         await addDoc(collection(db, "arquivos_fixos"), {
             uid: window.usuarioLogado.uid,
             Nomearquivo: nomeRelatorio,
@@ -1664,180 +1782,7 @@ window.gerarRelatorioPDF = async (evento) => {
     } finally {
         btn.innerHTML = textoOriginal; btn.disabled = false;
     }
-}; margin-bottom: 6px; font-size: 14px; color: #475569;">${t.descricao}</div>`; });
-
-                htmlPdf += `</li>`;
-
-            });
-
-            htmlPdf += `</ul>`;
-
-        });
-
-
-
-        const ALTURA_MAXIMA = 270; 
-
-        tagsOrdenadas.forEach(tag => {
-
-            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
-
-            diasOrdenados.forEach(dia => {
-
-                const dataObj = new Date(dia + 'T00:00:00');
-
-                const nomeDia = diasSemanaNomes[dataObj.getDay()];
-
-                const partesDia = dia.split('-');
-
-                const dataFormatadaCurta = `${partesDia[2]}/${partesDia[1]}`;
-
-                
-
-                htmlPdf += `</div><div class="html2pdf__page-break"></div>
-
-                <div style="padding: 15px 30px 0 30px;">
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 20px;">
-
-                        <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Relatório Técnico | Etapa: ${tag}</span>${logoPequenaHtml}
-
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">
-
-                        <h2 style="font-size: 22px; color: #1e293b; margin: 0;">${nomeDia} (${dataFormatadaCurta})</h2>
-
-                    </div>`;
-
-                
-
-                let alturaAtual = 65; 
-
-
-
-                tarefasPorTag[tag][dia].forEach(t => {
-
-                    let temFoto = t.fotos && t.fotos.length > 0;
-
-                    let alturaTarefa = temFoto ? 100 : 25; 
-
-
-
-                    if (alturaAtual + alturaTarefa > ALTURA_MAXIMA) {
-
-                        htmlPdf += `</div><div class="html2pdf__page-break"></div>
-
-                        <div style="padding: 15px 30px 0 30px;">
-
-                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 20px;">
-
-                                <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Relatório Técnico | Etapa: ${tag}</span>${logoPequenaHtml}
-
-                            </div>
-
-                            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">
-
-                                <h2 style="font-size: 22px; color: #1e293b; margin: 0;">${nomeDia} (${dataFormatadaCurta})</h2>
-
-                            </div>`;
-
-                        alturaAtual = 65; 
-
-                    }
-
-
-
-                    let fotosHtml = '';
-
-                    if (temFoto) {
-
-                        const qtd = Math.min(t.fotos.length, 4); 
-
-                        let gridStyles = 'display: grid; gap: 10px; width: 100%; height: 280px; margin-top: 15px;';
-
-                        if (qtd === 1) gridStyles += 'grid-template-columns: 1fr; grid-template-rows: 1fr;';
-
-                        else if (qtd === 2) gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr;';
-
-                        else gridStyles += 'grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;'; 
-
-
-
-                        fotosHtml += `<div style="${gridStyles}">`;
-
-                        for(let i=0; i < qtd; i++) { fotosHtml += `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;"><img src="${t.fotos[i]}" style="max-width: 100%; max-height: 100%; object-fit: contain;"></div>`; }
-
-                        fotosHtml += `</div>`;
-
-                    }
-
-                    htmlPdf += `<div style="margin-bottom: 25px; padding: 15px; border-left: 5px solid ${window.coresCategorias[t.categoria] || '#3b82f6'}; background: #f8fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid;"><div style="font-size: 18px; font-weight: bold; margin-bottom: 6px; color: #0f172a;">${t.descricao}</div>${fotosHtml}</div>`;
-
-                    alturaAtual += alturaTarefa;
-
-                });
-
-            });
-
-        });
-
-        htmlPdf += `</div>`; 
-
-
-
-        relatorioTemp.innerHTML = htmlPdf;
-
-        const opcoes = { margin: [10, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } };
-
-        const periodoSeguro = dataFiltroTexto.split('/').join('-').split(' ').join('_');
-
-        const nomeRelatorio = `Relatorio_${categoriaDoPDF}_${periodoSeguro}`;
-
-
-
-        html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf').then(function (pdf) {
-
-            const totalPages = pdf.internal.getNumberOfPages();
-
-            for (let i = 1; i <= totalPages; i++) {
-
-                pdf.setPage(i); pdf.setDrawColor(203, 213, 225); pdf.setLineWidth(0.5); pdf.line(15, 282, 195, 282);
-
-                pdf.setFont('helvetica', 'normal'); pdf.setTextColor(100, 116, 139); pdf.setFontSize(10); pdf.text(`Página ${i} de ${totalPages}`, 195, 287, { align: 'right' }); 
-
-            }
-
-            return pdf.output('blob');
-
-        }).then(async (pdfBlob) => {
-
-            btn.innerHTML = "☁️ Salvando...";
-
-            try {
-
-                const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`); 
-
-                await uploadBytes(sRef, pdfBlob);
-
-                const urlArquivo = await getDownloadURL(sRef);
-
-                const q = query(collection(db, "arquivos_fixos"), where("uid", "==", window.usuarioLogado.uid), where("Nomearquivo", "==", nomeRelatorio));
-
-                const busca = await getDocs(q);
-
-                if (!busca.empty) await updateDoc(doc(db, "arquivos_fixos", busca.docs[0].id), { link: urlArquivo, dataUpload: new Date() });
-
-                else await addDoc(collection(db, "arquivos_fixos"), { uid: window.usuarioLogado.uid, Nomearquivo: nomeRelatorio, categoria: categoriaDoPDF, link: urlArquivo, dataUpload: new Date() });
-
-                alert(`Relatório salvo nos Arquivos Fixos!`); carregarArquivosFixos(); 
-
-            } catch (error) { alert("Erro ao salvar."); } finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
-
-        });
-
-    };
-
+};
 
 
     window.gerarPDFCronograma = async (evento) => {
