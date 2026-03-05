@@ -383,73 +383,139 @@ window.fileToBase64 = (file) => new Promise((resolve, reject) => {
     reader.onerror = error => reject(error);
 });
 
-window.carregarCategorias = async () => {
-    const c = document.getElementById('listaCategorias');
-    if (!window.usuarioLogado) return;
-
-    try {
-        const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
-        let meusTimesIds = [];
-
-        if (meuEmail) {
-            const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
-            const snapTimes = await getDocs(qTimes);
-            snapTimes.forEach(d => meusTimesIds.push(d.id));
-        }
-
-        const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
-        const snapCatPessoal = await getDocs(qCatPessoal);
-
-        let categoriasUnicas = new Map();
-        snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
-
-        if (meusTimesIds.length > 0) {
-            const lotes = [];
-            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
-            for (let lote of lotes) {
-                const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
-                const snapCatTime = await getDocs(qCatTime);
-                snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
-            }
-        }
-
-        // --- LÓGICA DE ORDENAÇÃO POR CLIQUE ---
-        let ordemCliques = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
-        let arrayCategorias = Array.from(categoriasUnicas.values());
-
-        arrayCategorias.sort((a, b) => {
-            let idxA = ordemCliques.indexOf(a.nome);
-            let idxB = ordemCliques.indexOf(b.nome);
-            if (idxA === -1) idxA = 999;
-            if (idxB === -1) idxB = 999;
-            return idxA - idxB;
-        });
-
-        // SALVA GLOBALMENTE PARA O NOVO RENDERIZADOR USAR
-        window.todasAsCategorias = arrayCategorias;
-
-        arrayCategorias.forEach((cat) => {
-            window.coresCategorias[cat.nome] = cat.cor;
-            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
-            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
-        }); // <--- O erro estava aqui! Agora está corrigido com "});"
-
-        // CHAMA A NOVA FUNÇÃO DE DESENHAR O LAYOUT EM PÍLULA
-        window.renderizarCategoriasNoFiltro();
-        
-        await carregarTarefas();
-        carregarArquivosFixos();
-        carregarFinanceiro();
-
-    } catch (e) {
-        // Adicione o e.message para ler o erro em texto claro
-        console.error("Erro detalhado nas categorias:", e.message); 
-        if (c) {
-            c.innerHTML = `<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>
-                Erro: ${e.message}
-            </span>`;
-        }
-    }
+window.carregarCategorias = async () => {
+
+    const c = document.getElementById('listaCategorias');
+
+    if (!window.usuarioLogado) return;
+
+
+
+    try {
+
+        const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
+
+        let meusTimesIds = [];
+
+
+
+        if (meuEmail) {
+
+            const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
+
+            const snapTimes = await getDocs(qTimes);
+
+            snapTimes.forEach(d => meusTimesIds.push(d.id));
+
+        }
+
+
+
+        const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+
+        const snapCatPessoal = await getDocs(qCatPessoal);
+
+
+
+        let categoriasUnicas = new Map();
+
+        snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
+
+
+
+        if (meusTimesIds.length > 0) {
+
+            const lotes = [];
+
+            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
+
+            for (let lote of lotes) {
+
+                const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
+
+                const snapCatTime = await getDocs(qCatTime);
+
+                snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
+
+            }
+
+        }
+
+
+
+        // --- LÓGICA DE ORDENAÇÃO POR CLIQUE ---
+
+        let ordemCliques = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
+
+        let arrayCategorias = Array.from(categoriasUnicas.values());
+
+
+
+        arrayCategorias.sort((a, b) => {
+
+            let idxA = ordemCliques.indexOf(a.nome);
+
+            let idxB = ordemCliques.indexOf(b.nome);
+
+            if (idxA === -1) idxA = 999;
+
+            if (idxB === -1) idxB = 999;
+
+            return idxA - idxB;
+
+        });
+
+
+
+        // SALVA GLOBALMENTE PARA O NOVO RENDERIZADOR USAR
+
+        window.todasAsCategorias = arrayCategorias;
+
+        // 👇 ADICIONE ESSAS 3 LINHAS AQUI 👇
+        window.coresCategorias = window.coresCategorias || {};
+        window.logosCategorias = window.logosCategorias || {};
+        window.timesDasCategorias = window.timesDasCategorias || {};
+
+        arrayCategorias.forEach((cat) => {
+            window.coresCategorias[cat.nome] = cat.cor;
+            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
+            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
+        }); // <--- O erro estava aqui! Agora está corrigido com "});"
+
+
+
+        // CHAMA A NOVA FUNÇÃO DE DESENHAR O LAYOUT EM PÍLULA
+
+        window.renderizarCategoriasNoFiltro();
+
+        
+
+        await carregarTarefas();
+
+        carregarArquivosFixos();
+
+        carregarFinanceiro();
+
+
+
+    } catch (e) {
+
+        // Adicione o e.message para ler o erro em texto claro
+
+        console.error("Erro detalhado nas categorias:", e.message); 
+
+        if (c) {
+
+            c.innerHTML = `<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>
+
+                Erro: ${e.message}
+
+            </span>`;
+
+        }
+
+    }
+
 };
 
 // ==========================================
