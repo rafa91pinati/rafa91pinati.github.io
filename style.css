@@ -45,7 +45,7 @@ body {
     background: transparent; 
     color: #475569; 
     cursor: pointer; 
-    font-size: 0.65rem; /* Fonte pequena para caber tudo */
+    font-size: 0.8rem; /* Fonte pequena para caber tudo */
     font-weight: 800; 
     text-transform: uppercase; 
     text-align: center; 
@@ -61,7 +61,7 @@ body {
     background: transparent;
     font-weight: 800;
     color: #475569;
-    font-size: 0.65rem;
+    font-size: 0.80rem;
     text-align: center;
     outline: none;
     padding: 0;
@@ -114,7 +114,7 @@ input[type="text"], input[type="time"], input[type="date"], select {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 600;
     box-sizing: border-box;
 }
@@ -156,14 +156,7 @@ input[type="text"], input[type="time"], input[type="date"], select {
     margin-top: 20px;
 }
 
-.btn-acao-modal .icon {
-    font-size: 1.4rem;
-    background: #ffffff;
-    width: 48px; height: 48px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 16px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
+.btn-acao-modal {    background: transparent !important;    border: none !important;    outline: none !important;    box-shadow: none !important;    display: flex;    flex-direction: column;    align-items: center;    gap: 6px;    cursor: pointer;    padding: 0 !important;
 
 /* Utilitários */
 .escondido { display: none !important; }
