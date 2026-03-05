@@ -55,18 +55,12 @@ if ('serviceWorker' in navigator) {
 onAuthStateChanged(auth, async (user) => {
     const tela = document.getElementById('telaLogin');
     if (user) {
-        window.usuarioLogado = user;
-        if(tela) tela.classList.add('escondido'); 
-        
-        await atualizarSeletorTimes(); 
-        await carregarCategorias(); 
-        
-        setarData('hoje', document.getElementById('btnHoje'));
-        carregarPreferenciasNuvem();
-        
-        setTimeout(() => { 
-            atualizarSeletorMarcadores(); 
-        }, 800);
+    document.getElementById('telaLogin').style.display = 'none'; // Esconde o bloqueio
+    await carregarCategorias(); // Carrega os dados
+    renderizarCategoriasNoFiltro(); // Desenha os botões gordinhos
+} else {
+    document.getElementById('telaLogin').style.display = 'flex'; // Mostra o bloqueio
+}, 800);
     } else {
         window.usuarioLogado = null;
         if(tela) tela.classList.remove('escondido');
@@ -270,52 +264,98 @@ window.carregarCategorias = async () => {
 
 // ==========================================
 
-window.renderizarCategoriasNoFiltro = () => {
-    const container = document.getElementById('listaCategorias');
-    if (!container) return;
-    
-    container.innerHTML = ''; 
-    
-    // Pega as categorias da memória global
-    let todas = window.todasAsCategorias || [];
-    let semGeral = todas.filter(c => c.nome !== "Geral");
-    
-    // Mostra a Geral + as 3 últimas usadas
-    let recents = semGeral.slice(0, 3); 
-    let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
-
-    categoriasParaMostrar.forEach((cat, index) => {
-        const btn = document.createElement('button');
-        // Verifica se a categoria está selecionada
-        const isActive = categoriasAtivas.includes(cat.nome); 
-        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
-            `<span style="margin-right: 4px;">👥</span>` : "";
-
-        // ESTILO: Fonte 0.8rem e Padding maior conforme você pediu
-        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
-
-        if (isActive) {
-            btn.style.background = cat.cor || "#54627b";
-            btn.style.color = "white";
-            btn.style.padding = "8px 14px"; 
-            btn.innerHTML = (cat.nome === "Geral") ? `Cat: ${cat.nome}` : `${iconeTime}${cat.nome}`;
-        } else {
-            btn.style.background = "rgba(255,255,255,0.5)";
-            btn.style.color = "#64748b";
-            btn.style.padding = "8px 12px";
-            btn.innerHTML = `${iconeTime}${cat.nome}`;
-        }
-
-        btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
-        container.appendChild(btn);
-    });
-
-    // Adiciona o botão "mais" (•••) gordinho no final
-    const btnOutras = document.createElement('button');
-    btnOutras.innerHTML = "•••";
-    btnOutras.style.cssText = "background: #e2e8f0; color: #64748b; border: none; font-weight: 900; font-size: 0.8rem; padding: 8px 14px; cursor: pointer; border-radius: 16px; flex-shrink: 0;";
-    btnOutras.onclick = () => window.abrirOutrasCategorias();
-    container.appendChild(btnOutras);
+window.renderizarCategoriasNoFiltro = () => {
+
+    const container = document.getElementById('listaCategorias');
+
+    if (!container) return;
+
+    
+
+    container.innerHTML = ''; 
+
+    
+
+    // Pega as categorias da memória global
+
+    let todas = window.todasAsCategorias || [];
+
+    let semGeral = todas.filter(c => c.nome !== "Geral");
+
+    
+
+    // Mostra a Geral + as 3 últimas usadas
+
+    let recents = semGeral.slice(0, 3); 
+
+    let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
+
+
+
+    categoriasParaMostrar.forEach((cat, index) => {
+
+        const btn = document.createElement('button');
+
+        // Verifica se a categoria está selecionada
+
+        const isActive = categoriasAtivas.includes(cat.nome); 
+
+        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
+
+            `<span style="margin-right: 4px;">👥</span>` : "";
+
+
+
+        // ESTILO: Fonte 0.8rem e Padding maior conforme você pediu
+
+        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
+
+
+
+        if (isActive) {
+
+            btn.style.background = cat.cor || "#54627b";
+
+            btn.style.color = "white";
+
+            btn.style.padding = "8px 14px"; 
+
+            btn.innerHTML = (cat.nome === "Geral") ? `Cat: ${cat.nome}` : `${iconeTime}${cat.nome}`;
+
+        } else {
+
+            btn.style.background = "rgba(255,255,255,0.5)";
+
+            btn.style.color = "#64748b";
+
+            btn.style.padding = "8px 12px";
+
+            btn.innerHTML = `${iconeTime}${cat.nome}`;
+
+        }
+
+
+
+        btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
+
+        container.appendChild(btn);
+
+    });
+
+
+
+    // Adiciona o botão "mais" (•••) gordinho no final
+
+    const btnOutras = document.createElement('button');
+
+    btnOutras.innerHTML = "•••";
+
+    btnOutras.style.cssText = "background: #e2e8f0; color: #64748b; border: none; font-weight: 900; font-size: 0.8rem; padding: 8px 14px; cursor: pointer; border-radius: 16px; flex-shrink: 0;";
+
+    btnOutras.onclick = () => window.abrirOutrasCategorias();
+
+    container.appendChild(btnOutras);
+
 };
 
 window.abrirOutrasCategorias = function() {
