@@ -1083,12 +1083,6 @@ function fecharModal(id) {
 
 // Otimização: Fecha o modal automaticamente após salvar
 const originalSalvar = window.salvarNovaTarefa;
-window.salvarNovaTarefa = async () => {
-    if (originalSalvar) {
-        await originalSalvar();
-        fecharModal('modalTarefa');
-    }
-};
 
 
 // Otimização: Fecha o modal automaticamente após salvar
