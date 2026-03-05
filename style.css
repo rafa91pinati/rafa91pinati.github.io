@@ -21,38 +21,74 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); 
 }
 
-.timeline-header { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; width: 100%; box-sizing: border-box; }
-.btn-date { flex: 1; padding: 10px 2px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #334155; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; text-align: center; transition: all 0.3s ease; }
+.timeline-header { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+    margin-bottom: 20px; 
+    align-items: center; 
+    width: 100%; 
+    box-sizing: border-box; 
+    background: rgba(255, 255, 255, 0.05); /* Fundo sutil para ver o contêiner */
+    padding: 12px; /* Espaçamento igual em todos os lados (Simetria) */
+    border-radius: 18px;
+}
 .btn-date.ativo { background: linear-gradient(135deg, #64748b, #334155); color: white; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); }
 #dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: #000000; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none; }
 #dataSeletor::-webkit-calendar-picker-indicator { filter: invert(0); cursor: pointer; } 
 
-.category-tabs { 
-    display: flex; 
-    flex-wrap: wrap; /* Permite quebrar linha */
-    gap: 8px; 
-    padding: 5px 2px 15px 2px; 
-    margin-top: 20px; 
-    margin-bottom: 15px; 
-    border-bottom: 1px solid rgba(255,255,255,0.1); 
-    max-height: 105px; /* Altura máxima para comportar ~2 linhas */
-    overflow-y: auto; /* Habilita rolagem vertical */
-    scrollbar-width: thin; /* Barra de rolagem discreta */
-}
-
-/* Garante que os botões não fiquem gigantes na grade */
-.category-tab { 
-    padding: 8px 16px; 
-    border-radius: 12px; 
-    border: 1px solid rgba(255,255,255,0.1); 
-    background: rgba(255,255,255,0.05); 
-    cursor: pointer; 
-    font-size: 0.8rem; 
-    font-weight: 700; 
-    white-space: nowrap; 
-    color: #334155; 
-    transition: 0.3s;
-    flex-grow: 0; /* Não deixa o botão esticar demais */
+.category-tabs { 
+
+    display: flex; 
+
+    flex-wrap: wrap; /* Permite quebrar linha */
+
+    gap: 8px; 
+
+    padding: 5px 2px 15px 2px; 
+
+    margin-top: 20px; 
+
+    margin-bottom: 15px; 
+
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+
+    max-height: 105px; /* Altura máxima para comportar ~2 linhas */
+
+    overflow-y: auto; /* Habilita rolagem vertical */
+
+    scrollbar-width: thin; /* Barra de rolagem discreta */
+
+}
+
+
+
+/* Garante que os botões não fiquem gigantes na grade */
+
+.category-tab { 
+
+    padding: 8px 16px; 
+
+    border-radius: 12px; 
+
+    border: 1px solid rgba(255,255,255,0.1); 
+
+    background: rgba(255,255,255,0.05); 
+
+    cursor: pointer; 
+
+    font-size: 0.8rem; 
+
+    font-weight: 700; 
+
+    white-space: nowrap; 
+
+    color: #334155; 
+
+    transition: 0.3s;
+
+    flex-grow: 0; /* Não deixa o botão esticar demais */
+
 }
 .category-tab:hover { background: rgba(255,255,255,0.15); }
 
