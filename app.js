@@ -639,41 +639,25 @@ window.atualizarSeletorMarcadores = async () => {
         seletor.innerHTML = '<option value="">Todas as Etapas</option>';
         snap.forEach(d => {
             const m = d.data();
-            const opcao = document.createElement('option');
-            opcao.value = m.nome; opcao.textContent = m.nome;
-            seletor.appendChild(opcao);
-        });
-    } catch (e) { console.error(e); }
-};
+            const opcao = document.createElement('div');
+    relatorioTemp.style.padding = "20px";
+    relatorioTemp.style.background = "white";
 
-window.excluirMarcador = async (id) => { if(confirm("Apagar etapa?")) { await deleteDoc(doc(db, "marcadores", id)); carregarMarcadoresModal(); atualizarSeletorMarcadores(); } };
+    // Lógica das Cores: Usa a cor da categoria que recuperamos antes
+    const corTema = window.coresCategorias[categoriaDoPDF] || "#3b82f6";
 
-// --- GERENCIAMENTO DE TIMES ---
-window.criarTime = async () => {
-    const nome = document.getElementById('nomeNovoTime').value;
-    if(!nome) return alert("Digite o nome do time!");
-    if(!window.usuarioLogado) return alert("Você precisa estar logado!");
-
-    const btn = document.querySelector("button[onclick='criarTime()']");
-    btn.innerHTML = "⏳"; btn.disabled = true;
-
+    // (O restante da sua lógica de montagem do HTML do PDF está correta, 
+    // certifique-se apenas de que window.coresCategorias esteja populado no carregarCategorias)
+    
+    // EXECUÇÃO DO PDF (Igual ao seu código, mas com tratamento de erro)
     try {
-        const novoTime = {
-            nome: nome,
-            criadorUid: window.usuarioLogado.uid,
-            criadoEm: new Date(),
-            membrosEmails: [window.usuarioLogado.email], 
-            membros: [{ email: window.usuarioLogado.email, uid: window.usuarioLogado.uid, nivel: 'A' }]
-        };
-
-        await addDoc(collection(db, "times"), novoTime);
-        document.getElementById('nomeNovoTime').value = "";
-        carregarTimes();
-        alert("Time criado com sucesso!");
-    } catch (e) {
-        alert("Erro ao criar o time.");
+        const opcoes = { margin: [10, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+        await html2pdf().set(opcoes).from(relatorioTemp).save(`Relatorio_${categoriaDoPDF}.pdf`);
+    } catch (err) {
+        console.error("Erro ao gerar PDF:", err);
+        alert("Erro técnico ao gerar o arquivo.");
     } finally {
-        btn.innerHTML = "Criar"; btn.disabled = false;
+        btn.innerHTML = textoOriginal; btn.disabled = false;
     }
 };
 
