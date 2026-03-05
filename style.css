@@ -22,21 +22,15 @@ body {
 }
 
 .timeline-header { 
-
     display: flex; 
-
     flex-direction: column; 
-
-    gap: 4px !important; /* Diminui o espaço entre as duas linhas de botões */
-
+    gap: 6px !important; /* Espaço entre a linha 1 e 2 */
     margin-bottom: 10px !important; 
-
-    padding: 4px !important; /* Diminui o contêiner */
-
+    padding: 6px 12px !important; /* AQUI controla a altura total do container */
     background: rgba(255, 255, 255, 0.05);
-
-    border-radius: 18px;
-
+    border-radius: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 .btn-date { 
     flex: 1; 
@@ -62,16 +56,26 @@ body {
 #dataSeletor { flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: #000000; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none; }
 #dataSeletor::-webkit-calendar-picker-indicator { filter: invert(0); cursor: pointer; } 
 
-.category-tabs { 
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 6px; 
-    padding: 5px 2px; 
-    margin-top: 10px; 
-    margin-bottom: 2px; 
-    max-height: 85px !important; /* Este é o valor real para travar em 2 linhas */
-    overflow-y: auto; 
-    scrollbar-width: none; 
+.category-tabs { 
+
+    display: flex; 
+
+    flex-wrap: wrap; 
+
+    gap: 6px; 
+
+    padding: 5px 2px; 
+
+    margin-top: 10px; 
+
+    margin-bottom: 2px; 
+
+    max-height: 85px !important; /* Este é o valor real para travar em 2 linhas */
+
+    overflow-y: auto; 
+
+    scrollbar-width: none; 
+
 }
 
 .category-tabs::-webkit-scrollbar { display: none; }
