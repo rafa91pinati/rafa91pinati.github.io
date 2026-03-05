@@ -47,8 +47,8 @@ async function sincronizarVersaoGithub() {
 }`;
         }
         
-        // Atualiza o título da aba para conferência rápida
-        document.title = `Life Sync v4.3.6 (${horaFormatada})`; //
+// A crase é obrigatória para usar o ${} dentro do texto
+document.title = `Life Sync v4.8 (${horaFormatada})`;
         
     } catch (erro) {
         console.error('Falha ao buscar versão:', erro);
