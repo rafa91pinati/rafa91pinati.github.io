@@ -262,33 +262,34 @@ body {
 }
 
 
-/* --- CABEÇALHO DA SEÇÃO DE ATIVIDADES --- */
-.header-secao {
-    background: #1e293b;
-    color: white;
-    padding: 12px 18px;
-    border-radius: 16px;
-    font-weight: 900;
-    font-size: 0.85rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
-}
-
-.icone-quadrado {
-    width: 12px;
-    height: 12px;
-    background: white;
-    border-radius: 3px;
-}
-
-.seta-secao {
-    font-size: 0.8rem;
-    color: white;
-    transition: transform 0.3s ease;
-}
-
-.seta-secao.seta-expandida {
-    transform: rotate(-180deg);
+/* --- CABEÇALHO DA SEÇÃO DE ATIVIDADES --- */
+.header-secao {
+    background: #1e293b !important;
+    color: white !important;
+    padding: 12px 18px !important;
+    border-radius: 16px !important;
+    font-weight: 900 !important;
+    font-size: 0.85rem !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    margin-bottom: 15px !important;
+}
+
+.icone-quadrado {
+    width: 12px !important;
+    height: 12px !important;
+    background: white !important;
+    border-radius: 3px !important;
+    display: inline-block !important; /* Força o quadrado a ser renderizado */
+}
+
+.seta-secao {
+    font-size: 0.8rem !important;
+    color: white !important;
+    transition: transform 0.3s ease !important;
+}
+
+.seta-secao.seta-expandida {
+    transform: rotate(-180deg) !important;
 }
 
 
@@ -561,42 +562,78 @@ body {
 
 /* BORDAS DO BOTÃO INFERIOR CORRIGIDAS E CHAVE FECHADA */
 
-.barra-acoes-rapidas {
-    display: flex !important;
-    flex-direction: row !important; /* Garante que fiquem lado a lado */
-    justify-content: space-evenly !important; /* Distribui o espaço por igual */
-    align-items: center !important;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(10px);
-    border-radius: 24px;
-    margin-top: 20px;
-    width: 100%;
-    box-sizing: border-box; /* Impede que a barra "vaze" da tela */
-}
-
-.btn-acao-modal {
-    background: transparent !important;
-    border: none !important;
-    outline: none !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    padding: 0 !important;
-    flex: 1; /* Faz cada botão ocupar o mesmo espaço proporcional */
-}
-
-.btn-acao-modal .icon {
-    font-size: 1.2rem;
-}
-
-.btn-acao-modal .label {
-    font-size: 0.65rem;
-    font-weight: 800;
-    color: #64748b;
-    text-transform: uppercase;
+.barra-acoes-rapidas {
+
+    display: flex !important;
+
+    flex-direction: row !important; /* Garante que fiquem lado a lado */
+
+    justify-content: space-evenly !important; /* Distribui o espaço por igual */
+
+    align-items: center !important;
+
+    padding: 15px;
+
+    background: rgba(255, 255, 255, 0.4);
+
+    backdrop-filter: blur(10px);
+
+    border-radius: 24px;
+
+    margin-top: 20px;
+
+    width: 100%;
+
+    box-sizing: border-box; /* Impede que a barra "vaze" da tela */
+
+}
+
+
+
+.btn-acao-modal {
+
+    background: transparent !important;
+
+    border: none !important;
+
+    outline: none !important;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 6px;
+
+    cursor: pointer;
+
+    padding: 0 !important;
+
+    flex: 1; /* Faz cada botão ocupar o mesmo espaço proporcional */
+
+}
+
+
+
+.btn-acao-modal .icon {
+
+    font-size: 1.2rem;
+
+}
+
+
+
+.btn-acao-modal .label {
+
+    font-size: 0.65rem;
+
+    font-weight: 800;
+
+    color: #64748b;
+
+    text-transform: uppercase;
+
 }
 
 .tarefa-item {
