@@ -992,9 +992,10 @@ function fecharModal(id) {
     document.getElementById(id).classList.add('escondido');
 }
 
-
+const originalSalvarTarefa = window.salvarNovaTarefa;
 window.salvarNovaTarefa = async () => {
-
+await originalSalvarTarefa();
+    fecharModal('modalTarefa');
     const desc = document.getElementById('descTask').value;
 
     const marcadorAtivo = document.getElementById('filtroTagGlobal').value; 
