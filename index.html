@@ -85,41 +85,68 @@
 
     
 
-<div class="barra-acoes-rapidas">
-    <button class="btn-acao-modal" onclick="abrirModal('modalTarefa')">
-        <span class="icon">➕</span>
-        <span class="label">Tarefa</span>
-    </button>
-    <button class="btn-acao-modal" onclick="abrirModal('modalArquivos')">
-        <span class="icon">📂</span>
-        <span class="label">Arquivos</span>
-    </button>
-    <button class="btn-acao-modal" onclick="abrirModal('modalFinanceiro')">
-        <span class="icon">💰</span>
-        <span class="label">Financeiro</span>
-    </button>
-</div>
-
+<div class="barra-acoes-rapidas">
+
+    <button class="btn-acao-modal" onclick="abrirModal('modalTarefa')">
+
+        <span class="icon">➕</span>
+
+        <span class="label">Tarefa</span>
+
+    </button>
+
+    <button class="btn-acao-modal" onclick="abrirModal('modalArquivos')">
+
+        <span class="icon">📂</span>
+
+        <span class="label">Arquivos</span>
+
+    </button>
+
+    <button class="btn-acao-modal" onclick="abrirModal('modalFinanceiro')">
+
+        <span class="icon">💰</span>
+
+        <span class="label">Financeiro</span>
+
+    </button>
+
+</div>
+
+
+
 <div id="modalTarefa" class="modal-overlay escondido">
     <div class="modal-card">
         <div class="modal-header">
-            <h3>Nova Atividade</h3>
-            <button onclick="fecharModal('modalTarefa')">✕</button>
+            <h3 style="margin:0; color:#1e293b;">Nova Atividade</h3>
+            <button onclick="fecharModal('modalTarefa')" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
         </div>
         <div class="modal-body">
+            <input type="text" id="descTask" placeholder="O que agendar hoje?">
             </div>
     </div>
-</div>
-
-<div id="modalArquivos" class="modal-overlay escondido">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3>Arquivos Fixos</h3>
-            <button onclick="fecharModal('modalArquivos')">✕</button>
-        </div>
-        <div class="modal-body">
-            </div>
-    </div>
+</div>
+
+
+
+<div id="modalArquivos" class="modal-overlay escondido">
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <h3>Arquivos Fixos</h3>
+
+            <button onclick="fecharModal('modalArquivos')">✕</button>
+
+        </div>
+
+        <div class="modal-body">
+
+            </div>
+
+    </div>
+
 </div>
 </div>
 
