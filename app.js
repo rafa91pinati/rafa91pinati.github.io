@@ -2351,128 +2351,81 @@ window.gerarRelatorioPDF = async (evento) => {
 };
 
 
-    window.gerarPDFCronograma = async (evento) => {
-
-    if (evento) evento.stopPropagation();
-
-    const btn = document.getElementById('btnPdfCrono');
-
-    const originalText = btn.innerHTML;
-
-    
-
-    const containerGantt = document.getElementById('cronoContainer').innerHTML;
-
-    if (containerGantt.includes('Nenhuma atividade') || containerGantt.includes('Desenhando')) {
-
-        return alert("Não há dados desenhados para gerar o PDF.");
-
-    }
-
-
-
-    btn.innerHTML = "⏳..."; btn.disabled = true;
-
-
-
-    const relatorioTemp = document.createElement('div');
-
-    relatorioTemp.style.cssText = "font-family: Arial, sans-serif; padding: 20px; background: white; color: #1e293b;";
-
-
-
-    let logoHtml = window.logosCategorias[categoriasAtivas[0]] ? 
-
-        `<img src="${window.logosCategorias[categoriasAtivas[0]]}" style="height: 45px; max-width: 150px; object-fit: contain;">` : "";
-
-
-
-    // Ajuste de cores para o PDF (Light Mode forçado)
-
-    let conteudoAdaptado = containerGantt
-
-        .replace(/color: #f8fafc;/g, 'color: #1e293b;') 
-
-        .replace(/color: #94a3b8;/g, 'color: #475569;') 
-
-        .replace(/background: rgba\(0,0,0,0.3\);/g, 'background: #f1f5f9;')
-
-        .replace(/border: 1px solid rgba\(255,255,255,0.1\);/g, 'border: 1px solid #cbd5e1;');
-
-
-
-    relatorioTemp.innerHTML = `
-
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 30px;">
-
-            <div>
-
-                <h1 style="margin: 0; font-size: 22px;">CRONOGRAMA EXECUTIVO</h1>
-
-                <h2 style="margin: 0; font-size: 16px; color: #64748b;">Categoria: ${categoriasAtivas[0]}</h2>
-
-            </div>
-
-            ${logoHtml}
-
-        </div>
-
-        ${conteudoAdaptado}
-
-    `;
-
-
-
-    const opcoes = { margin: 10, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
-
-    const nomeRelatorio = `Cronograma_${categoriasAtivas[0]}_${Date.now()}`;
-
-
-
-    try { 
-
-        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
-
-        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`);
-
-        await uploadBytes(sRef, pdfBlob);
-
-        const urlArquivo = await getDownloadURL(sRef);
-
-
-
-        await addDoc(collection(db, "arquivos_fixos"), {
-
-            uid: window.usuarioLogado.uid,
-
-            Nomearquivo: nomeRelatorio,
-
-            categoria: categoriasAtivas[0],
-
-            link: urlArquivo,
-
-            dataUpload: new Date()
-
-        };
-
-}
-
-        alert("✅ Cronograma salvo com sucesso!");
-
-        carregarArquivosFixos();
-
-     catch (error) {
-
-        console.error(error);
-
-        alert("Erro ao salvar o cronograma.");
-
-    } finally {
-
-        btn.innerHTML = originalText; btn.disabled = false;
-
-    }
-
+        window.gerarPDFCronograma = async (evento) => {
+    if (evento) evento.stopPropagation();
+
+    const btn = document.getElementById('btnPdfCrono');
+    const originalText = btn.innerHTML;
+    
+    const containerGantt = document.getElementById('cronoContainer').innerHTML;
+    if (containerGantt.includes('Nenhuma atividade') || containerGantt.includes('Desenhando')) {
+        return alert("Não há dados desenhados para gerar o PDF.");
+    }
+
+    btn.innerHTML = "⏳..."; 
+    btn.disabled = true;
+
+    const relatorioTemp = document.createElement('div');
+    relatorioTemp.style.cssText = "font-family: Arial, sans-serif; padding: 20px; background: white; color: #1e293b;";
+
+    // Verifica se existe logo para a categoria ativa
+    let logoHtml = (window.logosCategorias && window.logosCategorias[categoriasAtivas[0]]) ? 
+        `<img src="${window.logosCategorias[categoriasAtivas[0]]}" style="height: 45px; max-width: 150px; object-fit: contain;">` : "";
+
+    // Ajuste de cores para o PDF (Light Mode forçado)
+    let conteudoAdaptado = containerGantt
+        .replace(/color: #f8fafc;/g, 'color: #1e293b;') 
+        .replace(/color: #94a3b8;/g, 'color: #475569;') 
+        .replace(/background: rgba\(0,0,0,0.3\);/g, 'background: #f1f5f9;')
+        .replace(/border: 1px solid rgba\(255,255,255,0.1\);/g, 'border: 1px solid #cbd5e1;');
+
+    relatorioTemp.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 30px;">
+            <div>
+                <h1 style="margin: 0; font-size: 22px;">CRONOGRAMA EXECUTIVO</h1>
+                <h2 style="margin: 0; font-size: 16px; color: #64748b;">Categoria: ${categoriasAtivas[0]}</h2>
+            </div>
+            ${logoHtml}
+        </div>
+        ${conteudoAdaptado}
+    `;
+
+    const opcoes = { 
+        margin: 10, 
+        filename: `Cronograma_${categoriasAtivas[0]}.pdf`,
+        html2canvas: { scale: 2, useCORS: true }, 
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } 
+    };
+
+    const nomeRelatorio = `Cronograma_${categoriasAtivas[0]}_${Date.now()}`;
+
+    try { 
+        const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
+        
+        // Caminho no Storage
+        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeRelatorio}.pdf`);
+        await uploadBytes(sRef, pdfBlob);
+        const urlArquivo = await getDownloadURL(sRef);
+
+        // Salva a referência no Firestore (Aqui estava o erro de fechamento!)
+        await addDoc(collection(db, "arquivos_fixos"), {
+            uid: window.usuarioLogado.uid,
+            Nomearquivo: nomeRelatorio,
+            categoria: categoriasAtivas[0],
+            link: urlArquivo,
+            dataUpload: new Date()
+        }); // <-- Fechamento do addDoc corrigido
+
+        alert("✅ Cronograma salvo com sucesso!");
+        if (typeof carregarArquivosFixos === "function") carregarArquivosFixos();
+
+    } catch (error) {
+        console.error("Erro ao salvar PDF:", error);
+        alert("Erro ao salvar o cronograma no banco de dados.");
+    } finally {
+        btn.innerHTML = originalText; 
+        btn.disabled = false;
+    }
 };
 
 
