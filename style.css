@@ -207,9 +207,10 @@ body {
 
 
 #listaCategorias button {
-    font-size: 0.85rem !important; /* Aqui você aumenta o número para crescer a fonte */
-    font-weight: 800; /* Deixa a letra mais "gordinha" e visível */
-    padding: 10px 16px !important; /* Aproveita para deixar o botão mais largo e fácil de clicar */
+    font-size: 0.85rem !important;
+    padding: 10px 16px !important;
+    border-radius: 18px !important;
+    font-weight: 800 !important;
 }
 
 
