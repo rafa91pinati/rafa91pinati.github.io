@@ -115,54 +115,53 @@
 
 
 
-<div id="modalTarefa" class="modal-overlay escondido">
+<div id="modalTarefa" class="modal-overlay escondido">
+
     <div class="modal-card">
-        <div class="modal-header">
-            <h3>Agendar Atividade</h3>
-            <button class="btn-fechar" onclick="fecharModal('modalTarefa')">✕</button>
-        </div>
-        <div class="modal-body">
-            <input type="text" id="descTask" placeholder="O que agendar hoje?">
-            <div id="previewFotosNovas" class="container-fotos"></div>
-            <div class="grid-50">
-                <input type="time" id="horaTask">
-                <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
-                <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
-            </div>
-            <button id="btnSalvar" onclick="salvarNovaTarefa()" class="btn-salva-modal">Salvar Tarefa</button>
-        </div>
+    <div class="modal-header">
+        <h3 style="margin:0; font-weight: 900; color: #1e293b;">NOVA TAREFA</h3>
+        <button class="btn-fechar" onclick="fecharModal('modalTarefa')">✕</button>
     </div>
-</div>
+    
+    <div class="modal-body">
+        <input type="text" id="descTask" placeholder="O que agendar hoje?" style="width: 100%; margin-bottom: 15px;">
+        
+        <div id="previewFotosNovas" class="container-fotos"></div>
+        
+        <div class="grid-50">
+            <input type="time" id="horaTask">
+            <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">📷 ARQUIVO</button>
+            <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
+        </div>
 
-<div id="modalArquivos" class="modal-overlay escondido">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3>Repositório de Arquivos</h3>
-            <button class="btn-fechar" onclick="fecharModal('modalArquivos')">✕</button>
-        </div>
-        <div class="modal-body">
-            <input type="text" id="nomeArquivoFixo" placeholder="Descrição do arquivo">
-            <button onclick="subirArquivoFixo()" class="btn-salva-modal">📤 Subir Arquivo</button>
-            <div id="listaArquivosFixos"></div>
-        </div>
-    </div>
-</div>
-
-<div id="modalFinanceiro" class="modal-overlay escondido">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3>Controle Financeiro</h3>
-            <button class="btn-fechar" onclick="fecharModal('modalFinanceiro')">✕</button>
-        </div>
-        <div class="modal-body">
-            <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                <label style="font-size: 0.7rem; font-weight: 800; color: #64748b;">VALOR (R$):</label>
-                <input type="number" id="valorFin" placeholder="0,00" style="font-size: 1.5rem; font-weight: bold; color: #10b981;">
+        <div class="grid-50" style="margin-top: 15px; margin-bottom: 5px;">
+            <div style="background: rgba(241, 245, 249, 0.8); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(0,0,0,0.05);">
+                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
+                <select id="tipoRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
+                    <option value="nenhuma">Sem recorrência</option>
+                    <option value="diario">Diário</option>
+                    <option value="2dias">A cada 2 dias</option>
+                    <option value="semanal">A cada 1 semana</option>
+                    <option value="mensal">A cada 1 mês</option>
+                </select>
             </div>
-            <input type="text" id="descFin" placeholder="Descrição do gasto/ganho">
-            <button onclick="salvarFinanceiro()" class="btn-salva-modal" style="background: #10b981;">Registrar</button>
+            <div style="background: rgba(241, 245, 249, 0.8); border-radius: 12px; padding: 5px 10px; border: 1px solid rgba(0,0,0,0.05);">
+                <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
+                <input type="date" id="dataFimRecorrencia" style="margin: 0; padding: 4px; border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none;">
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px; width: 100%;">
+            <button onclick="cancelarNovaTarefa(); fecharModal('modalTarefa')" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer;">
+                Cancelar
+            </button>
+            <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">
+                Salvar
+            </button>
         </div>
     </div>
+</div>
+
 </div>
 
 </div>
