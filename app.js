@@ -1621,10 +1621,9 @@ window.gerarRelatorioPDF = async (evento) => {
 };
 
 window.gerarPDFCronograma = async (evento) => {
-    evento.stopPropagation();
-    const btn = document.getElementById('btnPdfCrono');
+if (evento) evento.stopPropagation();
+    const btn = document.getElementById('btnPdfCrono') || evento.currentTarget;
     const originalText = btn.innerHTML;
-    
     const containerGantt = document.getElementById('cronoContainer');
     if (!containerGantt || containerGantt.innerHTML.includes('Nenhuma atividade')) {
         return alert("Desenhe o gráfico na tela antes de gerar o PDF.");
