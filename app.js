@@ -969,40 +969,43 @@ window.carregarTimes = async () => {
 };
 
 window.criarTime = async () => {
-    // Pergunta o nome do time para o usuário
-    const nomeTime = prompt("Digite o nome da nova equipe/time:");
+    // 1. PEGA O TEXTO DIRETO DO SEU LAYOUT (Lembre de colocar o ID correto aqui embaixo)
+    const inputNovoTime = document.getElementById("ID_DO_SEU_INPUT");
+    const nomeTime = inputNovoTime.value;
     
-    // Se o usuário clicar em "Cancelar" ou não digitar nada, a função para aqui
+    // Se o usuário clicar em "Criar" sem digitar nada, avisa ele e para
     if (!nomeTime || nomeTime.trim() === "") {
-        return; 
+        return alert("Por favor, digite o nome do time!"); 
     }
 
     try {
-        // Criando a estrutura comercial no Firestore
+        // 2. ESTRUTURA COMERCIAL NO FIRESTORE
         const novoTimeData = {
             nome: nomeTime.trim(),
             criadoEm: serverTimestamp(), // Hora exata do Google
             criadorUid: window.usuarioLogado.uid,
             
-            // Arrays para facilitar a montagem do layout na tela
+            // Arrays para o layout
             membros: [{ 
                 email: window.usuarioLogado.email, 
                 nivel: "Dono" 
             }],
             membrosEmails: [window.usuarioLogado.email],
             
-            // O NOSSO DICIONÁRIO DE SEGURANÇA (Para o Firebase bloquear invasores)
+            // DICIONÁRIO DE SEGURANÇA
             cargos: {
                 [window.usuarioLogado.email]: "Dono"
             }
         };
 
-        // Salva na coleção 'times' gerando um ID automático
+        // Salva no banco de dados
         await addDoc(collection(db, "times"), novoTimeData);
 
         alert(`Time "${nomeTime}" criado com sucesso!`);
         
-        // Atualiza a tela imediatamente para mostrar o novo time
+        // 3. LIMPA O CAMPO E ATUALIZA A TELA
+        inputNovoTime.value = ""; // Apaga o texto que o usuário digitou
+        
         if (typeof window.carregarTimes === 'function') {
             window.carregarTimes();
         }
