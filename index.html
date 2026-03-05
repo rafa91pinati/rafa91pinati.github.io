@@ -296,21 +296,23 @@
         
 		
 		
-<div class="header-atividades-slim">
-    <div class="info-atividades" onclick="toggleSecao('listaTarefas', 'setaLista')">
-        <div class="mini-quadrado-branco"></div>
-        <span class="titulo-secao">ATIVIDADES</span>
-        <span id="setaLista" class="seta-atividades">▼</span>
+<div class="sessao-atividades-container">
+    <div class="header-atividades-slim" onclick="toggleSecao('listaTarefas', 'setaLista')">
+        <div class="atividades-info-esq">
+            <div class="mini-quadrado-branco"></div>
+            <span class="titulo-sessao">ATIVIDADES</span>
+            <span id="setaLista" class="seta-icone">▼</span>
+        </div>
+
+
+<div style="display: flex; gap: 8px;">
+        <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            📊 Gráfico
+        </button>
+        <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            📄 PDF
+        </button>
     </div>
-
-
-        <div style="display: flex; gap: 8px;">
-            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📊 Gráfico
-            </button>
-            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📄 PDF
-            </button>
         </div>
     </div>
     
