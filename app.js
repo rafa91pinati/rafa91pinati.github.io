@@ -659,7 +659,7 @@ window.atualizarSeletorMarcadores = async () => {
 
         alert("Erro técnico ao gerar o arquivo.");
 
-    } finally {
+     finally {
 
         btn.innerHTML = textoOriginal; btn.disabled = false;
 
