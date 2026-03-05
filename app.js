@@ -653,7 +653,7 @@ window.atualizarSeletorMarcadores = async () => {
 
         await html2pdf().set(opcoes).from(relatorioTemp).save(`Relatorio_${categoriaDoPDF}.pdf`);
 
-    } catch (error) {
+     catch (error) {
 
         console.error("Erro ao gerar PDF:", error);
 
