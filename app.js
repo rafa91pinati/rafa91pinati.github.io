@@ -54,33 +54,24 @@ if ('serviceWorker' in navigator) {
 // --- LOGIN E AUTH ---
 onAuthStateChanged(auth, async (user) => {
     const tela = document.getElementById('telaLogin');
-
     if (user) {
-        // Usuário logado: Salva os dados e esconde a tela de bloqueio
         window.usuarioLogado = user;
-        if(tela) tela.style.display = 'none';
+        if(tela) tela.style.display = 'none'; // Esconde o login se estiver logado
         
-        // Carrega as informações do Firebase
-        await atualizarSeletorTimes();
-        await carregarCategorias();
+        await atualizarSeletorTimes(); 
+        await carregarCategorias(); 
+        renderizarCategoriasNoFiltro(); // Desenha as categorias gordinhas
         
-        // Desenha as categorias "gordinhas" e atualiza a interface
-        renderizarCategoriasNoFiltro();
-        
-        // Define a visualização inicial (Hoje)
         setarData('hoje', document.getElementById('btnHoje'));
         carregarPreferenciasNuvem();
         
-        // Aguarda um pouco para carregar os marcadores/tags
         setTimeout(() => { 
-            atualizarSeletorMarcadores();
+            atualizarSeletorMarcadores(); 
         }, 800);
-
     } else {
-        // Usuário deslogado: Limpa os dados e mostra o bloqueio
         window.usuarioLogado = null;
         if(tela) {
-            tela.style.display = 'flex';
+            tela.style.display = 'flex'; // Mostra o bloqueio se deslogado
             tela.classList.remove('escondido');
         }
     }
@@ -283,54 +274,102 @@ window.carregarCategorias = async () => {
 
 // ==========================================
 
-window.renderizarCategoriasNoFiltro = () => {
-    const container = document.getElementById('listaCategorias');
-    if (!container) return;
-
-    container.innerHTML = ''; 
-
-    // Pega as categorias da memória global
-    let todas = window.todasAsCategorias || [];
-    let semGeral = todas.filter(c => c.nome !== "Geral");
-
-    // Mostra a Geral + as 3 últimas usadas
-    let recents = semGeral.slice(0, 3); 
-    let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
-
-    categoriasParaMostrar.forEach((cat) => {
-        const btn = document.createElement('button');
-        // Verifica se a categoria está selecionada
-        const isActive = categoriasAtivas.includes(cat.nome); 
-        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
-            `<span style="margin-right: 4px;">👥</span>` : "";
-
-        // APLICANDO O TAMANHO QUE MANDASTE (0.9rem e padding maior)
-        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
-
-        if (isActive) {
-            btn.style.background = cat.cor || "#54627b";
-            btn.style.color = "white";
-            btn.style.padding = "10px 18px"; // Botão mais gordinho
-            // Preenche o conteúdo do botão ativo
-            btn.innerHTML = (cat.nome === "Geral") ? `Cat: ${cat.nome}` : `${iconeTime}${cat.nome}`;
-        } else {
-            btn.style.background = "rgba(255,255,255,0.5)";
-            btn.style.color = "#64748b";
-            btn.style.padding = "10px 14px"; // Botão mais gordinho
-            // Preenche o conteúdo do botão inativo
-            btn.innerHTML = `${iconeTime}${cat.nome}`;
-        }
-
-        btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
-        container.appendChild(btn);
-    });
-
-    // Adiciona o botão "mais" (•••) gordinho no final
-    const btnOutras = document.createElement('button');
-    btnOutras.innerHTML = "•••";
-    btnOutras.style.cssText = "background: #e2e8f0; color: #64748b; border: none; font-weight: 900; font-size: 0.9rem; padding: 10px 18px; cursor: pointer; border-radius: 16px; flex-shrink: 0;";
-    btnOutras.onclick = () => window.abrirOutrasCategorias();
-    container.appendChild(btnOutras);
+window.renderizarCategoriasNoFiltro = () => {
+
+    const container = document.getElementById('listaCategorias');
+
+    if (!container) return;
+
+
+
+    container.innerHTML = ''; 
+
+
+
+    // Pega as categorias da memória global
+
+    let todas = window.todasAsCategorias || [];
+
+    let semGeral = todas.filter(c => c.nome !== "Geral");
+
+
+
+    // Mostra a Geral + as 3 últimas usadas
+
+    let recents = semGeral.slice(0, 3); 
+
+    let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
+
+
+
+    categoriasParaMostrar.forEach((cat) => {
+
+        const btn = document.createElement('button');
+
+        // Verifica se a categoria está selecionada
+
+        const isActive = categoriasAtivas.includes(cat.nome); 
+
+        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
+
+            `<span style="margin-right: 4px;">👥</span>` : "";
+
+
+
+        // APLICANDO O TAMANHO QUE MANDASTE (0.9rem e padding maior)
+
+        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
+
+
+
+        if (isActive) {
+
+            btn.style.background = cat.cor || "#54627b";
+
+            btn.style.color = "white";
+
+            btn.style.padding = "10px 18px"; // Botão mais gordinho
+
+            // Preenche o conteúdo do botão ativo
+
+            btn.innerHTML = (cat.nome === "Geral") ? `Cat: ${cat.nome}` : `${iconeTime}${cat.nome}`;
+
+        } else {
+
+            btn.style.background = "rgba(255,255,255,0.5)";
+
+            btn.style.color = "#64748b";
+
+            btn.style.padding = "10px 14px"; // Botão mais gordinho
+
+            // Preenche o conteúdo do botão inativo
+
+            btn.innerHTML = `${iconeTime}${cat.nome}`;
+
+        }
+
+
+
+        btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
+
+        container.appendChild(btn);
+
+    });
+
+
+
+    // Adiciona o botão "mais" (•••) gordinho no final
+
+    const btnOutras = document.createElement('button');
+
+    btnOutras.innerHTML = "•••";
+
+    btnOutras.style.cssText = "background: #e2e8f0; color: #64748b; border: none; font-weight: 900; font-size: 0.9rem; padding: 10px 18px; cursor: pointer; border-radius: 16px; flex-shrink: 0;";
+
+    btnOutras.onclick = () => window.abrirOutrasCategorias();
+
+    container.appendChild(btnOutras);
+
 };
 
 window.abrirOutrasCategorias = function() {
