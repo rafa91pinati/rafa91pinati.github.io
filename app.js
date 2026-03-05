@@ -264,9 +264,12 @@ window.carregarCategorias = async () => {
     }
 };
 
-// ==========================================
-// FUNÇÕES DE RENDERIZAÇÃO DO FILTRO (EM LINHA ÚNICA)
-// ==========================================
+// ==========================================
+
+// FUNÇÕES DE RENDERIZAÇÃO DO FILTRO (EM LINHA ÚNICA)
+
+// ==========================================
+
 window.renderizarCategoriasNoFiltro = () => {
     const container = document.getElementById('listaCategorias');
     if (!container) return;
@@ -275,58 +278,38 @@ window.renderizarCategoriasNoFiltro = () => {
     
     let todas = window.todasAsCategorias || [];
     let semGeral = todas.filter(c => c.nome !== "Geral");
+    // Pegamos as 3 mais recentes/clicadas
     let recents = semGeral.slice(0, 3); 
     let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
 
     categoriasParaMostrar.forEach((cat, index) => {
         const btn = document.createElement('button');
         const isActive = categoriasAtivas.includes(cat.nome); 
-        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? `<span style="font-size: 0.8rem; margin-right: 3px; display: inline-flex; align-items: center;">👥</span>` : "";
+        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
+            `<span style="margin-right: 3px;">👥</span>` : "";
 
-        // Fontes reduzidas e "white-space: nowrap" para não empilhar o texto
-        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.7rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 15px;";
+        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.65rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 15px; flex-shrink: 0;";
 
         if (isActive) {
             btn.style.background = cat.cor || "#54627b";
             btn.style.color = "white";
-            btn.style.padding = "4px 12px";
-            btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
-            
-            if (cat.nome === "Geral") {
-                btn.innerHTML = `Categoria: <span style="text-decoration: underline; margin-left: 3px;">${cat.nome}</span>`;
-            } else {
-                btn.innerHTML = `${iconeTime}${cat.nome}`;
-            }
+            btn.style.padding = "6px 12px";
+            btn.innerHTML = (cat.nome === "Geral") ? `Cat: ${cat.nome}` : `${iconeTime}${cat.nome}`;
         } else {
-            btn.style.background = "transparent";
-            btn.style.color = "#94a3b8";
-            btn.style.padding = "4px 6px";
+            btn.style.background = "rgba(255,255,255,0.5)";
+            btn.style.color = "#64748b";
+            btn.style.padding = "6px 10px";
             btn.innerHTML = `${iconeTime}${cat.nome}`;
         }
 
         btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
         container.appendChild(btn);
-
-        if (index < categoriasParaMostrar.length - 1) {
-            const proxAtivo = categoriasAtivas.includes(categoriasParaMostrar[index + 1].nome);
-            if (!isActive && !proxAtivo) {
-                const separador = document.createElement('span');
-                separador.innerText = '|';
-                separador.style.cssText = "color: #cbd5e1; font-weight: bold; margin: 0 1px;";
-                container.appendChild(separador);
-            }
-        }
     });
 
-    // Separador e Botão Outras
-    const separadorOutras = document.createElement('span');
-    separadorOutras.innerText = '|';
-    separadorOutras.style.cssText = "color: #cbd5e1; font-weight: bold; margin: 0 1px;";
-    container.appendChild(separadorOutras);
-
+    // Botão "Mais" fixo no final da linha
     const btnOutras = document.createElement('button');
-    btnOutras.innerText = "mais";
-    btnOutras.style.cssText = "background: transparent; color: #64748b; border: none; font-weight: 900; font-size: 0.7rem; padding: 4px 8px; cursor: pointer; white-space: nowrap;";
+    btnOutras.innerHTML = "•••";
+    btnOutras.style.cssText = "background: #e2e8f0; color: #64748b; border: none; font-weight: 900; font-size: 0.7rem; padding: 6px 12px; cursor: pointer; border-radius: 15px; flex-shrink: 0;";
     btnOutras.onclick = () => window.abrirOutrasCategorias();
     container.appendChild(btnOutras);
 };
