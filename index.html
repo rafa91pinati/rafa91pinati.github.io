@@ -522,10 +522,10 @@
 <div id="modalCronograma" class="modal" style="display: none; align-items: flex-start; padding-top: 40px; overflow-y: auto;">
     <div class="modal-content" style="width: 95%; max-width: 600px; padding: 25px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-                <img src="LinhaDoTempo.png" style="width: 22px; height: 22px; filter: brightness(0) invert(1);"> LINHA DO TEMPO 
-                <span id="cronoBadge" style="font-size: 0.7rem; background: #3b82f6; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;"></span>
-            </h2>
+            <h2 style="margin: 0; color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+    ⏳ LINHA DO TEMPO 
+    <span id="cronoBadge" style="font-size: 0.7rem; background: #3b82f6; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;"></span>
+</h2>
             <div style="display: flex; gap: 12px; align-items: center;">
                 <button onclick="gerarPDFCronograma(event)" id="btnPdfCrono" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">📄 PDF</button>
                 <span onclick="document.getElementById('modalCronograma').style.display='none'" style="font-size: 28px; cursor: pointer; color: #94a3b8; line-height: 1;">&times;</span>
@@ -539,23 +539,42 @@
     <img id="imgGrande" src="">
 </div>
 
-<div id="modalOutrasCategorias" class="modal-overlay escondido">
-        <div class="modal-card" style="max-width: 400px; padding: 20px;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase;">Selecione a Categoria</h3>
-                <button class="btn-fechar" onclick="fecharModal('modalOutrasCategorias')" style="background: transparent; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="listaTodasCategoriasModal" style="display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; padding-right: 5px;">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        const versao = Math.floor(Date.now() / 60000); 
-        import('./app.js?v=' + versao);
-    </script>
-
-</body>
+<div id="modalOutrasCategorias" class="modal-overlay escondido">
+
+        <div class="modal-card" style="max-width: 400px; padding: 20px;">
+
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+
+                <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase;">Selecione a Categoria</h3>
+
+                <button class="btn-fechar" onclick="fecharModal('modalOutrasCategorias')" style="background: transparent; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">✕</button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div id="listaTodasCategoriasModal" style="display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; padding-right: 5px;">
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <script type="module">
+
+        const versao = Math.floor(Date.now() / 60000); 
+
+        import('./app.js?v=' + versao);
+
+    </script>
+
+
+
+</body>
+
 </html>
