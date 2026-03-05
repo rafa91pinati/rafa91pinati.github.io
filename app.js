@@ -326,6 +326,12 @@ window.renderizarCategoriasNoFiltro = () => {
             }
         }
     });
+	// 3. O QUINTO E ÚLTIMO BOTÃO: "Outras..."
+    const btnOutras = document.createElement('button');
+    btnOutras.innerText = "Outras...";
+    btnOutras.style.cssText = "background: transparent; color: #64748b; border: none; font-weight: 900; font-size: 0.75rem; padding: 6px 10px; cursor: pointer; white-space: nowrap;";
+    btnOutras.onclick = () => window.abrirOutrasCategorias();
+    container.appendChild(btnOutras);
 };
 
 window.abrirOutrasCategorias = function() {
