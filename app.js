@@ -90,7 +90,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const messaging = getMessaging(app);
 const storage = getStorage(app);
-
+ 
 
 
 window.marcarComoAtualizado = () => {
