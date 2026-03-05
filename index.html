@@ -46,93 +46,63 @@
 
 <div class="container">
 
-<div class="timeline-header">
+<div class="novo-header-filtros" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
 
+    <div style="background: rgba(248, 250, 252, 0.7); border-radius: 24px; padding: 15px; border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+        
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; background: white; border-radius: 30px; flex: 1; padding: 4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                <button id="btnHoje" onclick="setarData('hoje', this)" style="background: #54627b; color: white; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; box-shadow: 0 4px 8px rgba(0,0,0,0.15); cursor: pointer;">HOJE</button>
+                <span style="color: #cbd5e1; font-size: 1.2rem; margin: 0 5px; line-height: 0;">›</span>
+                <button id="btnAmanha" onclick="setarData('amanha', this)" style="background: transparent; color: #475569; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer;">AMANHÃ</button>
+                <span style="color: #cbd5e1; font-size: 1.2rem; margin: 0 5px; line-height: 0;">›</span>
+                <button id="btnSemana" onclick="setarData('semana', this)" style="background: transparent; color: #475569; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; padding-right: 10px;">SEMANA</button>
+            </div>
+            
+            <div style="display: flex; align-items: center; background: white; border-radius: 20px; padding: 6px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+                <input type="date" id="dataSeletor" onchange="setarData('custom', this)" style="border: none; background: transparent; font-weight: 800; color: #475569; font-size: 0.8rem; outline: none; cursor: pointer;">
+            </div>
+            
+            <button onclick="abrirConfig()" style="background: none; border: none; font-size: 1.5rem; color: #a1a1aa; cursor: pointer; padding: 0;">⚙️</button>
+        </div>
 
-
-    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-
-
-
-        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-
-
-
-        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-
-
-
-        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
-
-
-
-        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-
-
-
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5; flex-shrink: 0; width: 32px;">⚙️</button>
-
-
-
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="display: flex; align-items: center; background: white; border-radius: 30px; padding: 4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                <button id="btnMes" onclick="setarData('mes', this)" style="background: transparent; color: #475569; border: none; padding: 8px 16px; font-weight: 800; font-size: 0.75rem; cursor: pointer;">MÊS</button>
+                <button id="btnTudo" onclick="setarData('tudo', this)" style="background: transparent; color: #475569; border: none; padding: 8px 16px; font-weight: 800; font-size: 0.75rem; cursor: pointer;">TUDO</button>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1; justify-content: flex-end;">
+                <span style="font-size: 0.7rem; font-weight: 800; color: #8c98a9; text-transform: uppercase;">PERÍODO</span>
+                <div style="display: flex; align-items: center; background: white; border-radius: 20px; padding: 6px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+                    <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)" style="border: none; background: transparent; font-weight: 800; color: #475569; font-size: 0.8rem; outline: none; width: 110px; cursor: pointer;">
+                </div>
+            </div>
+            <div style="width: 28px;"></div>
+        </div>
     </div>
 
+    <div style="background: rgba(248, 250, 252, 0.7); border-radius: 24px; padding: 15px; border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+        
+        <div style="display: flex; align-items: center; background: rgba(241, 245, 249, 0.8); border-radius: 30px; padding: 4px; margin-bottom: 12px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+            
+            <div id="listaCategorias" style="display: flex; align-items: center; gap: 8px;">
+                Sincronizando...
+            </div>
+            
+            <span style="color: #cbd5e1; margin: 0 4px;">|</span>
+            <button id="btnOutrasCategorias" onclick="abrirOutrasCategorias()" style="background: transparent; color: #64748b; border: none; font-weight: 900; font-size: 0.75rem; padding: 8px 15px; cursor: pointer; white-space: nowrap;">Outras...</button>
+        </div>
 
-
-    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-
-
-
-        <button class="btn-date" id="btnMes" onclick="setarData('mes', this)">Mês</button>
-
-
-
-        <button class="btn-date" id="btnTudo" onclick="setarData('tudo', this)">Tudo</button>
-
-
-
-        <div style="flex: 1; text-align: center; font-size: 0.65rem; font-weight: 800; color: #64748b;">PERÍODO</div>
-
-
-
-        <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)" style="flex: 1.8; padding: 8px; border-radius: 20px; border: none; background: rgba(255,255,255,0.1); color: #000; text-align: center;">
-
-
-
-        <div style="width: 32px; visibility: hidden;">⚙️</div>
-
-
-
-    </div>
-
-
-
-</div>
-
-
-
-
-
-
-
-<div class="secao-filtros-projeto">
-
-
-
-    <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
-
-
-
-
-
-
-
-    <div style="display: flex; align-items: center; gap: 10px; background: white; border-radius: 20px; padding: 8px 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+        <div style="display: flex; align-items: center; gap: 10px; background: white; border-radius: 20px; padding: 8px 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
             <span style="font-weight: 800; font-size: 0.75rem; color: #64748b; text-transform: uppercase;">TAG:</span>
             <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; border: none; background: transparent; font-weight: 800; color: #1e293b; font-size: 0.8rem; outline: none; cursor: pointer;">
                 <option value="">Todas as Etapas</option>
             </select>
         </div>
     </div>
+
+</div>
 
 
 
