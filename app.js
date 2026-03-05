@@ -982,6 +982,17 @@ window.cancelarNovaTarefa = () => {
     document.getElementById('setaAdd').classList.remove('seta-expandida');
 };
 
+
+
+function abrirModal(id) {
+    document.getElementById(id).classList.remove('escondido');
+}
+
+function fecharModal(id) {
+    document.getElementById(id).classList.add('escondido');
+}
+
+
 window.salvarNovaTarefa = async () => {
 
     const desc = document.getElementById('descTask').value;
