@@ -975,47 +975,67 @@ window.excluirTime = async (id) => {
     } 
 };
 
-window.adicionarMembro = async (evento, timeId) => {
-    const emailInput = document.getElementById(`email-membro-${timeId}`);
-    const nivelSelect = document.getElementById(`nivel-membro-${timeId}`);
-    const emailNovo = emailInput.value.trim().toLowerCase();
-    const nivelNovo = nivelSelect.value;
+
+window.adicionarMembro = async (evento, timeId) => {
+    const emailInput = document.getElementById(`email-membro-${timeId}`);
+    const nivelSelect = document.getElementById(`nivel-membro-${timeId}`);
+    const emailNovo = emailInput.value.trim().toLowerCase();
+    const nivelNovo = nivelSelect.value;
+
+    if (!emailNovo) return alert("Digite o e-mail do membro!");
+    if (emailNovo == window.usuarioLogado.email) return alert("Você já é o dono do time!");
+
+    const btn = evento.currentTarget;
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳..."; btn.disabled = true;
+
+    try {
+        const timeRef = doc(db, "times", timeId);
+        const timeSnap = await getDoc(timeRef);
+
+        if (timeSnap.exists()) {
+            let timeData = timeSnap.data();
+            
+            // Mantemos as suas arrays para o layout funcionar perfeitamente
+            let membrosAtuais = timeData.membros || [];
+            let membrosEmailsAtuais = timeData.membrosEmails || [window.usuarioLogado.email];
+            
+            // NOVIDADE COMERCIAL: O dicionário de cargos para a segurança do Firebase
+            let cargos = timeData.cargos || {}; 
+            // Garante que o criador esteja registrado como Dono por segurança
+            cargos[window.usuarioLogado.email] = cargos[window.usuarioLogado.email] || "Dono";
+
+            if (membrosEmailsAtuais.includes(emailNovo)) {
+                alert("Este e-mail já está no time!");
+                btn.innerHTML = textoOriginal; btn.disabled = false;
+                return;
+            }
+
+            // Atualiza as listas do layout
+            membrosAtuais.push({ email: emailNovo, nivel: nivelNovo });
+            membrosEmailsAtuais.push(emailNovo); 
+            
+            // Registra o nível do novo usuário no dicionário de segurança
+            cargos[emailNovo] = nivelNovo; 
+            
+            // Salva tudo no Firestore
+            await updateDoc(timeRef, { 
+                membros: membrosAtuais, 
+                membrosEmails: membrosEmailsAtuais,
+                cargos: cargos // Salvando o novo mapa
+            });
+
+            emailInput.value = "";
+            if (typeof window.carregarTimes === 'function') window.carregarTimes(); 
+        }
+    } catch (e) {
+        console.error("Erro ao adicionar membro:", e);
+        alert("Erro ao adicionar membro.");
+    } finally {
+        btn.innerHTML = textoOriginal; btn.disabled = false;
+    }
+};
 
-    if (!emailNovo) return alert("Digite o e-mail do membro!");
-    if (emailNovo == window.usuarioLogado.email) return alert("Você já é o dono do time!");
-
-    const btn = evento.currentTarget;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳..."; btn.disabled = true;
-
-    try {
-        const timeRef = doc(db, "times", timeId);
-        const timeSnap = await getDoc(timeRef);
-
-        if (timeSnap.exists()) {
-            let timeData = timeSnap.data();
-            let membrosAtuais = timeData.membros || [];
-            let membrosEmailsAtuais = timeData.membrosEmails || [window.usuarioLogado.email];
-
-            if (membrosEmailsAtuais.includes(emailNovo)) {
-                alert("Este e-mail já está no time!");
-                btn.innerHTML = textoOriginal; btn.disabled = false;
-                return;
-            }
-
-            membrosAtuais.push({ email: emailNovo, nivel: nivelNovo });
-            membrosEmailsAtuais.push(emailNovo); 
-            
-            await updateDoc(timeRef, { membros: membrosAtuais, membrosEmails: membrosEmailsAtuais });
-            emailInput.value = "";
-            carregarTimes(); 
-        }
-    } catch (e) {
-        alert("Erro ao adicionar membro.");
-    } finally {
-        btn.innerHTML = textoOriginal; btn.disabled = false;
-    }
-};
 
 window.removerMembro = async (timeId, emailRemover) => {
     if (!confirm(`Remover ${emailRemover} da equipe?`)) return;
@@ -1985,231 +2005,456 @@ let htmlCrono = `
 
 
 
-window.gerarRelatorioPDF = async (evento) => {
-    if (evento) evento.stopPropagation();
-    
-    // Trava de segurança 1: Categoria
-    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
-        return alert("📄 Selecione apenas UMA categoria específica.");
-    }
-
-    // Trava de segurança 2: Biblioteca
-    if (typeof html2pdf === 'undefined') {
-        return alert("❌ Erro: Biblioteca PDF não carregada. Recarregue a página.");
-    }
-
-    // Trava de segurança 3: Usuário Logado
-    if (!window.usuarioLogado || !window.usuarioLogado.uid) {
-        return alert("Usuário não identificado. Faça login novamente.");
-    }
-
-    const btn = evento.currentTarget;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳ Processando..."; 
-    btn.disabled = true;
-
-    try {
-        const categoriaDoPDF = categoriasAtivas[0];
-        const tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
-        
-        if (tarefasDoPDF.length === 0) throw new Error("Não há tarefas para esta categoria.");
-
-        // Cálculo Dinâmico do Período (Início e Fim)
-        let minDataStr = null;
-        let maxDataStr = null;
-        tarefasDoPDF.forEach(t => {
-            const dataStr = t.dataString || new Date().toISOString().split('T')[0];
-            if (!minDataStr || dataStr < minDataStr) minDataStr = dataStr;
-            if (!maxDataStr || dataStr > maxDataStr) maxDataStr = dataStr;
-        });
-
-        const formatarDataBR = (d) => d.split('-').reverse().join('/');
-        const dataInicioForm = minDataStr ? formatarDataBR(minDataStr) : "";
-        const dataFimForm = maxDataStr ? formatarDataBR(maxDataStr) : "";
-        
-        const periodoNomeArquivo = (minDataStr === maxDataStr) ? dataInicioForm.replace(/\//g, '-') : `${dataInicioForm.replace(/\//g, '-')}_a_${dataFimForm.replace(/\//g, '-')}`;
-        const periodoDisplay = (minDataStr === maxDataStr) ? dataInicioForm : `${dataInicioForm} até ${dataFimForm}`;
-
-        // Agrupamento de Tarefas por Tag e depois por Dia
-        const tarefasPorTag = {};
-        tarefasDoPDF.forEach(t => {
-            const tag = t.tag || t.etapa || "Geral";
-            const dataStr = t.dataString || new Date().toISOString().split('T')[0];
-            
-            if (!tarefasPorTag[tag]) tarefasPorTag[tag] = {};
-            if (!tarefasPorTag[tag][dataStr]) tarefasPorTag[tag][dataStr] = [];
-            
-            tarefasPorTag[tag][dataStr].push(t);
-        });
-
-        const tagsOrdenadas = Object.keys(tarefasPorTag).sort();
-        const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
-        
-        let logoImgHtml = ""; 
-        if (window.logosCategorias && window.logosCategorias[categoriaDoPDF]) {
-            logoImgHtml = `<img src="${window.logosCategorias[categoriaDoPDF]}" style="height: 40px; max-width: 140px; object-fit: contain;">`;
-        }
-
-        const criarCabecalho = (tituloEtapa) => `
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 25px;">
-                <div>
-                    <div style="font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Relatório Executivo | Período: ${periodoDisplay}</div>
-                    <div style="font-size: 16px; font-weight: 900; color: #1e293b; margin-top: 2px; text-transform: uppercase;">ETAPA: ${tituloEtapa}</div>
-                </div>
-                <div>${logoImgHtml}</div>
-            </div>`;
-
-        const renderizarTarefaDetalhe = (t) => {
-            let fotosHtml = '';
-            if (t.fotos && t.fotos.length > 0) {
-                const qtd = Math.min(t.fotos.length, 4);
-                const grid = qtd === 1 ? '1fr' : '1fr 1fr';
-                fotosHtml = `<div style="display: grid; grid-template-columns: ${grid}; gap: 10px; margin-top: 12px; page-break-inside: avoid;">`;
-                t.fotos.slice(0, 4).forEach(f => {
-                    fotosHtml += `
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; page-break-inside: avoid;">
-                            <img src="${f}" style="max-width: 95%; max-height: 95%; object-fit: contain; page-break-inside: avoid;">
-                        </div>`;
-                });
-                fotosHtml += `</div>`;
-            }
-            const cor = window.coresCategorias?.[t.categoria] || '#3b82f6';
-            return `
-                <div style="border-left: 4px solid ${cor}; padding-left: 15px; page-break-inside: avoid;">
-                    <div style="font-weight: 800; font-size: 13px; color: #1e293b;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
-                    ${fotosHtml}
-                </div>`;
-        };
-
-        const relatorioTemp = document.createElement('div');
-        relatorioTemp.style.cssText = "font-family: Arial, sans-serif; background: white; color: #1e293b; padding: 0; margin: 0;";
-
-        let htmlPdf = ``;
-
-        // ==========================================
-        // PARTE 1: RESUMO GERAL (Dividido por Tags)
-        // ==========================================
-        htmlPdf += `<div style="padding: 10px;">`;
-        htmlPdf += criarCabecalho("RESUMO GERAL"); // Cabeçalho genérico para a primeira página
-
-        tagsOrdenadas.forEach(tag => {
-            // Truque anti-corte no resumo
-            htmlPdf += `<div style="display: inline-block; width: 100%; page-break-inside: avoid; margin-bottom: 15px;">`;
-            htmlPdf += `<h2 style="color: #3b82f6; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 10px; margin-bottom: 10px; text-transform: uppercase;">🏷️ ${tag}</h2>`;
-            
-            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
-            diasOrdenados.forEach(dia => {
-                const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
-                const dataF = dia.split('-').reverse().join('/');
-                
-                htmlPdf += `<h3 style="margin: 0 0 6px 0; font-size: 12px; color: #1e293b;">${nomeDia} (${dataF})</h3>`;
-                
-                tarefasPorTag[tag][dia].forEach(t => {
-                    const cor = window.coresCategorias?.[t.categoria] || '#3b82f6';
-                    htmlPdf += `
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding-left: 10px;">
-                            <div style="width: 3px; height: 12px; background: ${cor};"></div>
-                            <span style="font-size: 11px; color: #475569;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</span>
-                        </div>`;
-                });
-            });
-            htmlPdf += `</div>`;
-        });
-        htmlPdf += `</div>`; // Fim da página de Resumo
-
-        // ==========================================
-        // PARTE 2: RELATÓRIO DETALHADO (Uma página por Tag)
-        // ==========================================
-        tagsOrdenadas.forEach(tag => {
-            // Força quebra de página ANTES de começar os detalhes de cada tag
-            htmlPdf += `<div class="html2pdf__page-break"></div>`;
-
-            htmlPdf += `<div style="padding: 10px;">`;
-            htmlPdf += criarCabecalho(tag); // O cabeçalho agora mostra a TAG atual!
-
-            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
-            diasOrdenados.forEach(dia => {
-                const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
-                const dataF = dia.split('-').slice(0, 2).reverse().join('/');
-                const tarefasDoDia = tarefasPorTag[tag][dia];
-                
-                // Título do Dia
-                htmlPdf += `<h3 style="font-size: 16px; font-weight: 900; color: #1e293b; margin: 20px 0 15px 0;">${nomeDia} (${dataF})</h3>`;
-
-                tarefasDoDia.forEach(t => {
-                    // O TRUQUE INLINE-BLOCK PARA BLINDAR CONTRA A GUILHOTINA
-                    htmlPdf += `
-                    <div style="display: inline-block; width: 100%; page-break-inside: avoid; margin-bottom: 25px;">
-                        ${renderizarTarefaDetalhe(t)}
-                    </div>`;
-                });
-            });
-            htmlPdf += `</div>`;
-        });
-
-        relatorioTemp.innerHTML = htmlPdf;
-
-        const nomeArquivoBase = `Relatorio_${categoriaDoPDF}_${periodoNomeArquivo}`;
-        const opcoes = { 
-            margin: [15, 10, 25, 10], 
-            filename: `${nomeArquivoBase}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 }, 
-            html2canvas: { scale: 2, useCORS: true, logging: false }, 
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
-        };
-
-        const worker = html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf');
-        
-        const pdfBlob = await worker.then(pdf => {
-            const totalPages = pdf.internal.getNumberOfPages();
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-
-            for (let i = 1; i <= totalPages; i++) {
-                pdf.setPage(i);
-                pdf.setDrawColor(226, 232, 240);
-                pdf.setLineWidth(0.5);
-                pdf.line(10, pageHeight - 15, pageWidth - 10, pageHeight - 15);
-                pdf.setFontSize(9);
-                pdf.setTextColor(100, 116, 139);
-                pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
-            }
-            return pdf.output('blob');
-        });
-
-        const q = query(collection(db, "arquivos_fixos"), 
-                  where("uid", "==", window.usuarioLogado.uid), 
-                  where("Nomearquivo", "==", nomeArquivoBase));
-        
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-            for (const docSnap of snapshot.docs) {
-                await deleteDoc(docSnap.ref);
-            }
-        }
-
-        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeArquivoBase}.pdf`);
-        await uploadBytes(sRef, pdfBlob);
-        const urlFinal = await getDownloadURL(sRef);
-
-        await addDoc(collection(db, "arquivos_fixos"), {
-            uid: window.usuarioLogado.uid,
-            Nomearquivo: nomeArquivoBase,
-            categoria: categoriaDoPDF,
-            link: urlFinal,
-            dataUpload: new Date()
-        });
-
-        alert("✅ Relatório gerado e salvo com sucesso!");
-        if (typeof carregarArquivosFixos === "function") carregarArquivosFixos();
-
-    } catch (error) {
-        console.error("Erro no PDF:", error);
-        alert("Erro ao processar PDF: " + error.message);
-    } finally {
-        btn.innerHTML = textoOriginal; 
-        btn.disabled = false;
-    }
+window.gerarRelatorioPDF = async (evento) => {
+
+    if (evento) evento.stopPropagation();
+
+    
+
+    // Trava de segurança 1: Categoria
+
+    if (categoriasAtivas.length !== 1 || categoriasAtivas.includes("Geral")) {
+
+        return alert("📄 Selecione apenas UMA categoria específica.");
+
+    }
+
+
+
+    // Trava de segurança 2: Biblioteca
+
+    if (typeof html2pdf === 'undefined') {
+
+        return alert("❌ Erro: Biblioteca PDF não carregada. Recarregue a página.");
+
+    }
+
+
+
+    // Trava de segurança 3: Usuário Logado
+
+    if (!window.usuarioLogado || !window.usuarioLogado.uid) {
+
+        return alert("Usuário não identificado. Faça login novamente.");
+
+    }
+
+
+
+    const btn = evento.currentTarget;
+
+    const textoOriginal = btn.innerHTML;
+
+    btn.innerHTML = "⏳ Processando..."; 
+
+    btn.disabled = true;
+
+
+
+    try {
+
+        const categoriaDoPDF = categoriasAtivas[0];
+
+        const tarefasDoPDF = window.tarefasMonitoramento.filter(t => t.categoria === categoriaDoPDF);
+
+        
+
+        if (tarefasDoPDF.length === 0) throw new Error("Não há tarefas para esta categoria.");
+
+
+
+        // Cálculo Dinâmico do Período (Início e Fim)
+
+        let minDataStr = null;
+
+        let maxDataStr = null;
+
+        tarefasDoPDF.forEach(t => {
+
+            const dataStr = t.dataString || new Date().toISOString().split('T')[0];
+
+            if (!minDataStr || dataStr < minDataStr) minDataStr = dataStr;
+
+            if (!maxDataStr || dataStr > maxDataStr) maxDataStr = dataStr;
+
+        });
+
+
+
+        const formatarDataBR = (d) => d.split('-').reverse().join('/');
+
+        const dataInicioForm = minDataStr ? formatarDataBR(minDataStr) : "";
+
+        const dataFimForm = maxDataStr ? formatarDataBR(maxDataStr) : "";
+
+        
+
+        const periodoNomeArquivo = (minDataStr === maxDataStr) ? dataInicioForm.replace(/\//g, '-') : `${dataInicioForm.replace(/\//g, '-')}_a_${dataFimForm.replace(/\//g, '-')}`;
+
+        const periodoDisplay = (minDataStr === maxDataStr) ? dataInicioForm : `${dataInicioForm} até ${dataFimForm}`;
+
+
+
+        // Agrupamento de Tarefas por Tag e depois por Dia
+
+        const tarefasPorTag = {};
+
+        tarefasDoPDF.forEach(t => {
+
+            const tag = t.tag || t.etapa || "Geral";
+
+            const dataStr = t.dataString || new Date().toISOString().split('T')[0];
+
+            
+
+            if (!tarefasPorTag[tag]) tarefasPorTag[tag] = {};
+
+            if (!tarefasPorTag[tag][dataStr]) tarefasPorTag[tag][dataStr] = [];
+
+            
+
+            tarefasPorTag[tag][dataStr].push(t);
+
+        });
+
+
+
+        const tagsOrdenadas = Object.keys(tarefasPorTag).sort();
+
+        const diasSemanaNomes = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+        
+
+        let logoImgHtml = ""; 
+
+        if (window.logosCategorias && window.logosCategorias[categoriaDoPDF]) {
+
+            logoImgHtml = `<img src="${window.logosCategorias[categoriaDoPDF]}" style="height: 40px; max-width: 140px; object-fit: contain;">`;
+
+        }
+
+
+
+        const criarCabecalho = (tituloEtapa) => `
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 25px;">
+
+                <div>
+
+                    <div style="font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Relatório Executivo | Período: ${periodoDisplay}</div>
+
+                    <div style="font-size: 16px; font-weight: 900; color: #1e293b; margin-top: 2px; text-transform: uppercase;">ETAPA: ${tituloEtapa}</div>
+
+                </div>
+
+                <div>${logoImgHtml}</div>
+
+            </div>`;
+
+
+
+        const renderizarTarefaDetalhe = (t) => {
+
+            let fotosHtml = '';
+
+            if (t.fotos && t.fotos.length > 0) {
+
+                const qtd = Math.min(t.fotos.length, 4);
+
+                const grid = qtd === 1 ? '1fr' : '1fr 1fr';
+
+                fotosHtml = `<div style="display: grid; grid-template-columns: ${grid}; gap: 10px; margin-top: 12px; page-break-inside: avoid;">`;
+
+                t.fotos.slice(0, 4).forEach(f => {
+
+                    fotosHtml += `
+
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; page-break-inside: avoid;">
+
+                            <img src="${f}" style="max-width: 95%; max-height: 95%; object-fit: contain; page-break-inside: avoid;">
+
+                        </div>`;
+
+                });
+
+                fotosHtml += `</div>`;
+
+            }
+
+            const cor = window.coresCategorias?.[t.categoria] || '#3b82f6';
+
+            return `
+
+                <div style="border-left: 4px solid ${cor}; padding-left: 15px; page-break-inside: avoid;">
+
+                    <div style="font-weight: 800; font-size: 13px; color: #1e293b;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
+
+                    ${fotosHtml}
+
+                </div>`;
+
+        };
+
+
+
+        const relatorioTemp = document.createElement('div');
+
+        relatorioTemp.style.cssText = "font-family: Arial, sans-serif; background: white; color: #1e293b; padding: 0; margin: 0;";
+
+
+
+        let htmlPdf = ``;
+
+
+
+        // ==========================================
+
+        // PARTE 1: RESUMO GERAL (Dividido por Tags)
+
+        // ==========================================
+
+        htmlPdf += `<div style="padding: 10px;">`;
+
+        htmlPdf += criarCabecalho("RESUMO GERAL"); // Cabeçalho genérico para a primeira página
+
+
+
+        tagsOrdenadas.forEach(tag => {
+
+            // Truque anti-corte no resumo
+
+            htmlPdf += `<div style="display: inline-block; width: 100%; page-break-inside: avoid; margin-bottom: 15px;">`;
+
+            htmlPdf += `<h2 style="color: #3b82f6; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 10px; margin-bottom: 10px; text-transform: uppercase;">🏷️ ${tag}</h2>`;
+
+            
+
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+
+            diasOrdenados.forEach(dia => {
+
+                const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
+
+                const dataF = dia.split('-').reverse().join('/');
+
+                
+
+                htmlPdf += `<h3 style="margin: 0 0 6px 0; font-size: 12px; color: #1e293b;">${nomeDia} (${dataF})</h3>`;
+
+                
+
+                tarefasPorTag[tag][dia].forEach(t => {
+
+                    const cor = window.coresCategorias?.[t.categoria] || '#3b82f6';
+
+                    htmlPdf += `
+
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding-left: 10px;">
+
+                            <div style="width: 3px; height: 12px; background: ${cor};"></div>
+
+                            <span style="font-size: 11px; color: #475569;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</span>
+
+                        </div>`;
+
+                });
+
+            });
+
+            htmlPdf += `</div>`;
+
+        });
+
+        htmlPdf += `</div>`; // Fim da página de Resumo
+
+
+
+        // ==========================================
+
+        // PARTE 2: RELATÓRIO DETALHADO (Uma página por Tag)
+
+        // ==========================================
+
+        tagsOrdenadas.forEach(tag => {
+
+            // Força quebra de página ANTES de começar os detalhes de cada tag
+
+            htmlPdf += `<div class="html2pdf__page-break"></div>`;
+
+
+
+            htmlPdf += `<div style="padding: 10px;">`;
+
+            htmlPdf += criarCabecalho(tag); // O cabeçalho agora mostra a TAG atual!
+
+
+
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
+
+            diasOrdenados.forEach(dia => {
+
+                const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
+
+                const dataF = dia.split('-').slice(0, 2).reverse().join('/');
+
+                const tarefasDoDia = tarefasPorTag[tag][dia];
+
+                
+
+                // Título do Dia
+
+                htmlPdf += `<h3 style="font-size: 16px; font-weight: 900; color: #1e293b; margin: 20px 0 15px 0;">${nomeDia} (${dataF})</h3>`;
+
+
+
+                tarefasDoDia.forEach(t => {
+
+                    // O TRUQUE INLINE-BLOCK PARA BLINDAR CONTRA A GUILHOTINA
+
+                    htmlPdf += `
+
+                    <div style="display: inline-block; width: 100%; page-break-inside: avoid; margin-bottom: 25px;">
+
+                        ${renderizarTarefaDetalhe(t)}
+
+                    </div>`;
+
+                });
+
+            });
+
+            htmlPdf += `</div>`;
+
+        });
+
+
+
+        relatorioTemp.innerHTML = htmlPdf;
+
+
+
+        const nomeArquivoBase = `Relatorio_${categoriaDoPDF}_${periodoNomeArquivo}`;
+
+        const opcoes = { 
+
+            margin: [15, 10, 25, 10], 
+
+            filename: `${nomeArquivoBase}.pdf`,
+
+            image: { type: 'jpeg', quality: 0.98 }, 
+
+            html2canvas: { scale: 2, useCORS: true, logging: false }, 
+
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+
+        };
+
+
+
+        const worker = html2pdf().set(opcoes).from(relatorioTemp).toPdf().get('pdf');
+
+        
+
+        const pdfBlob = await worker.then(pdf => {
+
+            const totalPages = pdf.internal.getNumberOfPages();
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+
+
+            for (let i = 1; i <= totalPages; i++) {
+
+                pdf.setPage(i);
+
+                pdf.setDrawColor(226, 232, 240);
+
+                pdf.setLineWidth(0.5);
+
+                pdf.line(10, pageHeight - 15, pageWidth - 10, pageHeight - 15);
+
+                pdf.setFontSize(9);
+
+                pdf.setTextColor(100, 116, 139);
+
+                pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
+
+            }
+
+            return pdf.output('blob');
+
+        });
+
+
+
+        const q = query(collection(db, "arquivos_fixos"), 
+
+                  where("uid", "==", window.usuarioLogado.uid), 
+
+                  where("Nomearquivo", "==", nomeArquivoBase));
+
+        
+
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+
+            for (const docSnap of snapshot.docs) {
+
+                await deleteDoc(docSnap.ref);
+
+            }
+
+        }
+
+
+
+        const sRef = ref(storage, `arquivos_fixos/${window.usuarioLogado.uid}/${nomeArquivoBase}.pdf`);
+
+        await uploadBytes(sRef, pdfBlob);
+
+        const urlFinal = await getDownloadURL(sRef);
+
+
+
+        await addDoc(collection(db, "arquivos_fixos"), {
+
+            uid: window.usuarioLogado.uid,
+
+            Nomearquivo: nomeArquivoBase,
+
+            categoria: categoriaDoPDF,
+
+            link: urlFinal,
+
+            dataUpload: new Date()
+
+        });
+
+
+
+        alert("✅ Relatório gerado e salvo com sucesso!");
+
+        if (typeof carregarArquivosFixos === "function") carregarArquivosFixos();
+
+
+
+    } catch (error) {
+
+        console.error("Erro no PDF:", error);
+
+        alert("Erro ao processar PDF: " + error.message);
+
+    } finally {
+
+        btn.innerHTML = textoOriginal; 
+
+        btn.disabled = false;
+
+    }
+
 };
 
 
