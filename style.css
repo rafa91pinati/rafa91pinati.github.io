@@ -36,7 +36,7 @@ body {
 .btn-date { 
     flex: 1; 
     padding: 10px 2px; 
-    border-radius: 20px; /* O "redondinho" que você gosta */
+    border-radius: 20px; 
     border: 1px solid rgba(255,255,255,0.1); 
     background: rgba(255,255,255,0.05); 
     color: #334155; 
