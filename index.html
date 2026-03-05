@@ -142,204 +142,77 @@
 
 
 
-<div id="modalTarefa" class="modal-overlay escondido">
-    <div class="modal-card" style="background: #f1f5f9; border-radius: 28px; width: 92%; max-width: 400px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden;">
-        
-        <div class="modal-header" style="padding: 20px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05);">
-            <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase; font-size: 1rem;">Nova Tarefa</h3>
-            <button class="btn-fechar" onclick="fecharModal('modalTarefa')" style="background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
-        </div>
-
-        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
-            
-            <input type="text" id="descTask" placeholder="O que agendar hoje?" style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0; font-weight: 600; box-sizing: border-box; outline: none; background: white; color: #1e293b;">
-
-            <div id="previewFotosNovas" class="container-fotos"></div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <input type="time" id="horaTask" style="padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box; width: 100%; outline: none; font-weight: 600; background: white;">
-                <button class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;">
-                    📷 ARQUIVO
-                </button>
-                <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; box-sizing: border-box;">
-                    <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
-                    <select id="tipoRecorrencia" style="border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.85rem; cursor: pointer;">
-                        <option value="nenhuma">Sem recorrência</option>
-                        <option value="diario">Diário</option>
-                        <option value="2dias">A cada 2 dias</option>
-                        <option value="semanal">A cada 1 semana</option>
-                        <option value="mensal">A cada 1 mês</option>
-                    </select>
-                </div>
-                <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; box-sizing: border-box;">
-                    <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
-                    <input type="date" id="dataFimRecorrencia" style="border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.85rem;">
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 10px; margin-top: 5px;">
-                <button onclick="cancelarNovaTarefa(); fecharModal('modalTarefa')" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer;">Cancelar</button>
-                <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">Salvar</button>
-            </div>
-        </div>
-    </div>
-</div>
+<div id="modalTarefa" class="modal-overlay escondido">
+
+    <div class="modal-card" style="background: #f1f5f9; border-radius: 28px; width: 92%; max-width: 400px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden;">
+
+        
+
+        <div class="modal-header" style="padding: 20px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05);">
+
+            <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase; font-size: 1rem;">Nova Tarefa</h3>
+
+            <button class="btn-fechar" onclick="fecharModal('modalTarefa')" style="background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
 
         </div>
 
-    </div>
-
-</div>
 
 
-
-
-
-
-
-
-
-<div id="modalArquivos" class="modal-overlay escondido">
-
-    <div class="modal-card">
-
-        <div class="modal-header">
-
-            <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase;">Arquivos Fixos</h3>
-
-            <button class="btn-fechar" onclick="fecharModal('modalArquivos')">✕</button>
-
-        </div>
-
-        <div class="modal-body">
-
-            <div style="padding: 15px; background: rgba(241, 245, 249, 0.4); border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.05);">
-
-                <input type="text" id="nomeArquivoFixo" placeholder="Descrição do arquivo (ex: Manual Gás)" style="width: 100%; margin-bottom: 12px; box-sizing: border-box;">
-
-                
-
-                <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
-
-                    <div style="flex: 1; position: relative; overflow: hidden; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 12px 10px; text-align: center; cursor: pointer; transition: 0.3s;">
-
-                        <span id="file-label" style="font-size: 0.85rem; color: #1e293b; font-weight: 700;">📁 Escolher Arquivo</span>
-
-                        <input type="file" id="inputArquivoFixo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" onchange="document.getElementById('file-label').innerText = this.files[0] ? this.files[0].name : '📁 Escolher Arquivo'">
-
-                    </div>
-
-                    <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); white-space: nowrap;">
-
-                        📤 Subir
-
-                    </button>
-
-                </div>
-
-            </div>
-
-
-
-            <div id="listaArquivosFixos" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; padding-bottom: 10px;"></div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-
-<div id="modalFinanceiro" class="modal-overlay escondido">
-
-    <div class="modal-card">
-
-        <div class="modal-header">
-
-            <h3 style="margin:0; font-weight: 900; color: #10b981; text-transform: uppercase;">Financeiro</h3>
-
-            <button class="btn-fechar" onclick="fecharModal('modalFinanceiro')">✕</button>
-
-        </div>
-
-        <div class="modal-body">
+        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
 
             
 
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; text-align: center;">
+            <input type="text" id="descTask" placeholder="O que agendar hoje?" style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0; font-weight: 600; box-sizing: border-box; outline: none; background: white; color: #1e293b;">
 
-                <div style="flex: 1; background: rgba(241, 245, 249, 0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #10b981; border: 1px solid rgba(0,0,0,0.05); border-left-width: 4px;">
 
-                    <div style="font-size: 0.65rem; font-weight: bold; color: #64748b; text-transform: uppercase;">Receitas</div>
 
-                    <div id="totalReceitas" style="color: #10b981; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+            <div id="previewFotosNovas" class="container-fotos"></div>
 
-                </div>
 
-                <div style="flex: 1; background: rgba(241, 245, 249, 0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #ef4444; border: 1px solid rgba(0,0,0,0.05); border-left-width: 4px;">
 
-                    <div style="font-size: 0.65rem; font-weight: bold; color: #64748b; text-transform: uppercase;">Despesas</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
 
-                    <div id="totalDespesas" style="color: #ef4444; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
+                <input type="time" id="horaTask" style="padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box; width: 100%; outline: none; font-weight: 600; background: white;">
 
-                </div>
+                <button class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;">
 
-                <div style="flex: 1; background: rgba(241, 245, 249, 0.7); border-radius: 8px; padding: 10px; border-left: 4px solid #3b82f6; border: 1px solid rgba(0,0,0,0.05); border-left-width: 4px;">
+                    📷 ARQUIVO
 
-                    <div style="font-size: 0.65rem; font-weight: bold; color: #64748b; text-transform: uppercase;">Saldo</div>
+                </button>
 
-                    <div id="saldoTotal" style="color: #3b82f6; font-weight: 900; font-size: 1.1rem;">R$ 0,00</div>
-
-                </div>
+                <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
 
             </div>
 
 
 
-            <div style="background: rgba(241, 245, 249, 0.4); padding: 15px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
 
-                <input type="text" id="descFinanceiro" placeholder="Descrição (ex: Compra de material)" style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">
+                <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; box-sizing: border-box;">
 
-                
+                    <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
 
-                <div class="grid-50" style="margin-bottom: 10px;">
+                    <select id="tipoRecorrencia" style="border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.85rem; cursor: pointer;">
 
-                    <input type="number" id="valorFinanceiro" placeholder="Valor (R$)" step="0.01" style="box-sizing: border-box;">
+                        <option value="nenhuma">Sem recorrência</option>
 
-                    <select id="tipoFinanceiro" style="box-sizing: border-box;">
+                        <option value="diario">Diário</option>
 
-                        <option value="despesa">Despesa (-)</option>
+                        <option value="2dias">A cada 2 dias</option>
 
-                        <option value="receita">Receita (+)</option>
+                        <option value="semanal">A cada 1 semana</option>
+
+                        <option value="mensal">A cada 1 mês</option>
 
                     </select>
 
                 </div>
 
-                
+                <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; box-sizing: border-box;">
 
-                <div class="grid-50">
+                    <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
 
-                    <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: rgba(255,255,255,0.7); color: #334155; border: 1px dashed #94a3b8; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-sizing: border-box; width: 100%;">
-
-                        📎 Anexar Recibo
-
-                    </button>
-
-                    <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '📎 ' + this.files[0].name : '📎 Anexar Recibo'">
-
-                    
-
-                    <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); box-sizing: border-box; width: 100%;">
-
-                        Adicionar
-
-                    </button>
+                    <input type="date" id="dataFimRecorrencia" style="border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.85rem;">
 
                 </div>
 
@@ -347,12 +220,105 @@
 
 
 
-            <div id="listaFinanceiro" style="margin-top:15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; max-height: 250px; overflow-y: auto;"></div>
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
+
+                <button onclick="cancelarNovaTarefa(); fecharModal('modalTarefa')" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer;">Cancelar</button>
+
+                <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">Salvar</button>
+
+            </div>
 
         </div>
 
     </div>
 
+</div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+<div id="modalArquivos" class="modal-overlay escondido">
+    <div class="modal-card" style="background: #f1f5f9; border-radius: 28px; width: 92%; max-width: 400px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden;">
+        <div class="modal-header" style="padding: 20px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase; font-size: 1rem;">Arquivos Fixos</h3>
+            <button class="btn-fechar" onclick="fecharModal('modalArquivos')" style="background: #ffffff; border: 1px solid #e2e8f0; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
+        </div>
+
+        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box;">
+            <input type="text" id="nomeArquivoFixo" placeholder="Descrição do arquivo (ex: Manual Gás)" style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #cbd5e1; font-weight: 600; box-sizing: border-box; outline: none; background: white;">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="position: relative; overflow: hidden; background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; box-sizing: border-box;">
+                    <span id="file-label" style="font-size: 0.75rem; color: #1e293b; font-weight: 800; text-transform: uppercase;">📁 ESCOLHER</span>
+                    <input type="file" id="inputArquivoFixo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" onchange="document.getElementById('file-label').innerText = this.files[0] ? '✓ SELECIONADO' : '📁 ESCOLHER'">
+                </div>
+                <button id="btnSubirFixo" onclick="subirArquivoFixo()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);">📤 SUBIR</button>
+            </div>
+
+            <div id="listaArquivosFixos" style="margin-top:10px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px; max-height: 200px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="modalFinanceiro" class="modal-overlay escondido">
+    <div class="modal-card" style="background: #f1f5f9; border-radius: 28px; width: 92%; max-width: 450px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden;">
+        <div class="modal-header" style="padding: 20px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <h3 style="margin:0; font-weight: 900; color: #10b981; text-transform: uppercase; font-size: 1rem;">Financeiro</h3>
+            <button class="btn-fechar" onclick="fecharModal('modalFinanceiro')" style="background: #ffffff; border: 1px solid #e2e8f0; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
+        </div>
+
+        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center;">
+                <div style="background: white; border-radius: 12px; padding: 10px 5px; border-left: 4px solid #10b981; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <div style="font-size: 0.55rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Receitas</div>
+                    <div id="totalReceitas" style="color: #10b981; font-weight: 900; font-size: 0.9rem;">R$ 0,00</div>
+                </div>
+                <div style="background: white; border-radius: 12px; padding: 10px 5px; border-left: 4px solid #ef4444; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <div style="font-size: 0.55rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Despesas</div>
+                    <div id="totalDespesas" style="color: #ef4444; font-weight: 900; font-size: 0.9rem;">R$ 0,00</div>
+                </div>
+                <div style="background: white; border-radius: 12px; padding: 10px 5px; border-left: 4px solid #3b82f6; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <div style="font-size: 0.55rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Saldo</div>
+                    <div id="saldoTotal" style="color: #3b82f6; font-weight: 900; font-size: 0.9rem;">R$ 0,00</div>
+                </div>
+            </div>
+
+            <input type="text" id="descFinanceiro" placeholder="Descrição (ex: Compra de material)" style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #cbd5e1; font-weight: 600; box-sizing: border-box; outline: none; background: white;">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid #e2e8f0; box-sizing: border-box;">
+                    <label style="font-size: 0.6rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Valor (R$)</label>
+                    <input type="number" id="valorFinanceiro" step="0.01" style="border: none; background: transparent; width: 100%; font-weight: bold; color: #1e293b; outline: none;">
+                </div>
+                <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid #e2e8f0; box-sizing: border-box;">
+                    <label style="font-size: 0.6rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Tipo</label>
+                    <select id="tipoFinanceiro" style="border: none; background: transparent; width: 100%; font-weight: bold; color: #1e293b; outline: none; cursor: pointer;">
+                        <option value="despesa">Despesa (-)</option>
+                        <option value="receita">Receita (+)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <button id="btnArquivoFinanceiro" onclick="document.getElementById('arquivoFinanceiro').click()" style="background: white; color: #64748b; border: 1px dashed #cbd5e1; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.75rem;">📎 ANEXAR RECIBO</button>
+                <input type="file" id="arquivoFinanceiro" class="escondido" accept="image/*,.pdf" onchange="document.getElementById('btnArquivoFinanceiro').innerText = this.files[0] ? '✓ RECIBO OK' : '📎 ANEXAR RECIBO'">
+                <button id="btnSalvarFinanceiro" onclick="adicionarTransacao()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">ADICIONAR</button>
+            </div>
+
+            <div id="listaFinanceiro" style="margin-top:10px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px; max-height: 250px; overflow-y: auto;"></div>
+        </div>
+    </div>
 </div>
 
 <div id="modalConfiguracoes" class="modal-overlay escondido">
