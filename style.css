@@ -69,6 +69,7 @@ body {
     scrollbar-width: none; 
 }
 
+.category-tabs::-webkit-scrollbar { display: none; }
 
 
 /* Garante que os botões não fiquem gigantes na grade */
