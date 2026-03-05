@@ -630,24 +630,25 @@ window.carregarMarcadoresModal = async () => {
     } catch (e) { console.error(e); }
 };
 
-window.atualizarSeletorMarcadores = async () => {
-    const seletor = document.getElementById('filtroTagGlobal');
-    if (!seletor || !window.usuarioLogado) return;
-    try {
-        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
-        const snap = await getDocs(q);
-        seletor.innerHTML = '<option value="">Todas as Etapas</option>';
-        
-        snap.forEach(d => {
-            const m = d.data();
-            const opcao = document.createElement('option'); // Corrigido para 'option'
-            opcao.value = m.nome;
-            opcao.textContent = m.nome;
-            seletor.appendChild(opcao);
-        });
-    } catch (e) {
-        console.error("Erro ao carregar marcadores:", e);
-    }
+window.atualizarSeletorMarcadores = async () => {
+    const seletor = document.getElementById('filtroTagGlobal');
+    if (!seletor || !window.usuarioLogado) return;
+    
+    try {
+        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
+        const snap = await getDocs(q);
+        seletor.innerHTML = '<option value="">Todas as Etapas</option>';
+        
+        snap.forEach(d => {
+            const m = d.data();
+            const opcao = document.createElement('option');
+            opcao.value = m.nome;
+            opcao.textContent = m.nome;
+            seletor.appendChild(opcao);
+        }); // Fecha o forEach corretamente
+    } catch (e) {
+        console.error("Erro marcadores:", e);
+    }
 };
 
         await html2pdf().set(opcoes).from(relatorioTemp).save(`Relatorio_${categoriaDoPDF}.pdf`);
