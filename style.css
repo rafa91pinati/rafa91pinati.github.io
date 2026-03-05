@@ -262,6 +262,35 @@ body {
 }
 
 
+/* --- CABEÇALHO DA SEÇÃO DE ATIVIDADES --- */
+.header-secao {
+    background: #1e293b;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 16px;
+    font-weight: 900;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+}
+
+.icone-quadrado {
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 3px;
+}
+
+.seta-secao {
+    font-size: 0.8rem;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.seta-secao.seta-expandida {
+    transform: rotate(-180deg);
+}
+
 
 /* --- MODAL E COMPONENTES --- */
 
