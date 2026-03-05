@@ -199,109 +199,178 @@ window.fileToBase64 = (file) => new Promise((resolve, reject) => {
     reader.onerror = error => reject(error);
 });
 
-window.carregarCategorias = async () => {
-    const c = document.getElementById('listaCategorias');
-    if (!window.usuarioLogado) return;
-
-    try {
-        const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
-        let meusTimesIds = [];
-
-        if (meuEmail) {
-            const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
-            const snapTimes = await getDocs(qTimes);
-            snapTimes.forEach(d => meusTimesIds.push(d.id));
-        }
-
-        const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
-        const snapCatPessoal = await getDocs(qCatPessoal);
-
-        let categoriasUnicas = new Map();
-        snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
-
-        if (meusTimesIds.length > 0) {
-            const lotes = [];
-            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
-            for (let lote of lotes) {
-                const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
-                const snapCatTime = await getDocs(qCatTime);
-                snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
-            }
-        }
-
-        // --- LÓGICA DE ORDENAÇÃO POR CLIQUE ---
-        let ordemCliques = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
-        let arrayCategorias = Array.from(categoriasUnicas.values());
-
-        arrayCategorias.sort((a, b) => {
-            let idxA = ordemCliques.indexOf(a.nome);
-            let idxB = ordemCliques.indexOf(b.nome);
-            // Se não foi clicado ainda, vai para o final
-            if (idxA === -1) idxA = 999;
-            if (idxB === -1) idxB = 999;
-            return idxA - idxB;
-        });
-
-        let categoriasAtivasIniciais = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
-        const taGeralAtiva = categoriasAtivasIniciais.includes("Geral");
-        const corGeral = taGeralAtiva ? "#94a3b8" : "rgba(255,255,255,0.05)";
-        const textoGeral = taGeralAtiva ? "white" : "#cbd5e1";
-        
-        let htmlTabs = `<div class="category-tab" data-nome="Geral" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8')">Geral</div>`;
-
-        arrayCategorias.forEach((cat) => {
-            window.coresCategorias[cat.nome] = cat.cor;
-            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
-            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
-
-            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
-            const corFundo = taAtiva ? cat.cor : "rgba(255,255,255,0.05)";
-            const corTexto = taAtiva ? "white" : "#cbd5e1";
-            const iconeTime = cat.timeId ? "👥 " : "";
-
-            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${iconeTime}${cat.nome}</div>`;
-        });
-
-        c.innerHTML = htmlTabs;
-        
-        await carregarTarefas();
-        carregarArquivosFixos();
-        carregarFinanceiro();
-    } catch (e) {
-        console.error("Erro nas categorias:", e);
-        c.innerHTML = "<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>Erro ao carregar categorias.</span>";
-    }
-};
+window.carregarCategorias = async () => {
 
-window.selecionarCat = (nome, cor) => {
-    if (nome == "Geral") {
-        categoriasAtivas = ["Geral"]; 
-    } else {
-        categoriasAtivas = categoriasAtivas.filter(c => c !== "Geral"); 
-        if (categoriasAtivas.includes(nome)) {
-            categoriasAtivas = categoriasAtivas.filter(c => c !== nome); 
-            if (categoriasAtivas.length == 0) categoriasAtivas = ["Geral"]; 
-        } else {
-            categoriasAtivas.push(nome); 
+    const c = document.getElementById('listaCategorias');
+
+    if (!window.usuarioLogado) return;
+
+
+
+    try {
+
+        const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
+
+        let meusTimesIds = [];
+
+
+
+        if (meuEmail) {
+
+            const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
+
+            const snapTimes = await getDocs(qTimes);
+
+            snapTimes.forEach(d => meusTimesIds.push(d.id));
+
         }
+
+
+
+        const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+
+        const snapCatPessoal = await getDocs(qCatPessoal);
+
+
+
+        let categoriasUnicas = new Map();
+
+        snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
+
+
+
+        if (meusTimesIds.length > 0) {
+
+            const lotes = [];
+
+            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
+
+            for (let lote of lotes) {
+
+                const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
+
+                const snapCatTime = await getDocs(qCatTime);
+
+                snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
+
+            }
+
+        }
+
+
+
+        // --- LÓGICA DE ORDENAÇÃO POR CLIQUE ---
+
+        let ordemCliques = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
+
+        let arrayCategorias = Array.from(categoriasUnicas.values());
+
+
+
+        arrayCategorias.sort((a, b) => {
+
+            let idxA = ordemCliques.indexOf(a.nome);
+
+            let idxB = ordemCliques.indexOf(b.nome);
+
+            // Se não foi clicado ainda, vai para o final
+
+            if (idxA === -1) idxA = 999;
+
+            if (idxB === -1) idxB = 999;
+
+            return idxA - idxB;
+
+        });
+
+
+
+        let categoriasAtivasIniciais = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
+
+        const taGeralAtiva = categoriasAtivasIniciais.includes("Geral");
+
+        const corGeral = taGeralAtiva ? "#94a3b8" : "rgba(255,255,255,0.05)";
+
+        const textoGeral = taGeralAtiva ? "white" : "#cbd5e1";
+
+        
+
+        let htmlTabs = `<div class="category-tab" data-nome="Geral" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8')">Geral</div>`;
+
+
+
+        arrayCategorias.forEach((cat) => {
+
+            window.coresCategorias[cat.nome] = cat.cor;
+
+            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
+
+            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
+
+
+
+            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
+
+            const corFundo = taAtiva ? cat.cor : "rgba(255,255,255,0.05)";
+
+            const corTexto = taAtiva ? "white" : "#cbd5e1";
+
+            const iconeTime = cat.timeId ? "👥 " : "";
+
+
+
+            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${iconeTime}${cat.nome}</div>`;
+
+        });
+
+
+
+        c.innerHTML = htmlTabs;
+
+        
+
+        await carregarTarefas();
+
+        carregarArquivosFixos();
+
+        carregarFinanceiro();
+
+    } catch (e) {
+
+        console.error("Erro nas categorias:", e);
+
+        c.innerHTML = "<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>Erro ao carregar categorias.</span>";
+
     }
 
-    localStorage.setItem('categoriasAgendaAtivas', JSON.stringify(categoriasAtivas));
+};
 
-    document.querySelectorAll('.category-tab').forEach(tab => {
-        const nomeAba = tab.getAttribute('data-nome'); 
-        if (categoriasAtivas.includes(nomeAba)) {
-            tab.style.backgroundColor = window.coresCategorias[nomeAba] || '#94a3b8';
-            tab.style.color = 'white';
-        } else {
-            tab.style.backgroundColor = 'rgba(255,255,255,0.05)';
-            tab.style.color = '#cbd5e1';
-        }
-    });
-
-    carregarTarefas();
-    carregarArquivosFixos();
-    carregarFinanceiro();
+window.selecionarCat = (nome, cor) => {
+    // Registra o clique para a ordenação (Geral não entra na lista pois é fixa no início)
+    if (nome !== "Geral") {
+        let ordem = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
+        // Remove se já existir na lista e coloca na primeira posição (ao lado da Geral)
+        ordem = ordem.filter(n => n !== nome);
+        ordem.unshift(nome);
+        localStorage.setItem('ordemCliquesCategorias', JSON.stringify(ordem.slice(0, 50))); // Guarda os últimos 50
+    }
+
+    if (nome == "Geral") {
+        categoriasAtivas = ["Geral"]; 
+    } else {
+        categoriasAtivas = categoriasAtivas.filter(c => c !== "Geral"); 
+        if (categoriasAtivas.includes(nome)) {
+            categoriasAtivas = categoriasAtivas.filter(c => c !== nome); 
+            if (categoriasAtivas.length == 0) categoriasAtivas = ["Geral"]; 
+        } else {
+            categoriasAtivas.push(nome); 
+        }
+    }
+
+    localStorage.setItem('categoriasAgendaAtivas', JSON.stringify(categoriasAtivas));
+
+    // Re-renderiza as categorias para aplicar a nova ordem visual imediatamente
+    carregarCategorias();
 };
 
 window.adicionarCategoria = async () => {
