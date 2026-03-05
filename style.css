@@ -381,26 +381,16 @@ input[type="text"], input[type="time"], select {
 .btn-acao-modal {
     background: transparent !important;
     border: none !important;
-    padding: 0 !important;
+    outline: none !important;
     box-shadow: none !important;
-}
-
-
-
-.btn-acao-modal .icon {
-
-    font-size: 1.4rem;
-
-    background: #ffffff;
-
-    width: 48px; height: 48px;
-
-    display: flex; align-items: center; justify-content: center;
-
-    border-radius: 16px;
-
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 0 !important;
 }
 
 
