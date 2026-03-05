@@ -651,21 +651,6 @@ window.atualizarSeletorMarcadores = async () => {
     }
 };
 
-        await html2pdf().set(opcoes).from(relatorioTemp).save(`Relatorio_${categoriaDoPDF}.pdf`);
-
-     catch (error) {
-
-        console.error("Erro ao gerar PDF:", error);
-
-        alert("Erro técnico ao gerar o arquivo.");
-
-     finally {
-
-        btn.innerHTML = textoOriginal; btn.disabled = false;
-
-    }
-
-};
 
 window.carregarTimes = async () => {
     const listaGerencio = document.getElementById('listaTimesModal');
