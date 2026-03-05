@@ -298,30 +298,7 @@
 
         
 		
-		<div class="container container-atividades" style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.5); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-<div class="header-secao-atividades">
-    <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer;">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado-branco"></div> 
-            <strong style="color: white; font-size: 0.9rem; letter-spacing: 0.5px;">ATIVIDADES</strong>
-        </span>
-        <span id="setaLista" class="seta-atividades">▼</span>
-    </div>
-
-
-<div style="display: flex; gap: 8px;">
-        <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-            📊 Gráfico
-        </button>
-        <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-            📄 PDF
-        </button>
-    </div>
- </div>      
-  
-    
-    <div id="listaTarefas">Carregando atividades...</div>
-</div> 
+		    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">                <div class="icone-quadrado"></div> ATIVIDADES            </span>            <span id="setaLista" class="seta-secao seta-expandida">▼</span>        </div>                <div style="display: flex; gap: 8px;">            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">                📊 Gráfico            </button>            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">                📄 PDF            </button>        </div>    </div>
 
 <div id="modalConfiguracoes" class="modal" style="display: none;">
   <div class="modal-content" style="position: relative;">
