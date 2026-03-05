@@ -2872,7 +2872,8 @@ window.gerarRelatorioPDF = async (evento) => {
 
         if (typeof carregarArquivosFixos === "function") carregarArquivosFixos();
 
-
+alert("✅ Relatório gerado com sucesso!");
+    carregarArquivosFixos();
 
 
 
