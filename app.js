@@ -1625,10 +1625,9 @@ window.gerarPDFCronograma = async (evento) => {
     const btn = document.getElementById('btnPdfCrono');
     const originalText = btn.innerHTML;
     
-    const containerGantt = document.getElementById('cronoContainer').innerHTML;
-    
-    if (containerGantt.includes('Nenhuma atividade') || containerGantt.includes('Desenhando')) {
-        return alert("Não há dados desenhados para gerar o PDF.");
+    const containerGantt = document.getElementById('cronoContainer');
+    if (!containerGantt || containerGantt.innerHTML.includes('Nenhuma atividade')) {
+        return alert("Desenhe o gráfico na tela antes de gerar o PDF.");
     }
 
     btn.innerHTML = "⏳..."; 
