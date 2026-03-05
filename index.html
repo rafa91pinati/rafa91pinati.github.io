@@ -2145,100 +2145,43 @@
 
 
 
-    <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
-        <span style="display: flex; align-items: center; gap: 10px;">
-            <div class="icone-quadrado"></div> TAREFA
-        </span>
-        <span id="setaAdd" class="seta-secao">▼</span>
-    </div>
-    
+        <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
+
+        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%; cursor: pointer;">
+
+            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
+
+                <div class="icone-quadrado"></div> ATIVIDADES
+
+            </span>
+
+            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
+
+        </div>
+
+        
+
+        <div style="display: flex; gap: 8px;">
+
+            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+
+                📊 Gráfico
+
+            </button>
+
+            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+
+                📄 PDF
+
+            </button>
+
+        </div>
+
+
+
+    </div>
+
 
-<div id="listaTarefas">Carregando atividades...</div>
-
-
-
-
-<div id="modalConfiguracoes" class="modal" style="display: none;">
-
-
-
-
-
-
-
-  <div class="modal-content" style="position: relative;">
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-    <button onclick="document.getElementById('modalConfiguracoes').style.display='none'" style="position: absolute; top: 15px; right: 20px; background: transparent; border: none; font-size: 32px; cursor: pointer; color: #94a3b8; z-index: 9999; line-height: 1;">&times;</button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-right: 35px;">
-
-
-
-
-
-
-
-        <h2 style="margin: 0; font-size: 1.4rem;">Configurações</h2>
-
-
-
-
-
-
-
-        <button onclick="fazerLogout()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ff8080; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;" title="Sair">
-
-
-
-
-
-
-
-            🚪 <span style="font-size: 0.75rem; text-transform: uppercase;">Sair</span>
-
-
-
-
-
-
-
-        </button>
-
-
-
-
-
-
-
-    </div>
 
 
 
