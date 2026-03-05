@@ -33,6 +33,21 @@ body {
     padding: 12px; /* Respiro igual em cima e embaixo */
     border-radius: 24px;
 }
+.btn-date { 
+    flex: 1; 
+    padding: 10px 2px; 
+    border-radius: 20px; /* O "redondinho" que você gosta */
+    border: 1px solid rgba(255,255,255,0.1); 
+    background: rgba(255,255,255,0.05); 
+    color: #334155; 
+    cursor: pointer; 
+    font-size: 0.65rem; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    text-align: center; 
+    transition: all 0.3s ease; 
+}
+
 .btn-date.ativo { 
     background: linear-gradient(135deg, #64748b, #334155); 
     color: white; 
