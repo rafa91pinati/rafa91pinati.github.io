@@ -4,30 +4,24 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-messaging.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-storage.js";
 
-
-// OPÇÃO NUCLEAR: Executa uma vez para limpar Service Workers travados
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for(let registration of registrations) {
-            console.log("Limpando Service Worker antigo...");
             registration.unregister();
         }
     });
 }
 
-// Limpa o cache de arquivos do próprio navegador
 if ('caches' in window) {
     caches.keys().then(function(names) {
         for (let name of names) caches.delete(name);
     });
 }
 
-
- 
 async function sincronizarVersaoGithub() {
-    const usuario = 'rafa91pinati'; //
-    const repositorio = 'rafa91pinati.github.io'; //
-    const branch = 'main'; //
+    const usuario = 'rafa91pinati'; 
+    const repositorio = 'rafa91pinati.github.io'; 
+    const branch = 'main'; 
     const url = `https://api.github.com/repos/${usuario}/${repositorio}/commits/${branch}`;
 
     try {
@@ -35,8 +29,6 @@ async function sincronizarVersaoGithub() {
         if (!resposta.ok) throw new Error('Erro na API');
         
         const dados = await resposta.json();
-        
-        // Converte a data do GitHub (UTC) para o horário local (Brasília)
         const dataCommit = new Date(dados.commit.committer.date);
          
         const dataFormatada = dataCommit.toLocaleDateString('pt-BR');
@@ -44,8 +36,15 @@ async function sincronizarVersaoGithub() {
 
         const elStatus = document.getElementById('txt-ultima-atualizacao');
         if (elStatus) {
-            // Exibe a versão fixa v4.3.6 com a data real do GitHub
-            elStatus.innerText = `v4.3.6 • PUBLICADO: ${dataFormatada} ÀS ${horaFormatada}`;
+            elStatus.innerText = `v4.6.0 • PUBLICADO: ${dataFormatada} ÀS ${horaFormatada}`;
+        }
+        
+        document.title = `Life Sync v4.6.0 (${horaFormatada})`; 
+        
+    } catch (erro) {
+        console.error('Falha ao buscar versão:', erro);
+    }
+}`;
         }
         
         // Atualiza o título da aba para conferência rápida
@@ -119,37 +118,68 @@ window.marcarComoAtualizado = () => {
 };
 
 
-window.onload = function() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for (let registration of registrations) {
-                registration.update();
-                
-                registration.onupdatefound = () => {
-                    const installingWorker = registration.installing;
-                    installingWorker.onstatechange = () => {
-                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            if (confirm("Nova versão do Life Sync disponível! Atualizar agora?")) {
-                                window.location.reload();
-                            }
-                        }
-                    };
-                };
-
-                if (registration.waiting) {
-                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                    window.location.reload();
-                }
-            }
-        });
-    }
-    marcarComoAtualizado();
-};
-
-window.marcarComoAtualizado = () => {
-    const versaoAtual = "4.3.7"; 
-    localStorage.setItem('lifeSync_ultima_versao', versaoAtual);
-    console.log("Life Sync sincronizado na versão: " + versaoAtual);
+window.onload = function() {
+
+    if ('serviceWorker' in navigator) {
+
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+
+            for (let registration of registrations) {
+
+                registration.update();
+
+                
+
+                registration.onupdatefound = () => {
+
+                    const installingWorker = registration.installing;
+
+                    installingWorker.onstatechange = () => {
+
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+
+                            if (confirm("Nova versão do Life Sync disponível! Atualizar agora?")) {
+
+                                window.location.reload();
+
+                            }
+
+                        }
+
+                    };
+
+                };
+
+
+
+                if (registration.waiting) {
+
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+                    window.location.reload();
+
+                }
+
+            }
+
+        });
+
+    }
+
+    marcarComoAtualizado();
+
+};
+
+
+
+window.marcarComoAtualizado = () => {
+
+    const versaoAtual = "4.3.7"; 
+
+    localStorage.setItem('lifeSync_ultima_versao', versaoAtual);
+
+    console.log("Life Sync sincronizado na versão: " + versaoAtual);
+
 }; 
 window.todasAsCategorias = []; // NOVA: Para o modal de Outras... acessar
 let categoriasAtivas = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
