@@ -74,16 +74,17 @@ body {
 /* Garante que os botões não fiquem gigantes na grade */
 
 .category-tab { 
-    padding: 6px 12px; /* Botões um pouco mais compactos */
-    border-radius: 12px; 
+    padding: 10px 16px; /* Aumentado para melhor toque */
+    border-radius: 14px; 
     border: 1px solid rgba(255,255,255,0.1); 
     background: rgba(255,255,255,0.05); 
     cursor: pointer; 
-    font-size: 0.75rem; 
+    font-size: 0.85rem; /* Fonte maior para leitura clara */
     font-weight: 700; 
     white-space: nowrap; 
     color: #334155; 
     transition: 0.3s;
+    flex-grow: 0;
 }
 .category-tab:hover { background: rgba(255,255,255,0.15); }
 
