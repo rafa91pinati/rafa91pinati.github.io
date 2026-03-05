@@ -1044,16 +1044,24 @@ window.salvarAlteracoes = async (id) => {
                 linksFinais.push(foto);
             }
         }
-        await updateDoc(doc(db, "tarefas", id), { 
-            descricao: document.getElementById(`edit-desc-${id}`).value, 
-            hora: document.getElementById(`edit-hora-${id}`).value, 
-            fotos: linksFinais 
-        }); 
-        idEmEdicao = null; 
-        carregarTarefas(); 
+        await updateDoc(doc(db, "tarefas", id), {
+            descricao: document.getElementById(`edit-desc-${id}`).value,
+            hora: document.getElementById(`edit-hora-${id}`).value,
+            marcador: document.getElementById(`edit-tag-${id}`).value, // Garante que a etapa também salve
+            fotos: linksFinais
+        });
+
+        idEmEdicao = null;
+        alert("Tarefa atualizada com sucesso!");
+        carregarTarefas();
     } catch (error) {
-        alert("Erro ao salvar as alterações da tarefa.");
-        if (btnSalvar) { btnSalvar.innerHTML = "SALVAR"; btnSalvar.disabled = false; }
+        console.error("Erro ao editar:", error);
+        alert("Erro ao salvar alterações.");
+    } finally {
+        if (btnSalvar) {
+            btnSalvar.innerHTML = textoOriginal;
+            btnSalvar.disabled = false;
+        }
     }
 };
 
