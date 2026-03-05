@@ -2,22 +2,23 @@ name: Deploy Life Sync
 
 on:
   push:
-  
-  permissions:
+    branches: ["versao-estavel"]
+
+# ISSO AQUI VAI FORÇAR O DESTRAVAMENTO DAS PERMISSÕES 👇
+permissions:
   contents: read
   pages: write
   id-token: write
-  
-  
-    branches: ["main", "versao-estavel"] # Protege as duas rotas que você usou
 
-# ISSO AQUI É O QUE LIMPA A FILA AUTOMATICAMENTE 👇
 concurrency:
   group: "pages"
   cancel-in-progress: true
 
 jobs:
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
