@@ -20,7 +20,8 @@
     </div> 
 </div>
 
-<div class="container">
+
+<div class="container">
 
     <div class="novo-header-filtros" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; width: 100%; box-sizing: border-box;">
         
@@ -51,12 +52,12 @@
                     <div style="flex: 1; text-align: center; font-size: 0.6rem; font-weight: 800; color: #8c98a9; text-transform: uppercase;">PERÍODO            </div>
                 </div>
                 
-                <div class="data-container-white">
-                    <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)">
-                </div>
-                
-                <div style="flex: 0 0 20px;"></div>
-            </div>
+                   <div class="data-container-white">
+                    <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)">
+                </div>
+                
+                <div style="flex: 0 0 20px;"></div>
+            </div>
         </div> <div style="background: rgba(248, 250, 252, 0.7); border-radius: 20px; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 4px 15px rgba(0,0,0,0.03); width: 100%; box-sizing: border-box;">
             
             <div style="display: flex; align-items: center; background: rgba(241, 245, 249, 0.8); border-radius: 20px; padding: 4px; margin-bottom: 8px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); overflow-x: auto; scrollbar-width: none;">
@@ -72,7 +73,7 @@
                 </select>
             </div>
             
-        </div> </div> </div>
+        </div> </div> 
 
 
 
@@ -91,6 +92,10 @@
             <span class="label">Financeiro</span>
         </button>
     </div>
+
+
+</div>
+
 
     <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
         <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%; cursor: pointer;">
