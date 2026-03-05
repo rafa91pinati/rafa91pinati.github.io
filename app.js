@@ -630,26 +630,26 @@ window.carregarMarcadoresModal = async () => {
     } catch (e) { console.error(e); }
 };
 
-window.atualizarSeletorMarcadores = async () => {
-    const seletor = document.getElementById('filtroTagGlobal');
-    if (!seletor || !window.usuarioLogado) return;
-    try {
-        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
-        const snap = await getDocs(q);
-        seletor.innerHTML = '<option value="">Todas as Etapas</option>';
-        snap.forEach(d => {
-            const m = d.data();
-            const opcao = document.createElement('div');
-    relatorioTemp.style.padding = "20px";
-    relatorioTemp.style.background = "white";
-
-    // Lógica das Cores: Usa a cor da categoria que recuperamos antes
-    const corTema = window.coresCategorias[categoriaDoPDF] || "#3b82f6";
-
-    // (O restante da sua lógica de montagem do HTML do PDF está correta, 
-    // certifique-se apenas de que window.coresCategorias esteja populado no carregarCategorias)
-    
-      // EXECUÇÃO DO PDF (Igual ao seu código, mas com tratamento de erro)
+window.atualizarSeletorMarcadores = async () => {
+    const seletor = document.getElementById('filtroTagGlobal');
+    if (!seletor || !window.usuarioLogado) return;
+    try {
+        const q = query(collection(db, "marcadores"), where("uid", "==", window.usuarioLogado.uid));
+        const snap = await getDocs(q);
+        seletor.innerHTML = '<option value="">Todas as Etapas</option>';
+        snap.forEach(d => {
+            const m = d.data();
+            const opcao = document.createElement('div');
+    relatorioTemp.style.padding = "20px";
+    relatorioTemp.style.background = "white";
+
+    // Lógica das Cores: Usa a cor da categoria que recuperamos antes
+    const corTema = window.coresCategorias[categoriaDoPDF] || "#3b82f6";
+
+    // (O restante da sua lógica de montagem do HTML do PDF está correta, 
+    // certifique-se apenas de que window.coresCategorias esteja populado no carregarCategorias)
+    
+    // EXECUÇÃO DO PDF (Igual ao seu código, mas com tratamento de erro)
     try {
         const opcoes = { margin: [10, 0, 15, 0], image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
         await html2pdf().set(opcoes).from(relatorioTemp).save(`Relatorio_${categoriaDoPDF}.pdf`);
