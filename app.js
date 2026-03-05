@@ -19,7 +19,7 @@ async function sincronizarVersaoGithub() {
         
         // Converte a data do GitHub (UTC) para o horário local (Brasília)
         const dataCommit = new Date(dados.commit.committer.date);
-        
+         
         const dataFormatada = dataCommit.toLocaleDateString('pt-BR');
         const horaFormatada = dataCommit.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
