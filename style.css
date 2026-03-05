@@ -68,25 +68,16 @@ body {
     display: flex; 
     flex-wrap: wrap; 
     gap: 10px; 
-    padding: 0; 
-    margin-bottom: 15px; /* Espaço para a TAG abaixo */
-    max-height: 115px !important; /* Altura calculada para 2 linhas com fonte grande */
+    margin-bottom: 15px; /* Espaço interno para a Tag não grudar */
+    max-height: 110px !important; /* Trava em 2 linhas */
     overflow-y: auto; 
-    scrollbar-width: none; 
 }
-.category-tabs::-webkit-scrollbar { display: none; }
-
-
-/* Garante que os botões não fiquem gigantes na grade */
 
 .category-tab { 
     padding: 10px 18px; 
     border-radius: 14px; 
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.95rem; /* Maior que os botões de data */
+    font-size: 0.95rem; /* Fonte maior conforme pedido */
     font-weight: 800; 
-    color: #1e293b;
     transition: 0.3s;
 }
 .category-tab:hover { background: rgba(255,255,255,0.15); }
