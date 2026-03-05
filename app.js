@@ -345,32 +345,58 @@ window.carregarCategorias = async () => {
 
 };
 
-window.selecionarCat = (nome, cor) => {
-    // Registra o clique para a ordenação (Geral não entra na lista pois é fixa no início)
-    if (nome !== "Geral") {
-        let ordem = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
-        // Remove se já existir na lista e coloca na primeira posição (ao lado da Geral)
-        ordem = ordem.filter(n => n !== nome);
-        ordem.unshift(nome);
-        localStorage.setItem('ordemCliquesCategorias', JSON.stringify(ordem.slice(0, 50))); // Guarda os últimos 50
-    }
-
-    if (nome == "Geral") {
-        categoriasAtivas = ["Geral"]; 
-    } else {
-        categoriasAtivas = categoriasAtivas.filter(c => c !== "Geral"); 
-        if (categoriasAtivas.includes(nome)) {
-            categoriasAtivas = categoriasAtivas.filter(c => c !== nome); 
-            if (categoriasAtivas.length == 0) categoriasAtivas = ["Geral"]; 
-        } else {
-            categoriasAtivas.push(nome); 
-        }
-    }
-
-    localStorage.setItem('categoriasAgendaAtivas', JSON.stringify(categoriasAtivas));
-
-    // Re-renderiza as categorias para aplicar a nova ordem visual imediatamente
-    carregarCategorias();
+window.selecionarCat = (nome, cor) => {
+
+    // Registra o clique para a ordenação (Geral não entra na lista pois é fixa no início)
+
+    if (nome !== "Geral") {
+
+        let ordem = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
+
+        // Remove se já existir na lista e coloca na primeira posição (ao lado da Geral)
+
+        ordem = ordem.filter(n => n !== nome);
+
+        ordem.unshift(nome);
+
+        localStorage.setItem('ordemCliquesCategorias', JSON.stringify(ordem.slice(0, 50))); // Guarda os últimos 50
+
+    }
+
+
+
+    if (nome == "Geral") {
+
+        categoriasAtivas = ["Geral"]; 
+
+    } else {
+
+        categoriasAtivas = categoriasAtivas.filter(c => c !== "Geral"); 
+
+        if (categoriasAtivas.includes(nome)) {
+
+            categoriasAtivas = categoriasAtivas.filter(c => c !== nome); 
+
+            if (categoriasAtivas.length == 0) categoriasAtivas = ["Geral"]; 
+
+        } else {
+
+            categoriasAtivas.push(nome); 
+
+        }
+
+    }
+
+
+
+    localStorage.setItem('categoriasAgendaAtivas', JSON.stringify(categoriasAtivas));
+
+
+
+    // Re-renderiza as categorias para aplicar a nova ordem visual imediatamente
+
+    carregarCategorias();
+
 };
 
 window.adicionarCategoria = async () => {
@@ -743,98 +769,51 @@ window.atualizarSeletorTimes = async () => {
 };
 
 // --- TAREFAS ---
-window.setarData = (tipo, el) => {
-
-    const inputIni = document.getElementById('dataSeletor');
-
-    const inputFim = document.getElementById('dataFimFiltro');
-
-    const hoje = new Date();
-
-    
-
-    // Atualiza a variável global de controle
-
-    tipoFiltroTempo = tipo;
-
-
-
-    // Reset visual dos botões
-
-    document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
-
-    if (el && el.tagName == 'BUTTON') el.classList.add('ativo');
-
-
-
-    // Lógica para preencher os inputs de data
-
-    if (tipo == 'hoje') {
-
-        inputIni.value = hoje.toLocaleDateString('en-CA');
-
-        inputFim.value = ""; 
-
-    } else if (tipo == 'amanha') {
-
-        const am = new Date();
-
-        am.setDate(hoje.getDate() + 1);
-
-        inputIni.value = am.toLocaleDateString('en-CA');
-
-        inputFim.value = "";
-
-    } else if (tipo == 'semana') {
-
-        const p = new Date(hoje);
-
-        p.setDate(hoje.getDate() - hoje.getDay());
-
-        window.arrayDiasSemana = [];
-
-        for(let i = 0; i < 7; i++) {
-
-            const d = new Date(p); d.setDate(p.getDate() + i);
-
-            window.arrayDiasSemana.push(d.toLocaleDateString('en-CA'));
-
-        }
-
-        inputIni.value = window.arrayDiasSemana[0];
-
-        inputFim.value = "";
-
-    } else if (tipo == 'mes') {
-
-        // Primeiro e último dia do mês atual
-
-        const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-
-        const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-
-        inputIni.value = primeiroDia.toLocaleDateString('en-CA');
-
-        inputFim.value = ultimoDia.toLocaleDateString('en-CA');
-
-        tipoFiltroTempo = 'periodo'; // Trata como período para a filtragem
-
-    } else if (tipo == 'tudo') {
-
-        inputIni.value = "";
-
-        inputFim.value = "";
-
-    } else if (tipo == 'custom') {
-
-        inputFim.value = "";
-
-    }
-
-
-
-    carregarTarefas();
-
+window.setarData = (tipo, el) => {
+    const inputIni = document.getElementById('dataSeletor');
+    const inputFim = document.getElementById('dataFimFiltro');
+    const hoje = new Date();
+    
+    // Atualiza a variável global de controle
+    tipoFiltroTempo = tipo;
+
+    // Reset visual dos botões
+    document.querySelectorAll('.btn-date').forEach(b => b.classList.remove('ativo'));
+    if (el && el.tagName === 'BUTTON') el.classList.add('ativo');
+
+    // Limpa o filtro de data final se não for um período manual ou mês
+    if (['hoje', 'amanha', 'semana', 'tudo', 'custom'].includes(tipo)) {
+        inputFim.value = "";
+    }
+
+    if (tipo === 'hoje') {
+        inputIni.value = hoje.toLocaleDateString('en-CA');
+    } else if (tipo === 'amanha') {
+        const am = new Date();
+        am.setDate(hoje.getDate() + 1);
+        inputIni.value = am.toLocaleDateString('en-CA');
+    } else if (tipo === 'semana') {
+        const p = new Date(hoje);
+        p.setDate(hoje.getDate() - hoje.getDay());
+        window.arrayDiasSemana = [];
+        for(let i = 0; i < 7; i++) {
+            const d = new Date(p); d.setDate(p.getDate() + i);
+            window.arrayDiasSemana.push(d.toLocaleDateString('en-CA'));
+        }
+        inputIni.value = window.arrayDiasSemana[0];
+    } else if (tipo === 'mes') {
+        // Define o intervalo do mês atual
+        const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+        inputIni.value = primeiroDia.toLocaleDateString('en-CA');
+        inputFim.value = ultimoDia.toLocaleDateString('en-CA');
+        tipoFiltroTempo = 'periodo'; 
+    } else if (tipo === 'tudo') {
+        inputIni.value = "";
+        inputFim.value = "";
+    }
+
+    carregarTarefas();
 };
 
 window.carregarTarefas = async () => {
