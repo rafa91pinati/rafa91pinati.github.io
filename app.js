@@ -174,22 +174,39 @@ setInterval(() => {
     });
 }, 60000);
 
-// --- UI GERAL ---
-window.abrirConfig = () => { 
-    document.getElementById('modalConfiguracoes').style.display = 'flex'; 
-    carregarCategoriasModal(); 
-    carregarMarcadoresModal(); 
-    carregarTimes(); 
-};
-
-window.abrirAba = (evt, nomeAba) => {
-    let i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
-    tablinks = document.getElementsByClassName("tablink");
-    for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
-    document.getElementById(nomeAba).style.display = "block";
-    evt.currentTarget.classList.add("active");
+// --- UI GERAL ---
+window.abrirConfig = () => { 
+    document.getElementById('modalConfiguracoes').style.display = 'flex'; 
+    carregarCategoriasModal(); 
+    carregarMarcadoresModal(); 
+    carregarTimes(); 
+
+    // NOVO: Aciona o clique na aba que deve ser a padrão (ex: "Geral" ou "Categorias")
+    // Certifique-se de colocar o ID correto do seu botão HTML aqui
+    const abaPadrao = document.getElementById('idDoBotaoDaAbaPadrao');
+    if (abaPadrao) {
+        abaPadrao.click(); 
+    }
+};
+
+window.abrirAba = (evt, nomeAba) => {
+    let i, tabcontent, tablinks;
+    
+    // Esconde todos os conteúdos
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    
+    // Remove a classe 'active' de todos os botões
+    tablinks = document.getElementsByClassName("tablink");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].classList.remove("active");
+    }
+    
+    // Mostra a aba atual e adiciona 'active' no botão clicado
+    document.getElementById(nomeAba).style.display = "block";
+    evt.currentTarget.classList.add("active");
 };
 
 window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
