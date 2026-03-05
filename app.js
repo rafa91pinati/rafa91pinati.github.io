@@ -93,16 +93,23 @@ const storage = getStorage(app);
 
 
 
-window.onload = function() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.update();
-            }
-        });
-    }
-    marcarComoAtualizado();
+window.marcarComoAtualizado = () => {
+    const versaoAtual = "4.3.6";
+    localStorage.setItem('lifeSync_ultima_versao', versaoAtual);
+    console.log("Life Sync atualizado para: " + versaoAtual);
 };
+
+window.onload = function() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.update();
+            }
+        });
+    }
+    marcarComoAtualizado();
+};
+
 
 
 // VARIÁVEIS GLOBAIS
@@ -262,17 +269,28 @@ setInterval(() => {
 
 // --- UI GERAL ---
 
-window.abrirConfig = () => { 
-    document.getElementById('modalConfiguracoes').style.display = 'flex'; 
-    carregarCategoriasModal(); 
-    carregarMarcadoresModal(); 
-    carregarTimes(); 
-
-    // Força o clique na aba de Alarmes toda vez que o modal for aberto
-    const abaPadrao = document.getElementById('btnAbaAlarme');
-    if (abaPadrao) {
-        abaPadrao.click(); 
-    }
+window.abrirConfig = () => { 
+
+    document.getElementById('modalConfiguracoes').style.display = 'flex'; 
+
+    carregarCategoriasModal(); 
+
+    carregarMarcadoresModal(); 
+
+    carregarTimes(); 
+
+
+
+    // Força o clique na aba de Alarmes toda vez que o modal for aberto
+
+    const abaPadrao = document.getElementById('btnAbaAlarme');
+
+    if (abaPadrao) {
+
+        abaPadrao.click(); 
+
+    }
+
 };
 
 
