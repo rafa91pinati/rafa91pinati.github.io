@@ -2193,9 +2193,9 @@ window.gerarRelatorioPDF = async (evento) => {
 
 
         window.gerarPDFCronograma = async (evento) => {
+    // 1. INÍCIO DA FUNÇÃO E DECLARAÇÃO DE VARIÁVEIS (Não pode faltar isso!)
     if (evento) evento.stopPropagation();
 
-    // Adicionado trava de segurança de usuário aqui também por precaução
     if (!window.usuarioLogado || !window.usuarioLogado.uid) {
         return alert("Usuário não identificado. Faça login novamente.");
     }
@@ -2211,6 +2211,7 @@ window.gerarRelatorioPDF = async (evento) => {
     btn.innerHTML = "⏳..."; 
     btn.disabled = true;
 
+    // 2. O BLOCO TRY QUE VOCÊ MANDOU
     try { 
         const relatorioTemp = document.createElement('div');
         relatorioTemp.style.cssText = "font-family: Arial, sans-serif; padding: 20px; background: white; color: #1e293b;";
