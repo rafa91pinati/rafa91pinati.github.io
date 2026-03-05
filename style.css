@@ -373,33 +373,10 @@ input[type="text"], input[type="time"], select {
 /* BORDAS DO BOTÃO INFERIOR CORRIGIDAS E CHAVE FECHADA */
 
 .btn-acao-modal {
-
     background: transparent !important;
-
     border: none !important;
-
-    outline: none !important;
-
-    box-shadow: none !important;
-
-    -webkit-appearance: none !important;
-
-    appearance: none !important;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    gap: 6px;
-
-    cursor: pointer;
-
     padding: 0 !important;
-
-    margin: 0 !important;
-
+    box-shadow: none !important;
 }
 
 
