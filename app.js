@@ -283,62 +283,62 @@ window.carregarCategorias = async () => {
 
 // ==========================================
 
-window.renderizarCategoriasNoFiltro = () => {
-
-    const container = document.getElementById('listaCategorias');
-
-    if (!container) return;
-
-    
-
-    container.innerHTML = ''; 
-
-    
-
-    // Pega as categorias da memória global
-
-    let todas = window.todasAsCategorias || [];
-
-    let semGeral = todas.filter(c => c.nome !== "Geral");
-
-    
-
-    // Mostra a Geral + as 3 últimas usadas
-
-    let recents = semGeral.slice(0, 3); 
-
-    let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
-
-
-
-    categoriasParaMostrar.forEach((cat, index) => {
-
-        const btn = document.createElement('button');
-
-        // Verifica se a categoria está selecionada
-
-        const isActive = categoriasAtivas.includes(cat.nome); 
-
-        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
-
-            `<span style="margin-right: 4px;">👥</span>` : "";
-
-
-
-        // ESTILO: Fonte 0.8rem e Padding maior conforme você pediu
-
-        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
-
-if (isActive) {
-    btn.style.background = cat.cor || "#54627b";
-    btn.style.color = "white";
-    btn.style.padding = "10px 18px"; // Botão mais gordinho
-    // ... restante do código
-} else {
-    btn.style.background = "rgba(255,255,255,0.5)";
-    btn.style.color = "#64748b";
-    btn.style.padding = "10px 14px"; // Botão mais gordinho
-    // ... restante do código
+window.renderizarCategoriasNoFiltro = () => {
+
+    const container = document.getElementById('listaCategorias');
+
+    if (!container) return;
+
+    
+
+    container.innerHTML = ''; 
+
+    
+
+    // Pega as categorias da memória global
+
+    let todas = window.todasAsCategorias || [];
+
+    let semGeral = todas.filter(c => c.nome !== "Geral");
+
+    
+
+    // Mostra a Geral + as 3 últimas usadas
+
+    let recents = semGeral.slice(0, 3); 
+
+    let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
+
+
+
+    categoriasParaMostrar.forEach((cat, index) => {
+
+        const btn = document.createElement('button');
+
+        // Verifica se a categoria está selecionada
+
+        const isActive = categoriasAtivas.includes(cat.nome); 
+
+        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? 
+
+            `<span style="margin-right: 4px;">👥</span>` : "";
+
+
+
+        // ESTILO: Fonte 0.8rem e Padding maior conforme você pediu
+
+        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 16px; flex-shrink: 0;";
+
+if (isActive) {
+    btn.style.background = cat.cor || "#54627b";
+    btn.style.color = "white";
+    btn.style.padding = "10px 18px"; // Botão mais gordinho
+    // ... restante do código
+} else {
+    btn.style.background = "rgba(255,255,255,0.5)";
+    btn.style.color = "#64748b";
+    btn.style.padding = "10px 14px"; // Botão mais gordinho
+    // ... restante do código
 }${cat.nome}`;
 
         }
