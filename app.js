@@ -1094,7 +1094,7 @@ window.salvarNovaTarefa = async () => {
     try {
         const desc = document.getElementById('descTask').value;
         const hora = document.getElementById('horaTask').value;
-        
+         
         if (!desc || !window.usuarioLogado) return alert("Preencha a descrição!");
 
         btn.innerHTML = "⌛ Salvando...";
