@@ -1030,13 +1030,17 @@ window.salvarAlteracoes = async (id) => {
         let linksFinais = [];
         for (let foto of fotosTemporarias) {
             if (foto.startsWith('data:image')) {
+                // É uma foto nova!
                 const response = await fetch(foto);
                 const blob = await response.blob();
-                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/edit-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
+                const nomeArquivo = `edit-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
+                
                 const snap = await uploadBytes(sRef, blob);
                 const url = await getDownloadURL(snap.ref);
-                linksFinais.push(url); 
+                linksFinais.push(url);
             } else {
+                // Já é um link do Firebase, só mantém na lista
                 linksFinais.push(foto);
             }
         }
