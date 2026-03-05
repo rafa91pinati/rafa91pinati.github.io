@@ -22,21 +22,36 @@
 </div>
 
 <div class="container">
-<div class="timeline-header">
-    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
-        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
-        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
-        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
-        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5; flex-shrink: 0; width: 32px;">⚙️</button>
-    </div>
-    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-        <button class="btn-date" id="btnMes" onclick="setarData('mes', this)">Mês</button>
-        <button class="btn-date" id="btnTudo" onclick="setarData('tudo', this)">Tudo</button>
-        <div style="flex: 1; text-align: center; font-size: 0.6rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Período</div>
-        <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)" style="flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: #000000; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none;">
-        <div style="width: 32px; flex-shrink: 0; visibility: hidden;">⚙️</div>
-    </div>
+<div class="timeline-header">
+
+    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+
+        <button class="btn-date ativo" id="btnHoje" onclick="setarData('hoje', this)">Hoje</button>
+
+        <button class="btn-date" id="btnAmanha" onclick="setarData('amanha', this)">Amanhã</button>
+
+        <button class="btn-date" id="btnSemana" onclick="setarData('semana', this)">Semana</button>
+
+        <input type="date" id="dataSeletor" onchange="setarData('custom', this)">
+
+        <button onclick="abrirConfig()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#ccd0d5; flex-shrink: 0; width: 32px;">⚙️</button>
+
+    </div>
+
+    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+
+        <button class="btn-date" id="btnMes" onclick="setarData('mes', this)">Mês</button>
+
+        <button class="btn-date" id="btnTudo" onclick="setarData('tudo', this)">Tudo</button>
+
+        <div style="flex: 1; text-align: center; font-size: 0.6rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Período</div>
+
+        <input type="date" id="dataFimFiltro" onchange="setarData('periodo', this)" style="flex: 1.8; min-width: 0; padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.1); color: #000000; font-size: 0.8rem; text-align: center; font-weight: 600; outline: none;">
+
+        <div style="width: 32px; flex-shrink: 0; visibility: hidden;">⚙️</div>
+
+    </div>
+
 </div>
 
 </div>
@@ -45,13 +60,13 @@
 
     <div class="category-tabs" id="listaCategorias">Sincronizando...</div>
 
-    <div style="display: flex; align-items: center; gap: 10px; margin: 0 5px 20px 5px; padding: 12px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
-        <div style="flex: 1; display: flex; align-items: center; gap: 5px;">
-            <span style="font-weight: 800; font-size: 0.65rem; color: #64748b; text-transform: uppercase;">Tag:</span>
-            <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; padding: 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.8); color: #1e293b; font-weight: 700; outline: none; cursor: pointer;">
-                <option value="">Todas</option>
-            </select>
-        </div>
+    <div style="display: flex; align-items: center; gap: 10px; margin: 0 5px 15px 5px; padding: 10px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="flex: 1; display: flex; align-items: center; gap: 5px;">
+            <span style="font-weight: 800; font-size: 0.65rem; color: #64748b; text-transform: uppercase;">Tag:</span>
+            <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; padding: 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.8); color: #1e293b; font-weight: 700; outline: none; cursor: pointer;">
+                <option value="">Todas</option>
+            </select>
+        </div>
     </div>
 
     <div class="header-secao" onclick="toggleSecao('secaoAdd', 'setaAdd')">
