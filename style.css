@@ -29,15 +29,31 @@ body {
 
 .category-tabs { 
     display: flex; 
+    flex-wrap: wrap; /* Permite quebrar linha */
     gap: 8px; 
-    overflow-x: auto; 
-    padding-bottom: 15px; 
-    margin-top: 20px; /* Desce a aba de categorias */
+    padding: 5px 2px 15px 2px; 
+    margin-top: 20px; 
     margin-bottom: 15px; 
     border-bottom: 1px solid rgba(255,255,255,0.1); 
-    scrollbar-width: none; 
+    max-height: 105px; /* Altura máxima para comportar ~2 linhas */
+    overflow-y: auto; /* Habilita rolagem vertical */
+    scrollbar-width: thin; /* Barra de rolagem discreta */
+}
+
+/* Garante que os botões não fiquem gigantes na grade */
+.category-tab { 
+    padding: 8px 16px; 
+    border-radius: 12px; 
+    border: 1px solid rgba(255,255,255,0.1); 
+    background: rgba(255,255,255,0.05); 
+    cursor: pointer; 
+    font-size: 0.8rem; 
+    font-weight: 700; 
+    white-space: nowrap; 
+    color: #334155; 
+    transition: 0.3s;
+    flex-grow: 0; /* Não deixa o botão esticar demais */
 }
-.category-tab { padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); cursor: pointer; font-size: 0.85rem; font-weight: 700; white-space: nowrap; color: #334155; transition: 0.3s; }
 .category-tab:hover { background: rgba(255,255,255,0.15); }
 
 .header-secao { 
