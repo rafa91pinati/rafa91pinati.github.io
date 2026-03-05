@@ -984,12 +984,19 @@ window.cancelarNovaTarefa = () => {
 
 
 
+// Funções para controlar os Pop-ups
 function abrirModal(id) {
-    document.getElementById(id).classList.remove('escondido');
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.remove('escondido');
+        // Se for o modal de tarefa, já foca no campo de texto
+        if (id === 'modalTarefa') document.getElementById('descTask').focus();
+    }
 }
 
 function fecharModal(id) {
-    document.getElementById(id).classList.add('escondido');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('escondido');
 }
 
 const originalSalvarTarefa = window.salvarNovaTarefa;
