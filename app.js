@@ -39,8 +39,42 @@ async function sincronizarVersaoGithub() {
     }
 }
 
+async function buscarUltimaAtualizacaoGithub() {
+    const usuario = 'rafa91pinati';
+    const repositorio = 'rafa91pinati.github.io';
+    const url = `https://api.github.com/repos/${usuario}/${repositorio}/commits/main`;
+
+    try {
+        const resposta = await fetch(url);
+        if (!resposta.ok) throw new Error('Erro ao consultar GitHub');
+        
+        const dados = await resposta.json();
+        const dataCommit = new Date(dados.commit.committer.date);
+        
+        // Formata para o padrão brasileiro
+        const dataFormatada = dataCommit.toLocaleDateString('pt-BR');
+        const horaFormatada = dataCommit.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        // Preenche os campos no HTML
+        const lbVersao = document.getElementById('label-versao');
+        const lbData = document.getElementById('data-versao');
+
+        if (lbVersao) lbVersao.innerText = 'v4.3.6';
+        if (lbData) lbData.innerText = `• PUBLICADO: ${dataFormatada} ÀS ${horaFormatada}`;
+        
+    } catch (erro) {
+        console.error('Erro ao buscar versão:', erro);
+        document.getElementById('data-versao').innerText = 'OFFLINE';
+    }
+}
+
+// Inicia a busca assim que o app abrir
+document.addEventListener('DOMContentLoaded', buscarUltimaAtualizacaoGithub);
+
 // Inicia a busca assim que o navegador carregar o DOM
 document.addEventListener('DOMContentLoaded', sincronizarVersaoGithub);
+
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyAEQeIKc1MCrV8BJr0CH_mfjwCp1YiRC8s",
