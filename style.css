@@ -24,13 +24,13 @@ body {
 .timeline-header { 
     display: flex; 
     flex-direction: column; 
-    gap: 8px; 
+    gap: 10px; 
     margin-bottom: 20px; 
     align-items: center; 
     width: 100%; 
     box-sizing: border-box; 
-    background: rgba(255, 255, 255, 0.05); /* Fundo sutil para ver o contêiner */
-    padding: 12px; /* Espaçamento igual em todos os lados (Simetria) */
+    background: rgba(255, 255, 255, 0.05); 
+    padding: 12px; /* Espaçamento igual em cima, baixo e lados */
     border-radius: 18px;
 }
 .btn-date.ativo { background: linear-gradient(135deg, #64748b, #334155); color: white; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); }
