@@ -265,7 +265,7 @@ window.carregarCategorias = async () => {
 };
 
 // ==========================================
-// FUNÇÕES DE RENDERIZAÇÃO DO FILTRO (CORRIGIDA)
+// FUNÇÕES DE RENDERIZAÇÃO DO FILTRO (EM LINHA ÚNICA)
 // ==========================================
 window.renderizarCategoriasNoFiltro = () => {
     const container = document.getElementById('listaCategorias');
@@ -273,31 +273,23 @@ window.renderizarCategoriasNoFiltro = () => {
     
     container.innerHTML = ''; 
     
-    // 1. Pega todas e separa a Geral
     let todas = window.todasAsCategorias || [];
     let semGeral = todas.filter(c => c.nome !== "Geral");
-    
-    // 2. Extrai APENAS as 3 mais recentes/clicadas
     let recents = semGeral.slice(0, 3); 
-    
-    // 3. Monta a lista: 1 Geral + 3 Recentes (Total = 4 botões dinâmicos)
     let categoriasParaMostrar = [{nome: "Geral", cor: "#54627b"}, ...recents];
 
     categoriasParaMostrar.forEach((cat, index) => {
         const btn = document.createElement('button');
         const isActive = categoriasAtivas.includes(cat.nome); 
-        
-        // Ícone formatado em linha (lado a lado)
-        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? `<span style="font-size: 0.85rem; margin-right: 4px; display: inline-flex; align-items: center;">👥</span>` : "";
+        const iconeTime = (window.timesDasCategorias && window.timesDasCategorias[cat.nome]) ? `<span style="font-size: 0.8rem; margin-right: 3px; display: inline-flex; align-items: center;">👥</span>` : "";
 
-        // Estilo base
-        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.75rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 15px;";
+        // Fontes reduzidas e "white-space: nowrap" para não empilhar o texto
+        btn.style.cssText = "display: inline-flex; align-items: center; justify-content: center; border: none; font-weight: 800; font-size: 0.7rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 15px;";
 
         if (isActive) {
-            // SE ATIVO: Pílula colorida grudadinha
             btn.style.background = cat.cor || "#54627b";
             btn.style.color = "white";
-            btn.style.padding = "6px 14px";
+            btn.style.padding = "4px 12px";
             btn.style.boxShadow = "0 2px 5px rgba(0,0,0,0.15)";
             
             if (cat.nome === "Geral") {
@@ -306,17 +298,15 @@ window.renderizarCategoriasNoFiltro = () => {
                 btn.innerHTML = `${iconeTime}${cat.nome}`;
             }
         } else {
-            // SE INATIVO: Discreto
             btn.style.background = "transparent";
             btn.style.color = "#94a3b8";
-            btn.style.padding = "6px 8px";
+            btn.style.padding = "4px 6px";
             btn.innerHTML = `${iconeTime}${cat.nome}`;
         }
 
         btn.onclick = () => window.selecionarCat(cat.nome, cat.cor); 
         container.appendChild(btn);
 
-        // Barra divisória inteligente
         if (index < categoriasParaMostrar.length - 1) {
             const proxAtivo = categoriasAtivas.includes(categoriasParaMostrar[index + 1].nome);
             if (!isActive && !proxAtivo) {
@@ -328,7 +318,7 @@ window.renderizarCategoriasNoFiltro = () => {
         }
     });
 
-    // 4. O QUINTO BOTÃO FIXO: "Outras..."
+    // Separador e Botão Outras
     const separadorOutras = document.createElement('span');
     separadorOutras.innerText = '|';
     separadorOutras.style.cssText = "color: #cbd5e1; font-weight: bold; margin: 0 1px;";
@@ -336,7 +326,7 @@ window.renderizarCategoriasNoFiltro = () => {
 
     const btnOutras = document.createElement('button');
     btnOutras.innerText = "Outras...";
-    btnOutras.style.cssText = "background: transparent; color: #64748b; border: none; font-weight: 900; font-size: 0.75rem; padding: 6px 10px; cursor: pointer; white-space: nowrap;";
+    btnOutras.style.cssText = "background: transparent; color: #64748b; border: none; font-weight: 900; font-size: 0.7rem; padding: 4px 8px; cursor: pointer; white-space: nowrap;";
     btnOutras.onclick = () => window.abrirOutrasCategorias();
     container.appendChild(btnOutras);
 };
