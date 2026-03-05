@@ -2119,33 +2119,32 @@ window.gerarRelatorioPDF = async (evento) => {
             logoImgHtml = `<img src="${window.logosCategorias[categoriaDoPDF]}" style="height: 40px; max-width: 140px; object-fit: contain;">`;
         }
 
-        const criarCabecalho = (tagAtual) => `
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 20px;">
+        const criarCabecalho = (tituloEtapa) => `
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 25px;">
                 <div>
                     <div style="font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Relatório Executivo | Período: ${periodoDisplay}</div>
-                    <div style="font-size: 16px; font-weight: 900; color: #1e293b; margin-top: 2px;">ETAPA: ${tagAtual}</div>
+                    <div style="font-size: 16px; font-weight: 900; color: #1e293b; margin-top: 2px; text-transform: uppercase;">ETAPA: ${tituloEtapa}</div>
                 </div>
                 <div>${logoImgHtml}</div>
             </div>`;
 
-        // Função auxiliar para desenhar o corpo de uma tarefa detalhada
         const renderizarTarefaDetalhe = (t) => {
             let fotosHtml = '';
             if (t.fotos && t.fotos.length > 0) {
                 const qtd = Math.min(t.fotos.length, 4);
                 const grid = qtd === 1 ? '1fr' : '1fr 1fr';
-                fotosHtml = `<div style="display: grid; grid-template-columns: ${grid}; gap: 10px; margin-top: 12px;">`;
+                fotosHtml = `<div style="display: grid; grid-template-columns: ${grid}; gap: 10px; margin-top: 12px; page-break-inside: avoid;">`;
                 t.fotos.slice(0, 4).forEach(f => {
                     fotosHtml += `
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img src="${f}" style="max-width: 95%; max-height: 95%; object-fit: contain;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; page-break-inside: avoid;">
+                            <img src="${f}" style="max-width: 95%; max-height: 95%; object-fit: contain; page-break-inside: avoid;">
                         </div>`;
                 });
                 fotosHtml += `</div>`;
             }
             const cor = window.coresCategorias?.[t.categoria] || '#3b82f6';
             return `
-                <div style="border-left: 4px solid ${cor}; padding-left: 15px;">
+                <div style="border-left: 4px solid ${cor}; padding-left: 15px; page-break-inside: avoid;">
                     <div style="font-weight: 800; font-size: 13px; color: #1e293b;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</div>
                     ${fotosHtml}
                 </div>`;
@@ -2156,27 +2155,23 @@ window.gerarRelatorioPDF = async (evento) => {
 
         let htmlPdf = ``;
 
-        // LOOP PRINCIPAL POR TAG (CADA TAG GERA UMA NOVA PÁGINA)
-        tagsOrdenadas.forEach((tag, index) => {
-            // Se não for a primeira tag, força a quebra de página
-            if (index > 0) htmlPdf += `<div class="html2pdf__page-break"></div>`;
+        // ==========================================
+        // PARTE 1: RESUMO GERAL (Dividido por Tags)
+        // ==========================================
+        htmlPdf += `<div style="padding: 10px;">`;
+        htmlPdf += criarCabecalho("RESUMO GERAL"); // Cabeçalho genérico para a primeira página
 
-            // Retirado o min-height gigante. O html2pdf cuidará do fluxo naturalmente
-            htmlPdf += `<div style="padding: 10px;">`;
-            htmlPdf += criarCabecalho(tag);
-
-            // --- 1. BLOCO DE RESUMO DA TAG ---
-            htmlPdf += `<h2 style="font-size: 15px; font-weight: 900; color: #64748b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase;">Resumo das Atividades</h2>`;
+        tagsOrdenadas.forEach(tag => {
+            // Truque anti-corte no resumo
+            htmlPdf += `<div style="display: inline-block; width: 100%; page-break-inside: avoid; margin-bottom: 15px;">`;
+            htmlPdf += `<h2 style="color: #3b82f6; font-size: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 10px; margin-bottom: 10px; text-transform: uppercase;">🏷️ ${tag}</h2>`;
             
             const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
-            
             diasOrdenados.forEach(dia => {
                 const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
                 const dataF = dia.split('-').reverse().join('/');
                 
-                // Blindagem do resumo diário
-                htmlPdf += `<div style="page-break-inside: avoid; margin-bottom: 10px;">`;
-                htmlPdf += `<h3 style="margin: 0 0 6px 0; font-size: 12px; color: #3b82f6;">${nomeDia} (${dataF})</h3>`;
+                htmlPdf += `<h3 style="margin: 0 0 6px 0; font-size: 12px; color: #1e293b;">${nomeDia} (${dataF})</h3>`;
                 
                 tarefasPorTag[tag][dia].forEach(t => {
                     const cor = window.coresCategorias?.[t.categoria] || '#3b82f6';
@@ -2186,47 +2181,46 @@ window.gerarRelatorioPDF = async (evento) => {
                             <span style="font-size: 11px; color: #475569;">${t.hora ? t.hora + ' - ' : ''}${t.descricao}</span>
                         </div>`;
                 });
-                htmlPdf += `</div>`;
             });
+            htmlPdf += `</div>`;
+        });
+        htmlPdf += `</div>`; // Fim da página de Resumo
 
-            // --- 2. BLOCO DE DETALHES DA TAG ---
-            htmlPdf += `<h2 style="font-size: 15px; font-weight: 900; color: #64748b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 35px; margin-bottom: 25px; text-transform: uppercase;">Detalhes da Execução</h2>`;
+        // ==========================================
+        // PARTE 2: RELATÓRIO DETALHADO (Uma página por Tag)
+        // ==========================================
+        tagsOrdenadas.forEach(tag => {
+            // Força quebra de página ANTES de começar os detalhes de cada tag
+            htmlPdf += `<div class="html2pdf__page-break"></div>`;
 
+            htmlPdf += `<div style="padding: 10px;">`;
+            htmlPdf += criarCabecalho(tag); // O cabeçalho agora mostra a TAG atual!
+
+            const diasOrdenados = Object.keys(tarefasPorTag[tag]).sort();
             diasOrdenados.forEach(dia => {
                 const nomeDia = diasSemanaNomes[new Date(dia + 'T12:00:00').getDay()];
                 const dataF = dia.split('-').slice(0, 2).reverse().join('/');
-                
                 const tarefasDoDia = tarefasPorTag[tag][dia];
                 
-                if (tarefasDoDia.length > 0) {
-                    const tarefa1 = tarefasDoDia[0];
-                    const tarefasRestantes = tarefasDoDia.slice(1);
+                // Título do Dia
+                htmlPdf += `<h3 style="font-size: 16px; font-weight: 900; color: #1e293b; margin: 20px 0 15px 0;">${nomeDia} (${dataF})</h3>`;
 
-                    // ESTRATÉGIA SUPERCOLA: Título do dia preso com a Primeira Tarefa
+                tarefasDoDia.forEach(t => {
+                    // O TRUQUE INLINE-BLOCK PARA BLINDAR CONTRA A GUILHOTINA
                     htmlPdf += `
-                    <div style="page-break-inside: avoid; margin-bottom: 25px;">
-                        <h3 style="font-size: 16px; font-weight: 900; color: #1e293b; margin: 0 0 15px 0;">${nomeDia} (${dataF})</h3>
-                        ${renderizarTarefaDetalhe(tarefa1)}
+                    <div style="display: inline-block; width: 100%; page-break-inside: avoid; margin-bottom: 25px;">
+                        ${renderizarTarefaDetalhe(t)}
                     </div>`;
-
-                    // Renderiza as outras tarefas separadamente, também blindadas
-                    tarefasRestantes.forEach(t => {
-                        htmlPdf += `
-                        <div style="page-break-inside: avoid; margin-bottom: 25px;">
-                            ${renderizarTarefaDetalhe(t)}
-                        </div>`;
-                    });
-                }
+                });
             });
-
-            htmlPdf += `</div>`; // Fim da div principal da tag
+            htmlPdf += `</div>`;
         });
 
         relatorioTemp.innerHTML = htmlPdf;
 
         const nomeArquivoBase = `Relatorio_${categoriaDoPDF}_${periodoNomeArquivo}`;
         const opcoes = { 
-            margin: [15, 10, 25, 10], // Margem inferior de 25mm para respeitar o rodapé sem esmagar
+            margin: [15, 10, 25, 10], 
             filename: `${nomeArquivoBase}.pdf`,
             image: { type: 'jpeg', quality: 0.98 }, 
             html2canvas: { scale: 2, useCORS: true, logging: false }, 
