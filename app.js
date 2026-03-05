@@ -984,21 +984,26 @@ window.cancelarNovaTarefa = () => {
 
 
 
-// Funções de Controle dos Pop-ups
-function abrirModal(id) {
+// Função para abrir qualquer modal pelo ID
+window.abrirModal = (id) => {
     const modal = document.getElementById(id);
     if (modal) {
         modal.classList.remove('escondido');
-        // Se for o de tarefa, foca no input para digitar rápido
-        if (id === 'modalTarefa') document.getElementById('descTask').focus();
+        console.log("Abrindo modal:", id);
+        // Foca no input se for o de tarefa
+        if (id === 'modalTarefa') {
+            setTimeout(() => document.getElementById('descTask').focus(), 100);
+        }
+    } else {
+        console.error("Modal não encontrado:", id);
     }
-}
+};
 
-function fecharModal(id) {
+// Função para fechar
+window.fecharModal = (id) => {
     const modal = document.getElementById(id);
     if (modal) modal.classList.add('escondido');
-}
-
+};
 // Otimização: Fecha o modal automaticamente após salvar
 
 window.salvarNovaTarefa = async () => {
