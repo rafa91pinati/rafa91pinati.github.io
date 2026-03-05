@@ -142,26 +142,26 @@
 </div>
 
 
-    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%; cursor: pointer;">
-            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
-                <div class="icone-quadrado"></div> ATIVIDADES
-            </span>
-            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
-        </div>
-        
-        <div style="display: flex; gap: 8px;">
-            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📊 Gráfico
-            </button>
-            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📄 PDF
-            </button>
-        </div>
-    </div>
-
-    <div id="listaTarefas">
-        </div>
+    <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
+        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; height: 100%;">
+            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
+                <div class="icone-quadrado"></div> ATIVIDADES
+            </span>
+            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
+        </div>
+        
+        <div style="display: flex; gap: 8px;">
+            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                📊 Gráfico
+            </button>
+            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                📄 PDF
+            </button>
+        </div>
+    </div>
+    
+    <div id="listaTarefas">Carregando atividades...</div>
+</div> 
 
 </div> 
 
@@ -522,9 +522,12 @@
 <div id="modalCronograma" class="modal" style="display: none; align-items: flex-start; padding-top: 40px; overflow-y: auto;">
     <div class="modal-content" style="width: 95%; max-width: 600px; padding: 25px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-    ⏳ LINHA DO TEMPO 
-    <span id="cronoBadge" style="font-size: 0.7rem; background: #3b82f6; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;"></span>
+            <h2 style="margin: 0; color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+
+    ⏳ LINHA DO TEMPO 
+
+    <span id="cronoBadge" style="font-size: 0.7rem; background: #3b82f6; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;"></span>
+
 </h2>
             <div style="display: flex; gap: 12px; align-items: center;">
                 <button onclick="gerarPDFCronograma(event)" id="btnPdfCrono" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">📄 PDF</button>
