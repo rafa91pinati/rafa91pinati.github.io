@@ -57,11 +57,11 @@ body {
 }
 
 .modal-login {
-    position: fixed;
+    position: fixed !important;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: #f1f5f9 !important; /* Cor sólida para não ver o app atrás */
-    z-index: 99999 !important;
+    background: #f1f5f9 !important; /* Cor sólida para não vazar o app atrás */
+    z-index: 10000 !important; /* Acima de tudo */
     display: flex;
     align-items: center;
     justify-content: center;
