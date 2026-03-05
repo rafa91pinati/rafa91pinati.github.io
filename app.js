@@ -861,144 +861,75 @@ window.setarData = (tipo, el) => {
 
 };
 
-window.carregarTarefas = async () => {
-
-    if (!window.usuarioLogado) return; 
-
-    const lista = document.getElementById('listaTarefas');
-
-    const dataIni = document.getElementById('dataSeletor').value;
-
-    const dataFim = document.getElementById('dataFimFiltro').value;
-
-
-
-    try {
-
-        const meuEmail = window.usuarioLogado.email.toLowerCase();
-
-        const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
-
-        const snapTimes = await getDocs(qTimes);
-
-        let meusTimesIds = [];
-
-        snapTimes.forEach(d => meusTimesIds.push(d.id));
-
-
-
-        let tarefasBrutas = [];
-
-        const qPessoal = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid));
-
-        const snapPessoal = await getDocs(qPessoal);
-
-        snapPessoal.forEach(d => tarefasBrutas.push({ id: d.id, ...d.data() }));
-
-
-
-        if (meusTimesIds.length > 0) {
-
-            const lotes = [];
-
-            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
-
-            for (let lote of lotes) {
-
-                const qTime = query(collection(db, "tarefas"), where("timeId", "in", lote));
-
-                const snapTime = await getDocs(qTime);
-
-                snapTime.forEach(d => { if (!tarefasBrutas.some(t => t.id === d.id)) tarefasBrutas.push({ id: d.id, ...d.data() }); });
-
-            }
-
-        }
-
-
-
-        // --- LÓGICA DE FILTRAGEM CORRIGIDA ---
-
-        let tarefas = tarefasBrutas.filter(t => {
-
-            if (tipoFiltroTempo === 'tudo') return true;
-
-            if (tipoFiltroTempo === 'semana') return (window.arrayDiasSemana || []).includes(t.dataString);
-
-            if (dataIni && dataFim) return t.dataString >= dataIni && t.dataString <= dataFim;
-
-            if (dataIni && !dataFim) return t.dataString === dataIni;
-
-            return true;
-
-        });
-
-
-
-        tarefas.sort((a, b) => a.dataString.localeCompare(b.dataString) || (a.hora || "00:00").localeCompare(b.hora || "00:00"));
-
-
-
-        // Filtros de Categoria e Tag
-
-        if (categoriasAtivas.includes("Geral")) {
-
-            tarefas = tarefas.filter(t => t.categoria !== "Pessoal");
-
-        } else {
-
-            tarefas = tarefas.filter(t => categoriasAtivas.includes(t.categoria));
-
-        }
-
-        if (tagFiltroAtiva) tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
-
-
-
-        lista.innerHTML = "";
-
-        tarefas.forEach(t => {
-
-            const dataObj = new Date(t.dataString + 'T00:00:00');
-
-            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-
-            const corBorda = window.coresCategorias[t.categoria] || "#94a3b8";
-
-            
-
-            lista.innerHTML += `
-
-            <div class="tarefa-item" style="border-left: 6px solid ${corBorda}; padding: 12px 15px; margin-bottom: 12px; border-radius: 16px;">
-
-                <div class="tarefa-content" style="display: flex; align-items: center; gap: 15px;">
-
-                    <div class="dia-badge" style="min-width: 50px; text-align: center;">
-
-                        <span style="font-size: 1.8rem; font-weight: 900; display: block;">${dataObj.getDate()}</span>
-
-                        <span style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800;">${diasSemana[dataObj.getDay()]}</span>
-
-                    </div>
-
-                    <div style="flex: 1;">
-
-                        <div style="font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">🏷️ ${t.marcador || 'Geral'}</div>
-
-                        <div style="font-weight: 700; color: #1e293b;">${t.hora ? '<span style="color: #3b82f6;">'+t.hora+'</span> ' : ''}${t.descricao}</div>
-
-                    </div>
-
-                </div>
-
-            </div>`;
-
-        });
-
-        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
-
-    } catch (e) { console.error(e); }
-
+window.carregarTarefas = async () => {
+    if (!window.usuarioLogado) return; 
+    const lista = document.getElementById('listaTarefas');
+    const dataIni = document.getElementById('dataSeletor').value;
+    const dataFim = document.getElementById('dataFimFiltro').value;
+
+    try {
+        const meuEmail = window.usuarioLogado.email.toLowerCase();
+        const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
+        const snapTimes = await getDocs(qTimes);
+        let meusTimesIds = [];
+        snapTimes.forEach(d => meusTimesIds.push(d.id));
+
+        let tarefasBrutas = [];
+        const qPessoal = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid));
+        const snapPessoal = await getDocs(qPessoal);
+        snapPessoal.forEach(d => tarefasBrutas.push({ id: d.id, ...d.data() }));
+
+        if (meusTimesIds.length > 0) {
+            const lotes = [];
+            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
+            for (let lote of lotes) {
+                const qTime = query(collection(db, "tarefas"), where("timeId", "in", lote));
+                const snapTime = await getDocs(qTime);
+                snapTime.forEach(d => { if (!tarefasBrutas.some(t => t.id === d.id)) tarefasBrutas.push({ id: d.id, ...d.data() }); });
+            }
+        }
+
+        // --- FILTRAGEM DE DATAS ---
+        let tarefas = tarefasBrutas.filter(t => {
+            if (tipoFiltroTempo === 'tudo') return true;
+            if (tipoFiltroTempo === 'semana') return (window.arrayDiasSemana || []).includes(t.dataString);
+            if (dataIni && dataFim) return t.dataString >= dataIni && t.dataString <= dataFim;
+            if (dataIni && !dataFim) return t.dataString === dataIni;
+            return true;
+        });
+
+        tarefas.sort((a, b) => a.dataString.localeCompare(b.dataString) || (a.hora || "00:00").localeCompare(b.hora || "00:00"));
+
+        if (categoriasAtivas.includes("Geral")) {
+            tarefas = tarefas.filter(t => t.categoria !== "Pessoal");
+        } else {
+            tarefas = tarefas.filter(t => categoriasAtivas.includes(t.categoria));
+        }
+        if (tagFiltroAtiva) tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
+
+        lista.innerHTML = "";
+        tarefas.forEach(t => {
+            const dataObj = new Date(t.dataString + 'T00:00:00');
+            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+            const corBorda = window.coresCategorias[t.categoria] || "#94a3b8";
+            const fotosStringSegura = JSON.stringify(t.fotos || []).split('"').join('&quot;');
+            
+            lista.innerHTML += `
+            <div class="tarefa-item" style="border-left: 6px solid ${corBorda}; margin-bottom: 12px; border-radius: 16px;">
+                <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${fotosStringSegura})" style="display: flex; align-items: center; gap: 15px;">
+                    <div class="dia-badge" style="min-width: 50px; text-align: center;">
+                        <span style="font-size: 1.8rem; font-weight: 900; display: block;">${dataObj.getDate()}</span>
+                        <span style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800;">${diasSemana[dataObj.getDay()]}</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 0.65rem; font-weight: bold; margin-bottom: 4px;">🏷️ ${t.marcador || 'Geral'}</div>
+                        <div style="font-weight: 700;">${t.hora ? '<span style="color: #3b82f6;">'+t.hora+'</span> ' : ''}${t.descricao}</div>
+                    </div>
+                </div>
+            </div>`;
+        });
+        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
+    } catch (e) { console.error(e); }
 }; 
 
 window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao == id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
