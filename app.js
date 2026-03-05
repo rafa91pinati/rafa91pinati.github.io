@@ -1799,7 +1799,7 @@ window.abrirCronogramaVisual = async (evento) => {
 
     if (!window.usuarioLogado) return alert("Faça login primeiro!");
 
-    
+     
 
     // Validação de categoria única para o gráfico
 
