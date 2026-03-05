@@ -992,7 +992,22 @@ window.renderizarFotosEdicao = () => {
     if(!container) return;
     container.innerHTML = fotosTemporarias.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="event.stopPropagation(); removerFotoTemporaria(${idx});">×</button></div>`).join('');
 };
-window.adicionarFotosEdicao = (input) => { Array.from(input.files).forEach(file => { if (fotosTemporarias.length >= 4) return; const r = new FileReader(); r.onloadend = () => { fotosTemporarias.push(r.result); renderizarFotosEdicao(); }; r.readAsDataURL(file); }); input.value = ""; };
+window.adicionarFotosEdicao = (input) => {
+    const arquivos = Array.from(input.files);
+    
+    arquivos.forEach(file => {
+        if (fotosTemporarias.length >= 4) return alert("Máximo de 4 fotos por tarefa!");
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            // Adiciona a base64 na lista temporária para o preview
+            fotosTemporarias.push(reader.result);
+            window.renderizarFotosEdicao();
+        };
+        reader.readAsDataURL(file);
+    });
+    input.value = ""; // Limpa o input para permitir selecionar a mesma foto de novo
+};
 
 window.salvarAlteracoes = async (id) => { 
     const btnSalvar = document.querySelector('.btn-salvar-azul');
