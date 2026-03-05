@@ -325,7 +325,7 @@ window.renderizarCategoriasNoFiltro = () => {
     container.appendChild(separadorOutras);
 
     const btnOutras = document.createElement('button');
-    btnOutras.innerText = "Outras...";
+    btnOutras.innerText = "mais";
     btnOutras.style.cssText = "background: transparent; color: #64748b; border: none; font-weight: 900; font-size: 0.7rem; padding: 4px 8px; cursor: pointer; white-space: nowrap;";
     btnOutras.onclick = () => window.abrirOutrasCategorias();
     container.appendChild(btnOutras);
