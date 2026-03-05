@@ -526,47 +526,64 @@ body {
 
 /* BORDAS DO BOTÃO INFERIOR CORRIGIDAS E CHAVE FECHADA */
 
-.barra-acoes-rapidas {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(10px);
-    border-radius: 24px;
-    margin-top: 20px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.btn-acao-modal {
-    flex: 1;
-    background: white !important;
-    border: 1px solid rgba(0,0,0,0.05) !important;
-    border-radius: 16px !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    cursor: pointer;
-    padding: 12px 5px !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    transition: 0.2s;
-}
-
-.tarefa-item {
-    background: white;
-    margin-bottom: 20px !important; /* Espaço aumentado entre as tarefas */
-    padding: 18px !important; /* Padding interno mais confortável */
-    border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+.barra-acoes-rapidas {
+    display: flex !important;
+    flex-direction: row !important; /* Garante que fiquem lado a lado */
+    justify-content: space-evenly !important; /* Distribui o espaço por igual */
+    align-items: center !important;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    margin-top: 20px;
+    width: 100%;
+    box-sizing: border-box; /* Impede que a barra "vaze" da tela */
+}
+
+.btn-acao-modal {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 15px;
-    border: 1px solid rgba(0,0,0,0.02);
+    gap: 6px;
+    cursor: pointer;
+    padding: 0 !important;
+    flex: 1; /* Faz cada botão ocupar o mesmo espaço proporcional */
+}
+
+.btn-acao-modal .icon {
+    font-size: 1.2rem;
+}
+
+.btn-acao-modal .label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.tarefa-item {
+
+    background: white;
+
+    margin-bottom: 20px !important; /* Espaço aumentado entre as tarefas */
+
+    padding: 18px !important; /* Padding interno mais confortável */
+
+    border-radius: 16px;
+
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    border: 1px solid rgba(0,0,0,0.02);
+
 }
 
 .modal-card {
