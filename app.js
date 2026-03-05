@@ -968,6 +968,51 @@ window.carregarTimes = async () => {
     }
 };
 
+window.criarTime = async () => {
+    // Pergunta o nome do time para o usuário
+    const nomeTime = prompt("Digite o nome da nova equipe/time:");
+    
+    // Se o usuário clicar em "Cancelar" ou não digitar nada, a função para aqui
+    if (!nomeTime || nomeTime.trim() === "") {
+        return; 
+    }
+
+    try {
+        // Criando a estrutura comercial no Firestore
+        const novoTimeData = {
+            nome: nomeTime.trim(),
+            criadoEm: serverTimestamp(), // Hora exata do Google
+            criadorUid: window.usuarioLogado.uid,
+            
+            // Arrays para facilitar a montagem do layout na tela
+            membros: [{ 
+                email: window.usuarioLogado.email, 
+                nivel: "Dono" 
+            }],
+            membrosEmails: [window.usuarioLogado.email],
+            
+            // O NOSSO DICIONÁRIO DE SEGURANÇA (Para o Firebase bloquear invasores)
+            cargos: {
+                [window.usuarioLogado.email]: "Dono"
+            }
+        };
+
+        // Salva na coleção 'times' gerando um ID automático
+        await addDoc(collection(db, "times"), novoTimeData);
+
+        alert(`Time "${nomeTime}" criado com sucesso!`);
+        
+        // Atualiza a tela imediatamente para mostrar o novo time
+        if (typeof window.carregarTimes === 'function') {
+            window.carregarTimes();
+        }
+
+    } catch (e) {
+        console.error("Erro ao criar time:", e);
+        alert("Erro ao criar o time. Verifique o console.");
+    }
+};
+
 window.excluirTime = async (id) => {
     if(confirm("Tem certeza que deseja apagar este time? Isso afetará todos os membros.")) { 
         await deleteDoc(doc(db, "times", id)); 
@@ -975,66 +1020,184 @@ window.excluirTime = async (id) => {
     } 
 };
 
-
-window.adicionarMembro = async (evento, timeId) => {
-    const emailInput = document.getElementById(`email-membro-${timeId}`);
-    const nivelSelect = document.getElementById(`nivel-membro-${timeId}`);
-    const emailNovo = emailInput.value.trim().toLowerCase();
-    const nivelNovo = nivelSelect.value;
-
-    if (!emailNovo) return alert("Digite o e-mail do membro!");
-    if (emailNovo == window.usuarioLogado.email) return alert("Você já é o dono do time!");
-
-    const btn = evento.currentTarget;
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = "⏳..."; btn.disabled = true;
-
-    try {
-        const timeRef = doc(db, "times", timeId);
-        const timeSnap = await getDoc(timeRef);
-
-        if (timeSnap.exists()) {
-            let timeData = timeSnap.data();
-            
-            // Mantemos as suas arrays para o layout funcionar perfeitamente
-            let membrosAtuais = timeData.membros || [];
-            let membrosEmailsAtuais = timeData.membrosEmails || [window.usuarioLogado.email];
-            
-            // NOVIDADE COMERCIAL: O dicionário de cargos para a segurança do Firebase
-            let cargos = timeData.cargos || {}; 
-            // Garante que o criador esteja registrado como Dono por segurança
-            cargos[window.usuarioLogado.email] = cargos[window.usuarioLogado.email] || "Dono";
-
-            if (membrosEmailsAtuais.includes(emailNovo)) {
-                alert("Este e-mail já está no time!");
-                btn.innerHTML = textoOriginal; btn.disabled = false;
-                return;
-            }
-
-            // Atualiza as listas do layout
-            membrosAtuais.push({ email: emailNovo, nivel: nivelNovo });
-            membrosEmailsAtuais.push(emailNovo); 
-            
-            // Registra o nível do novo usuário no dicionário de segurança
-            cargos[emailNovo] = nivelNovo; 
-            
-            // Salva tudo no Firestore
-            await updateDoc(timeRef, { 
-                membros: membrosAtuais, 
-                membrosEmails: membrosEmailsAtuais,
-                cargos: cargos // Salvando o novo mapa
-            });
-
-            emailInput.value = "";
-            if (typeof window.carregarTimes === 'function') window.carregarTimes(); 
-        }
-    } catch (e) {
-        console.error("Erro ao adicionar membro:", e);
-        alert("Erro ao adicionar membro.");
-    } finally {
-        btn.innerHTML = textoOriginal; btn.disabled = false;
-    }
-};
+
+
+window.adicionarMembro = async (evento, timeId) => {
+
+
+    const emailInput = document.getElementById(`email-membro-${timeId}`);
+
+
+    const nivelSelect = document.getElementById(`nivel-membro-${timeId}`);
+
+
+    const emailNovo = emailInput.value.trim().toLowerCase();
+
+
+    const nivelNovo = nivelSelect.value;
+
+
+
+
+
+    if (!emailNovo) return alert("Digite o e-mail do membro!");
+
+
+    if (emailNovo == window.usuarioLogado.email) return alert("Você já é o dono do time!");
+
+
+
+
+
+    const btn = evento.currentTarget;
+
+
+    const textoOriginal = btn.innerHTML;
+
+
+    btn.innerHTML = "⏳..."; btn.disabled = true;
+
+
+
+
+
+    try {
+
+
+        const timeRef = doc(db, "times", timeId);
+
+
+        const timeSnap = await getDoc(timeRef);
+
+
+
+
+
+        if (timeSnap.exists()) {
+
+
+            let timeData = timeSnap.data();
+
+
+            
+
+
+            // Mantemos as suas arrays para o layout funcionar perfeitamente
+
+
+            let membrosAtuais = timeData.membros || [];
+
+
+            let membrosEmailsAtuais = timeData.membrosEmails || [window.usuarioLogado.email];
+
+
+            
+
+
+            // NOVIDADE COMERCIAL: O dicionário de cargos para a segurança do Firebase
+
+
+            let cargos = timeData.cargos || {}; 
+
+
+            // Garante que o criador esteja registrado como Dono por segurança
+
+
+            cargos[window.usuarioLogado.email] = cargos[window.usuarioLogado.email] || "Dono";
+
+
+
+
+
+            if (membrosEmailsAtuais.includes(emailNovo)) {
+
+
+                alert("Este e-mail já está no time!");
+
+
+                btn.innerHTML = textoOriginal; btn.disabled = false;
+
+
+                return;
+
+
+            }
+
+
+
+
+
+            // Atualiza as listas do layout
+
+
+            membrosAtuais.push({ email: emailNovo, nivel: nivelNovo });
+
+
+            membrosEmailsAtuais.push(emailNovo); 
+
+
+            
+
+
+            // Registra o nível do novo usuário no dicionário de segurança
+
+
+            cargos[emailNovo] = nivelNovo; 
+
+
+            
+
+
+            // Salva tudo no Firestore
+
+
+            await updateDoc(timeRef, { 
+
+
+                membros: membrosAtuais, 
+
+
+                membrosEmails: membrosEmailsAtuais,
+
+
+                cargos: cargos // Salvando o novo mapa
+
+
+            });
+
+
+
+
+
+            emailInput.value = "";
+
+
+            if (typeof window.carregarTimes === 'function') window.carregarTimes(); 
+
+
+        }
+
+
+    } catch (e) {
+
+
+        console.error("Erro ao adicionar membro:", e);
+
+
+        alert("Erro ao adicionar membro.");
+
+
+    } finally {
+
+
+        btn.innerHTML = textoOriginal; btn.disabled = false;
+
+
+    }
+
+
+};
+
 
 
 window.removerMembro = async (timeId, emailRemover) => {
