@@ -104,10 +104,19 @@ window.onload = function() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
             for (let registration of registrations) {
-                // Força a busca por atualizações no servidor do GitHub
-                registration.update(); 
+                registration.update();
                 
-                // Se houver um novo worker esperando, ele assume o controle imediatamente
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            if (confirm("Nova versão do Life Sync disponível! Atualizar agora?")) {
+                                window.location.reload();
+                            }
+                        }
+                    };
+                };
+
                 if (registration.waiting) {
                     registration.waiting.postMessage({ type: 'SKIP_WAITING' });
                     window.location.reload();
@@ -116,14 +125,13 @@ window.onload = function() {
         });
     }
     marcarComoAtualizado();
-};
-
-
-
-
-// VARIÁVEIS GLOBAIS
-window.coresCategorias = { "Geral": "#94a3b8" }; 
-window.logosCategorias = {}; 
+};
+
+window.marcarComoAtualizado = () => {
+    const versaoAtual = "4.3.7"; 
+    localStorage.setItem('lifeSync_ultima_versao', versaoAtual);
+    console.log("Life Sync sincronizado na versão: " + versaoAtual);
+}; 
 window.todasAsCategorias = []; // NOVA: Para o modal de Outras... acessar
 let categoriasAtivas = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
 let idEmEdicao = null;
