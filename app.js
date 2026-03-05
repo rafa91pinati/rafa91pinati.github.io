@@ -936,6 +936,8 @@ window.carregarTarefas = async () => {
         }
         if (tagFiltroAtiva) tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
 
+window.tarefasMonitoramento = tarefas;
+
         lista.innerHTML = "";
         tarefas.forEach(t => {
             const dataObj = new Date(t.dataString + 'T00:00:00');
