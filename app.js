@@ -199,65 +199,78 @@ window.fileToBase64 = (file) => new Promise((resolve, reject) => {
     reader.onerror = error => reject(error);
 });
 
-window.carregarCategorias = async () => {
-    const c = document.getElementById('listaCategorias');
-    if (!window.usuarioLogado) return;
-
-    try {
-        const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
-        let meusTimesIds = [];
-
-        if (meuEmail) {
-            const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
-            const snapTimes = await getDocs(qTimes);
-            snapTimes.forEach(d => meusTimesIds.push(d.id));
-        }
-
-        const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
-        const snapCatPessoal = await getDocs(qCatPessoal);
-
-        let categoriasUnicas = new Map();
-        snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
-
-        if (meusTimesIds.length > 0) {
-            const lotes = [];
-            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
-            for (let lote of lotes) {
-                const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
-                const snapCatTime = await getDocs(qCatTime);
-                snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
-            }
-        }
-
-        let categoriasAtivasIniciais = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
-        const taGeralAtiva = categoriasAtivasIniciais.includes("Geral");
-        const corGeral = taGeralAtiva ? "#94a3b8" : "rgba(255,255,255,0.05)";
-        const textoGeral = taGeralAtiva ? "white" : "#cbd5e1";
-        
-        let htmlTabs = `<div class="category-tab" data-nome="Geral" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8')">Geral</div>`;
-
-        categoriasUnicas.forEach((cat, id) => {
-            window.coresCategorias[cat.nome] = cat.cor;
-            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
-            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
-
-            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
-            const corFundo = taAtiva ? cat.cor : "rgba(255,255,255,0.05)";
-            const corTexto = taAtiva ? "white" : "#cbd5e1";
-            const iconeTime = cat.timeId ? "👥 " : "";
-
-            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${iconeTime}${cat.nome}</div>`;
-        });
-
-        c.innerHTML = htmlTabs;
-        
-        await carregarTarefas();
-        carregarArquivosFixos();
-        carregarFinanceiro();
-    } catch (e) {
-        console.error("Erro nas categorias:", e);
-        c.innerHTML = "<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>Erro ao carregar categorias.</span>";
-    }
+window.carregarCategorias = async () => {
+    const c = document.getElementById('listaCategorias');
+    if (!window.usuarioLogado) return;
+
+    try {
+        const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
+        let meusTimesIds = [];
+
+        if (meuEmail) {
+            const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
+            const snapTimes = await getDocs(qTimes);
+            snapTimes.forEach(d => meusTimesIds.push(d.id));
+        }
+
+        const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
+        const snapCatPessoal = await getDocs(qCatPessoal);
+
+        let categoriasUnicas = new Map();
+        snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
+
+        if (meusTimesIds.length > 0) {
+            const lotes = [];
+            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
+            for (let lote of lotes) {
+                const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
+                const snapCatTime = await getDocs(qCatTime);
+                snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
+            }
+        }
+
+        // --- LÓGICA DE ORDENAÇÃO POR CLIQUE ---
+        let ordemCliques = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
+        let arrayCategorias = Array.from(categoriasUnicas.values());
+
+        arrayCategorias.sort((a, b) => {
+            let idxA = ordemCliques.indexOf(a.nome);
+            let idxB = ordemCliques.indexOf(b.nome);
+            // Se não foi clicado ainda, vai para o final
+            if (idxA === -1) idxA = 999;
+            if (idxB === -1) idxB = 999;
+            return idxA - idxB;
+        });
+
+        let categoriasAtivasIniciais = JSON.parse(localStorage.getItem('categoriasAgendaAtivas')) || ["Geral"];
+        const taGeralAtiva = categoriasAtivasIniciais.includes("Geral");
+        const corGeral = taGeralAtiva ? "#94a3b8" : "rgba(255,255,255,0.05)";
+        const textoGeral = taGeralAtiva ? "white" : "#cbd5e1";
+        
+        let htmlTabs = `<div class="category-tab" data-nome="Geral" style="background-color: ${corGeral}; color: ${textoGeral};" onclick="selecionarCat('Geral', '#94a3b8')">Geral</div>`;
+
+        arrayCategorias.forEach((cat) => {
+            window.coresCategorias[cat.nome] = cat.cor;
+            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
+            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
+
+            const taAtiva = categoriasAtivasIniciais.includes(cat.nome);
+            const corFundo = taAtiva ? cat.cor : "rgba(255,255,255,0.05)";
+            const corTexto = taAtiva ? "white" : "#cbd5e1";
+            const iconeTime = cat.timeId ? "👥 " : "";
+
+            htmlTabs += `<div class="category-tab" data-nome="${cat.nome}" style="background-color: ${corFundo}; color: ${corTexto};" onclick="selecionarCat('${cat.nome}', '${cat.cor}')">${iconeTime}${cat.nome}</div>`;
+        });
+
+        c.innerHTML = htmlTabs;
+        
+        await carregarTarefas();
+        carregarArquivosFixos();
+        carregarFinanceiro();
+    } catch (e) {
+        console.error("Erro nas categorias:", e);
+        c.innerHTML = "<span style='color: #ef4444; padding: 10px; font-size: 0.85rem; font-weight: bold;'>Erro ao carregar categorias.</span>";
+    }
 };
 
 window.selecionarCat = (nome, cor) => {
@@ -755,129 +768,252 @@ window.setarData = (tipo, el) => {
 
 };
 
-window.carregarTarefas = async () => {
-    if (!window.usuarioLogado) return; 
-    const lista = document.getElementById('listaTarefas');
-    const dataDeFiltroIni = document.getElementById('dataSeletor').value;
-    const dataDeFiltroFim = document.getElementById('dataFimFiltro').value;
-
-    try {
-        const meuEmail = window.usuarioLogado.email.toLowerCase();
-        const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
-        const snapTimes = await getDocs(qTimes);
-        let meusTimesIds = [];
-        snapTimes.forEach(d => meusTimesIds.push(d.id));
-
-        let tarefasBrutas = [];
-
-        // Busca Pessoal
-        const qPessoal = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid));
-        const snapPessoal = await getDocs(qPessoal);
-        snapPessoal.forEach(d => tarefasBrutas.push({ id: d.id, ...d.data() }));
-
-        // Busca Times
-        if (meusTimesIds.length > 0) {
-            const lotes = [];
-            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
-            for (let lote of lotes) {
-                const qTime = query(collection(db, "tarefas"), where("timeId", "in", lote));
-                const snapTime = await getDocs(qTime);
-                snapTime.forEach(d => {
-                    if (!tarefasBrutas.some(t => t.id === d.id)) tarefasBrutas.push({ id: d.id, ...d.data() });
-                });
-            }
-        }
-
-        // --- NOVA LÓGICA DE FILTRAGEM ---
-        let tarefas = tarefasBrutas.filter(t => {
-            if (tipoFiltroTempo === 'tudo') return true;
-            if (tipoFiltroTempo === 'semana') return window.arrayDiasSemana.includes(t.dataString);
-            
-            // Se houver Data Início e Data Fim (Período ou Mês)
-            if (dataDeFiltroIni && dataDeFiltroFim) {
-                return t.dataString >= dataDeFiltroIni && t.dataString <= dataDeFiltroFim;
-            }
-            
-            // Se houver apenas Data Início (Hoje, Amanhã ou Escolha Única)
-            if (dataDeFiltroIni && !dataDeFiltroFim) {
-                return t.dataString === dataDeFiltroIni;
-            }
-
-            return true;
-        });
-
-        window.tarefasMonitoramento = tarefas;
-
-        tarefas.sort((a, b) => { 
-            if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); 
-            return a.dataString.localeCompare(b.dataString); 
-        });
-
-        // Filtro por Categoria e Marcador
-        if (categoriasAtivas.includes("Geral")) {
-            tarefas = tarefas.filter(t => t.categoria !== "Pessoal");
-        } else {
-            tarefas = tarefas.filter(t => categoriasAtivas.includes(t.categoria));
-        }
-        
-        if (tagFiltroAtiva !== "") tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
-
-        lista.innerHTML = "";
-        tarefas.forEach(t => {
-            const isEditando = idEmEdicao === t.id; 
-            const listaFotos = t.fotos || [];
-            const dataObj = new Date(t.dataString + 'T00:00:00'); 
-            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-            const corDaBorda = window.coresCategorias[t.categoria] || "#94a3b8";
-            const fotosStringSegura = JSON.stringify(listaFotos).split('"').join('&quot;');
-
-            lista.innerHTML += `
-            <div class="tarefa-item" style="border-left-color: ${corDaBorda}; border-left-width: 6px; position: relative; overflow: hidden; padding: 12px 15px;">
-                <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${fotosStringSegura})" style="display: flex; align-items: center; gap: 15px; width: 100%;">
-                    <div class="dia-badge" style="min-width: 50px; text-align: center; border-right: 2px solid rgba(0,0,0,0.05); padding-right: 12px;">
-                        <span style="font-size: 1.8rem; font-weight: 900; color: #1e293b; line-height: 1; display: block;">${dataObj.getDate()}</span>
-                        <span style="font-size: 0.65rem; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 1px; display: block; margin-top: 4px;">${diasSemana[dataObj.getDay()]}</span>
-                    </div>
-                    <div class="tarefa-info" style="flex: 1; padding-right: 35px; display: flex; flex-direction: column; justify-content: center;">
-                        ${isEditando ? `
-                            <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
-                            <div id="container-fotos-edit-${t.id}" class="container-fotos"></div>
-                            <div class="area-edicao" onclick="event.stopPropagation()">
-                                <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}">
-                                <div class="btn-grupo-edicao-final">
-                                    <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('edit-foto-${t.id}').click()">📷 ARQUIVO</button>
-                                    <button class="btn-acao-edit btn-salvar-azul" onclick="salvarAlteracoes('${t.id}')">SALVAR</button>
-                                </div>
-                                <input type="file" id="edit-foto-${t.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
-                            </div>
-                        ` : `
-                            <div style="margin-bottom: 6px;">
-                                <span style="background: rgba(30, 41, 59, 0.7); color: #ffffff; padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">
-                                    🏷️ ${t.marcador || 'Geral'}
-                                </span>
-                            </div>
-                            <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem; line-height: 1.3;">
-                                ${t.hora ? '<span style="color: #3b82f6; font-weight: 900; margin-right: 5px;">' + t.hora + '</span>' : ''}${t.descricao}
-                            </div>
-                            <div class="container-fotos" style="margin-top: 8px;">
-                                ${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}
-                            </div>
-                        `}
-                    </div>
-                    ${!isEditando ? `
-                    <button title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: rgba(148, 163, 184, 0.25); border: none; color: #475569; width: 30px; height: 30px; border-radius: 8px; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.color='#ef4444';" onmouseout="this.style.background='rgba(148, 163, 184, 0.25)'; this.style.color='#475569';">
-                        ✕
-                    </button>
-                    ` : ''}
-                </div>
-            </div>`;
-            if(isEditando) renderizarFotosEdicao();
-        });
-        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
-    } catch (error) { 
-        console.error(error);
-        lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#ef4444;'>Erro ao carregar tarefas.</p>";
-    }
+window.carregarTarefas = async () => {
+
+    if (!window.usuarioLogado) return; 
+
+    const lista = document.getElementById('listaTarefas');
+
+    const dataDeFiltroIni = document.getElementById('dataSeletor').value;
+
+    const dataDeFiltroFim = document.getElementById('dataFimFiltro').value;
+
+
+
+    try {
+
+        const meuEmail = window.usuarioLogado.email.toLowerCase();
+
+        const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
+
+        const snapTimes = await getDocs(qTimes);
+
+        let meusTimesIds = [];
+
+        snapTimes.forEach(d => meusTimesIds.push(d.id));
+
+
+
+        let tarefasBrutas = [];
+
+
+
+        // Busca Pessoal
+
+        const qPessoal = query(collection(db, "tarefas"), where("uid", "==", window.usuarioLogado.uid));
+
+        const snapPessoal = await getDocs(qPessoal);
+
+        snapPessoal.forEach(d => tarefasBrutas.push({ id: d.id, ...d.data() }));
+
+
+
+        // Busca Times
+
+        if (meusTimesIds.length > 0) {
+
+            const lotes = [];
+
+            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
+
+            for (let lote of lotes) {
+
+                const qTime = query(collection(db, "tarefas"), where("timeId", "in", lote));
+
+                const snapTime = await getDocs(qTime);
+
+                snapTime.forEach(d => {
+
+                    if (!tarefasBrutas.some(t => t.id === d.id)) tarefasBrutas.push({ id: d.id, ...d.data() });
+
+                });
+
+            }
+
+        }
+
+
+
+        // --- NOVA LÓGICA DE FILTRAGEM ---
+
+        let tarefas = tarefasBrutas.filter(t => {
+
+            if (tipoFiltroTempo === 'tudo') return true;
+
+            if (tipoFiltroTempo === 'semana') return window.arrayDiasSemana.includes(t.dataString);
+
+            
+
+            // Se houver Data Início e Data Fim (Período ou Mês)
+
+            if (dataDeFiltroIni && dataDeFiltroFim) {
+
+                return t.dataString >= dataDeFiltroIni && t.dataString <= dataDeFiltroFim;
+
+            }
+
+            
+
+            // Se houver apenas Data Início (Hoje, Amanhã ou Escolha Única)
+
+            if (dataDeFiltroIni && !dataDeFiltroFim) {
+
+                return t.dataString === dataDeFiltroIni;
+
+            }
+
+
+
+            return true;
+
+        });
+
+
+
+        window.tarefasMonitoramento = tarefas;
+
+
+
+        tarefas.sort((a, b) => { 
+
+            if (a.dataString === b.dataString) return (a.hora || "00:00").localeCompare(b.hora || "00:00"); 
+
+            return a.dataString.localeCompare(b.dataString); 
+
+        });
+
+
+
+        // Filtro por Categoria e Marcador
+
+        if (categoriasAtivas.includes("Geral")) {
+
+            tarefas = tarefas.filter(t => t.categoria !== "Pessoal");
+
+        } else {
+
+            tarefas = tarefas.filter(t => categoriasAtivas.includes(t.categoria));
+
+        }
+
+        
+
+        if (tagFiltroAtiva !== "") tarefas = tarefas.filter(t => t.marcador === tagFiltroAtiva);
+
+
+
+        lista.innerHTML = "";
+
+        tarefas.forEach(t => {
+
+            const isEditando = idEmEdicao === t.id; 
+
+            const listaFotos = t.fotos || [];
+
+            const dataObj = new Date(t.dataString + 'T00:00:00'); 
+
+            const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+
+            const corDaBorda = window.coresCategorias[t.categoria] || "#94a3b8";
+
+            const fotosStringSegura = JSON.stringify(listaFotos).split('"').join('&quot;');
+
+
+
+            lista.innerHTML += `
+
+            <div class="tarefa-item" style="border-left-color: ${corDaBorda}; border-left-width: 6px; position: relative; overflow: hidden; padding: 12px 15px;">
+
+                <div class="tarefa-content" onclick="ativarEdicao('${t.id}', ${fotosStringSegura})" style="display: flex; align-items: center; gap: 15px; width: 100%;">
+
+                    <div class="dia-badge" style="min-width: 50px; text-align: center; border-right: 2px solid rgba(0,0,0,0.05); padding-right: 12px;">
+
+                        <span style="font-size: 1.8rem; font-weight: 900; color: #1e293b; line-height: 1; display: block;">${dataObj.getDate()}</span>
+
+                        <span style="font-size: 0.65rem; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 1px; display: block; margin-top: 4px;">${diasSemana[dataObj.getDay()]}</span>
+
+                    </div>
+
+                    <div class="tarefa-info" style="flex: 1; padding-right: 35px; display: flex; flex-direction: column; justify-content: center;">
+
+                        ${isEditando ? `
+
+                            <textarea id="edit-desc-${t.id}" onclick="event.stopPropagation()">${t.descricao}</textarea>
+
+                            <div id="container-fotos-edit-${t.id}" class="container-fotos"></div>
+
+                            <div class="area-edicao" onclick="event.stopPropagation()">
+
+                                <input type="time" id="edit-hora-${t.id}" value="${t.hora || ''}">
+
+                                <div class="btn-grupo-edicao-final">
+
+                                    <button class="btn-acao-edit btn-arquivo-azul" onclick="document.getElementById('edit-foto-${t.id}').click()">📷 ARQUIVO</button>
+
+                                    <button class="btn-acao-edit btn-salvar-azul" onclick="salvarAlteracoes('${t.id}')">SALVAR</button>
+
+                                </div>
+
+                                <input type="file" id="edit-foto-${t.id}" class="escondido" accept="image/*" multiple onchange="adicionarFotosEdicao(this)">
+
+                            </div>
+
+                        ` : `
+
+                            <div style="margin-bottom: 6px;">
+
+                                <span style="background: rgba(30, 41, 59, 0.7); color: #ffffff; padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">
+
+                                    🏷️ ${t.marcador || 'Geral'}
+
+                                </span>
+
+                            </div>
+
+                            <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem; line-height: 1.3;">
+
+                                ${t.hora ? '<span style="color: #3b82f6; font-weight: 900; margin-right: 5px;">' + t.hora + '</span>' : ''}${t.descricao}
+
+                            </div>
+
+                            <div class="container-fotos" style="margin-top: 8px;">
+
+                                ${listaFotos.map(img => `<img src="${img}" class="img-tarefa" onclick="event.stopPropagation(); abrirFoto('${img}')">`).join('')}
+
+                            </div>
+
+                        `}
+
+                    </div>
+
+                    ${!isEditando ? `
+
+                    <button title="Excluir tarefa" onclick="event.stopPropagation(); excluirTask('${t.id}')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: rgba(148, 163, 184, 0.25); border: none; color: #475569; width: 30px; height: 30px; border-radius: 8px; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.color='#ef4444';" onmouseout="this.style.background='rgba(148, 163, 184, 0.25)'; this.style.color='#475569';">
+
+                        ✕
+
+                    </button>
+
+                    ` : ''}
+
+                </div>
+
+            </div>`;
+
+            if(isEditando) renderizarFotosEdicao();
+
+        });
+
+        if(tarefas.length === 0) lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
+
+    } catch (error) { 
+
+        console.error(error);
+
+        lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#ef4444;'>Erro ao carregar tarefas.</p>";
+
+    }
+
 };
 
 window.ativarEdicao = (id, fotos) => { idEmEdicao = (idEmEdicao == id) ? null : id; fotosTemporarias = [...fotos]; carregarTarefas(); };
