@@ -989,8 +989,16 @@ window.ativarEdicao = (id, fotos) => {
 };
 window.renderizarFotosEdicao = () => {
     const container = document.getElementById(`container-fotos-edit-${idEmEdicao}`);
-    if(!container) return;
-    container.innerHTML = fotosTemporarias.map((img, idx) => `<div class="foto-wrapper"><img src="${img}" class="img-tarefa"><button class="btn-remover-foto" onclick="event.stopPropagation(); removerFotoTemporaria(${idx});">×</button></div>`).join('');
+    if (!container) return;
+
+    container.innerHTML = fotosTemporarias.map((img, idx) => `
+        <div class="foto-wrapper" style="position: relative; width: 60px; height: 60px;">
+            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+            <button class="btn-remover-foto" 
+                    onclick="event.stopPropagation(); window.removerFotoTemporaria(${idx});" 
+                    style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-weight: bold;">×</button>
+        </div>
+    `).join('');
 };
 window.adicionarFotosEdicao = (input) => {
     const arquivos = Array.from(input.files);
