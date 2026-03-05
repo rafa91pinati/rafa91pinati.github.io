@@ -25,13 +25,13 @@ body {
     display: flex; 
     flex-direction: column; 
     gap: 10px; 
-    margin-bottom: 20px; 
+    margin-bottom: 15px; 
     align-items: center; 
     width: 100%; 
     box-sizing: border-box; 
     background: rgba(255, 255, 255, 0.05); 
-    padding: 12px; /* Espaçamento igual em cima, baixo e lados */
-    border-radius: 18px;
+    padding: 12px; /* Respiro igual em cima e embaixo */
+    border-radius: 24px;
 }
 .btn-date.ativo { 
     background: linear-gradient(135deg, #64748b, #334155); 
