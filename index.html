@@ -299,13 +299,14 @@
         
 		
 		
-<div class="sessao-atividades-container">
-    <div class="header-atividades-slim" onclick="toggleSecao('listaTarefas', 'setaLista')">
-        <div class="atividades-info-esq">
-            <div class="mini-quadrado-branco"></div>
-            <span class="titulo-sessao">ATIVIDADES</span>
-            <span id="setaLista" class="seta-icone">▼</span>
-        </div>
+<div class="header-secao-atividades">
+    <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer;">
+        <span style="display: flex; align-items: center; gap: 10px;">
+            <div class="icone-quadrado-branco"></div> 
+            <strong style="color: white; font-size: 0.9rem; letter-spacing: 0.5px;">ATIVIDADES</strong>
+        </span>
+        <span id="setaLista" class="seta-atividades">▼</span>
+    </div>
 
 
 <div style="display: flex; gap: 8px;">
@@ -316,8 +317,8 @@
             📄 PDF
         </button>
     </div>
-        </div>
-    </div>
+       
+  
     
     <div id="listaTarefas">Carregando atividades...</div>
 </div> 
