@@ -970,7 +970,7 @@ window.carregarTimes = async () => {
 
 window.criarTime = async () => {
     // 1. PEGA O TEXTO DIRETO DO SEU LAYOUT (Lembre de colocar o ID correto aqui embaixo)
-    const inputNovoTime = document.getElementById("ID_DO_SEU_INPUT");
+    const inputNovoTime = document.getElementById("nomeNovoTime");
     const nomeTime = inputNovoTime.value;
     
     // Se o usuário clicar em "Criar" sem digitar nada, avisa ele e para
