@@ -35,7 +35,7 @@ async function buscarUltimaAtualizacaoGithub() {
         const horaFormatada = dataCommit.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
         // COLOQUE O TÍTULO AQUI DENTRO, ONDE A HORA EXISTE 👇
-       document.title = `Life Sync v4.8 (${horaFormatada})`;
+       document.title = `Life Sync v4.9 (${horaFormatada})`;
 
         const lbVersao = document.getElementById('label-versao');
         const lbData = document.getElementById('data-versao');
@@ -2429,7 +2429,7 @@ window.gerarRelatorioPDF = async (evento) => {
 
 
 
-    try {
+    try { 
 
         const pdfBlob = await html2pdf().set(opcoes).from(relatorioTemp).output('blob');
 
@@ -2455,13 +2455,13 @@ window.gerarRelatorioPDF = async (evento) => {
 
         });
 
-
+}
 
         alert("✅ Cronograma salvo com sucesso!");
 
         carregarArquivosFixos();
 
-    } catch (error) {
+     catch (error) {
 
         console.error(error);
 
