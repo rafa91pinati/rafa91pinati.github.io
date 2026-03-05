@@ -1094,25 +1094,53 @@ window.salvarNovaTarefa = async () => {
     try {
         const desc = document.getElementById('descTask').value;
         const hora = document.getElementById('horaTask').value;
-         
-        if (!desc || !window.usuarioLogado) return alert("Preencha a descrição!");
+        const dataInicioTexto = document.getElementById('dataSeletor').value;
+        const tipoRec = document.getElementById('tipoRecorrencia').value;
+        const dataFimInput = document.getElementById('dataFimRecorrencia').value;
+
+        if (!desc || !dataInicioTexto || !window.usuarioLogado) {
+            return alert("Preencha a descrição e a data de início!");
+        }
+
+        if (tipoRec !== 'nenhuma' && !dataFimInput) {
+            return alert("Para recorrência, selecione uma data final!");
+        }
 
         btn.innerHTML = "⌛ Salvando...";
         btn.disabled = true;
 
-        // ... sua lógica de gerar o array datasParaSalvar continua aqui ...
+        // --- LÓGICA DE GERAR O ARRAY DE DATAS ---
+        let datasParaSalvar = [];
+        let dataAtual = new Date(dataInicioTexto + 'T00:00:00');
+        datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
+
+        if (tipoRec !== 'nenhuma' && dataFimInput) {
+            const dataFim = new Date(dataFimInput + 'T23:59:59');
+            while (true) {
+                if (tipoRec === 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
+                else if (tipoRec === '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
+                else if (tipoRec === 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
+                else if (tipoRec === 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
+                
+                if (dataAtual > dataFim) break;
+                datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
+            }
+        }
+
+        // --- SALVAMENTO NO FIREBASE ---
+        const categoriaPrincipal = categoriasAtivas.includes("Geral") ? "Geral" : categoriasAtivas[0];
+        const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
 
         const promessas = datasParaSalvar.map(dataStr => {
-            // O RETURN agora está dentro do .map, onde ele é legal!
             return addDoc(collection(db, "tarefas"), { 
                 uid: window.usuarioLogado.uid, 
                 timeId: idDoTimeDaCategoria,
                 categoria: categoriaPrincipal,
                 descricao: desc, 
-                marcador: marcadorAtivo, 
+                marcador: marcadorAtivo || null, 
                 hora: hora, 
                 dataString: dataStr,
-                fotos: linksFotos || [],
+                fotos: window.linksFotosUpload || [],
                 criadoEm: new Date(),
                 alarmeAtivo: true,
                 alertaDisparado: false
@@ -1121,16 +1149,16 @@ window.salvarNovaTarefa = async () => {
 
         await Promise.all(promessas);
 
-        // Limpeza e fechamento
+        // --- FINALIZAÇÃO ---
         fecharModal('modalTarefa'); 
         if (typeof cancelarNovaTarefa === 'function') cancelarNovaTarefa();
         await carregarTarefas();
         
-        alert("Tarefa agendada com sucesso!");
+        alert(datasParaSalvar.length > 1 ? `${datasParaSalvar.length} tarefas agendadas!` : "Tarefa salva!");
 
     } catch (e) { 
-        console.error("Erro ao salvar:", e);
-        alert("Erro ao salvar."); 
+        console.error("Erro completo:", e);
+        alert("Erro ao salvar. Verifique o console."); 
     } finally { 
         btn.innerHTML = textoOriginal; 
         btn.disabled = false; 
