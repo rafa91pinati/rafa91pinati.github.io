@@ -93,11 +93,16 @@ const storage = getStorage(app);
 
 
 
-// Chamar uma vez ao carregar a página
-//window.onload = function() {
-  //  marcarComoAtualizado();
-    // Suas outras funções de carregamento aqui...
-//};
+window.onload = function() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.update();
+            }
+        });
+    }
+    marcarComoAtualizado();
+};
 
 
 // VARIÁVEIS GLOBAIS
