@@ -22,27 +22,16 @@ body {
 }
 
 .timeline-header { 
-
     display: flex; 
-
     flex-direction: column; 
-
     gap: 10px; 
-
     margin-bottom: 12px; 
-
     align-items: center; 
-
     width: 100%; 
-
     box-sizing: border-box; 
-
     background: rgba(255, 255, 255, 0.05); 
-
-    padding: 6px; /* Espaço igual em cima e embaixo */
-
+    padding: 6px !important; /* Use o !important para testar se ele força a mudança */
     border-radius: 24px;
-
 }
 .btn-date { 
     flex: 1; 
