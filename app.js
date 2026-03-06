@@ -74,7 +74,22 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const messaging = getMessaging(app);
 const storage = getStorage(app);
- 
+ // Este objeto define o padrão de cada cargo
+const DEFAULTS_PERMISSOES = {
+    "Dono": { tudo: true }, // Dono sempre pode tudo
+    "A": { 
+        escrever: true, editar: true, excluir: true, 
+        financeiro_ver: true, financeiro_edit: true, arquivos: true 
+    },
+    "B": { 
+        escrever: true, editar: true, excluir: false, 
+        financeiro_ver: true, financeiro_edit: false, arquivos: true 
+    },
+    "C": { 
+        escrever: false, editar: false, excluir: false, 
+        financeiro_ver: false, financeiro_edit: false, arquivos: true 
+    }
+};
 
 
 window.marcarComoAtualizado = () => {
