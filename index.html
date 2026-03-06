@@ -513,11 +513,16 @@
 
                 </button>
 				
-				<div class="tablink" onclick="abrirAba(event, 'abaHierarquia')" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 65px;">
-    <div style="background: rgba(255,255,255,0.08); width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
-        <i class="fas fa-sitemap" style="color: #6366f1; font-size: 1.1rem;"></i>
-    </div>
-    <span style="font-size: 0.6rem; font-weight: bold; color: #94a3b8; text-transform: uppercase;">Hierarquia</span>
+				<div class="tablink" onclick="abrirAba(event, 'abaHierarquia')" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 65px;">
+
+    <div style="background: rgba(255,255,255,0.08); width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
+
+        <i class="fas fa-sitemap" style="color: #6366f1; font-size: 1.1rem;"></i>
+
+    </div>
+
+    <span style="font-size: 0.6rem; font-weight: bold; color: #94a3b8; text-transform: uppercase;">Hierarquia</span>
+
 </div>
 
 </button>
@@ -664,8 +669,39 @@
 
                     <button onclick="criarTime()" style="background: linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:12px 20px; border-radius:12px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">Criar</button>
 
+
+
+                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
+
+
+
+                <label class="config-label" style="color: #3b82f6;">👑 Times que gerencio:</label>
+
+
+
+                <ul id="listaTimesModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+
+
+
+                
+
+
+
+                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
+
+
+
+                <label class="config-label" style="color: #10b981;">🤝 Times que pertenço:</label>
+
+
+
+                <ul id="listaTimesPertencoModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
+
+
+
+            </div>
                 </div>
-</div>
+
 
 <div id="abaHierarquia" class="tabcontent" style="display:none; padding: 15px;">
     <h4 style="color: white; margin-bottom: 15px;">Configurações de Nível</h4>
@@ -684,7 +720,12 @@
 
         </select>
 
-
+                <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer;">
+
+            💾 SALVAR HIERARQUIA
+
+        </button>
+		
 
         <div style="overflow-x: auto;">
 
@@ -714,40 +755,6 @@
 
 
 
-        <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer;">
-
-            💾 SALVAR HIERARQUIA
-
-        </button>
-
-    </div>
-
-</div>
-              
-
-                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
-
-                <label class="config-label" style="color: #3b82f6;">👑 Times que gerencio:</label>
-
-                <ul id="listaTimesModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-
-                
-
-                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
-
-                <label class="config-label" style="color: #10b981;">🤝 Times que pertenço:</label>
-
-                <ul id="listaTimesPertencoModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-
-            </div>
-
-
-
-        </div>
-
-    </div>
-
-</div>
 
 <div id="modalCronograma" class="modal-overlay escondido">
     <div class="modal-content" style="width: 95%; max-width: 600px; padding: 25px;">
