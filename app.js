@@ -210,6 +210,46 @@ window.usuarioLogado = null;
 window.tarefasMonitoramento = [];
 window.timesDasCategorias = {}; 
 
+
+
+window.filtrarERenderizar = () => {
+    const lista = document.getElementById('listaTarefas');
+    const dataIni = document.getElementById('dataSeletor').value;
+    const dataFim = document.getElementById('dataFimFiltro').value;
+    
+    if (!window.todasAsTarefasBrutas) return;
+
+    // FILTRAGEM EM MEMÓRIA (INSTANTÂNEA)
+    let filtradas = window.todasAsTarefasBrutas.filter(t => {
+        // Filtro de Categorias
+        const passaCategoria = window.categoriasAtivas.includes("Geral") ? t.categoria !== "Pessoal" : window.categoriasAtivas.includes(t.categoria);
+        
+        // Filtro de Datas
+        let passaData = true;
+        if (window.tipoFiltroTempo === 'semana') passaData = (window.arrayDiasSemana || []).includes(t.dataString);
+        else if (dataIni && dataFim) passaData = t.dataString >= dataIni && t.dataString <= dataFim;
+        else if (dataIni) passaData = t.dataString === dataIni;
+
+        // Filtro de Marcador (Tag)
+        const passaTag = window.tagFiltroAtiva ? t.marcador === window.tagFiltroAtiva : true;
+
+        return passaCategoria && passaData && passaTag;
+    });
+
+    // Ordenação
+    filtradas.sort((a, b) => a.dataString.localeCompare(b.dataString) || (a.hora || "00:00").localeCompare(b.hora || "00:00"));
+
+    // Renderiza o HTML (Usando a técnica de acumulador de string para performance)
+    let html = "";
+    filtradas.forEach(t => {
+        // ... (Aqui vai todo aquele seu bloco de HTML da tarefa-item que definimos antes) ...
+        // [O código de montagem do item que você já tem]
+    });
+
+    lista.innerHTML = html || "<p style='text-align:center; margin-top:20px; color:#94a3b8;'>Nenhuma atividade encontrada.</p>";
+};
+
+
 window.selecionarTag = (valor) => {
     tagFiltroAtiva = valor;
     carregarTarefas(); 
