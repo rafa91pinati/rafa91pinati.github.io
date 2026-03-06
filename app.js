@@ -213,6 +213,7 @@ window.timesDasCategorias = {};
 
 
 window.filtrarERenderizar = () => {
+	console.log("Renderizando...");
     const lista = document.getElementById('listaTarefas');
     const dataIni = document.getElementById('dataSeletor').value;
     const dataFim = document.getElementById('dataFimFiltro').value;

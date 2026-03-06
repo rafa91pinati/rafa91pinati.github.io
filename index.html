@@ -521,7 +521,7 @@
 
     </div>
 
-    <span style="font-size: 0.6rem; font-weight: bold; color: #94a3b8; text-transform: uppercase;">Hierarquia</span>
+    <span style="font-size: 0.6rem; font-weight: bold; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Hierarquia</span>
 
 </div>
 
@@ -673,23 +673,24 @@
 
 
 <div id="abaHierarquia" class="tabcontent" style="display:none; padding: 15px;">
-    <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px;">
-        <h4 style="color: white; margin-bottom: 10px;">Configurar Permissões (0-D-A-B-C)</h4>
+    <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1);">
+        <h4 style="color: white; margin-bottom: 15px; font-size: 0.9rem;">Configurações de Acesso</h4>
         
-        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-            <option value="">Selecione o Time...</option>
+        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold;">
+            <option value="">Selecione um Time...</option>
         </select>
 
-        <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.75rem;">
-            <thead>
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <th style="padding: 10px; text-align: left;">Nível</th>
-                    <th>✍️</th><th>🗑️</th><th>💰</th><th>👥</th>
-                </tr>
-            </thead>
-            <tbody id="corpoTabelaPermissoes">
-                </tbody>
-        </table>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.75rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <th style="padding: 10px; text-align: left;">Nível</th>
+                        <th>✍️</th><th>🗑️</th><th>💰</th><th>👥</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabelaPermissoes"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
