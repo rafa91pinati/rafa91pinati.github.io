@@ -4,6 +4,9 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 
+
+
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for(let registration of registrations) {
@@ -448,6 +451,7 @@ setInterval(() => {
 window.abrirConfig = () => {
 
     const modal = document.getElementById('modalConfiguracoes');
+	window.atualizarInterfaceDeTimes();
 
     if (modal) {
 
@@ -575,52 +579,57 @@ window.preencherSelectTimesPermissoes = () => {
 };
 
 
-
+// --- CARREGA E DESENHA A TABELA DE HIERARQUIA ---
 window.carregarConfiguracaoNiveis = async () => {
     const timeId = document.getElementById('selecionarTimePermissoes').value;
     const corpoTabela = document.getElementById('corpoTabelaPermissoes');
     
+    // Se não tiver time selecionado, limpa a tabela
     if (!timeId || !corpoTabela) {
-        corpoTabela.innerHTML = "";
+        if (corpoTabela) corpoTabela.innerHTML = "";
         return;
     }
 
     try {
-        // 1. Busca os dados frescos do time no Firestore
+        // Busca os dados do time selecionado no Firebase
         const docSnap = await getDoc(doc(db, "times", timeId));
         if (!docSnap.exists()) return;
         
         const dadosTime = docSnap.data();
-        // Se o time não tiver configPermissoes ainda, usa o nosso dicionário padrão
-        const config = dadosTime.configPermissoes || window.DEFAULTS_PERMISSOES;
+        
+        // Se o time já tiver permissões salvas, usa elas. Se não, usa o padrão.
+        const config = dadosTime.configPermissoes || window.DEFAULTS_PERMISSOES || {};
 
         const niveis = ['D', 'A', 'B', 'C'];
-        corpoTabela.innerHTML = "";
+        let htmlTabela = "";
 
-        // 2. Monta as linhas da tabela dinamicamente
+        // Para cada nível, cria uma linha na tabela com os IDs exatos que o botão Salvar precisa
         niveis.forEach(nv => {
             const p = config[nv] || { escreverAtividade: false, excluirAtividade: false, financeiro: false, gerenciarEquipe: false };
             
-            const tr = document.createElement('tr');
-            tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-            
-            tr.innerHTML = `
-                <td style="padding: 12px; font-weight: bold; color: #94a3b8;">Nível ${nv}</td>
-                <td style="text-align:center;"><input type="checkbox" id="check-escrever-${nv}" ${p.escreverAtividade ? 'checked' : ''}></td>
-                <td style="text-align:center;"><input type="checkbox" id="check-excluir-${nv}" ${p.excluirAtividade ? 'checked' : ''}></td>
-                <td style="text-align:center;"><input type="checkbox" id="check-financeiro-${nv}" ${p.financeiro ? 'checked' : ''}></td>
-                <td style="text-align:center;"><input type="checkbox" id="check-membros-${nv}" ${p.gerenciarEquipe ? 'checked' : ''}></td>
+            htmlTabela += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 15px 10px; font-weight: bold; color: #cbd5e1; text-align: left;">Nível ${nv}</td>
+                    
+                    <td><input type="checkbox" id="check-escrever-${nv}" ${p.escreverAtividade ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                    
+                    <td><input type="checkbox" id="check-excluir-${nv}" ${p.excluirAtividade ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                    
+                    <td><input type="checkbox" id="check-financeiro-${nv}" ${p.financeiro ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                    
+                    <td><input type="checkbox" id="check-membros-${nv}" ${p.gerenciarEquipe ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                </tr>
             `;
-            corpoTabela.appendChild(tr);
         });
+
+        // Injeta o HTML pronto na tela
+        corpoTabela.innerHTML = htmlTabela;
 
     } catch (e) {
         console.error("Erro ao carregar níveis:", e);
-        alert("Erro ao acessar as configurações do time.");
+        alert("Erro ao ler as configurações deste time. Verifique sua conexão e regras do Firebase.");
     }
 };
-
-
 
 window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
 window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
@@ -720,19 +729,26 @@ window.carregarCategorias = async () => {
 
         // SALVA GLOBALMENTE PARA O NOVO RENDERIZADOR USAR
 window.prepararEdicaoCategoria = (id) => {
+    // Acha a categoria na sua lista global
     const cat = window.todasAsCategorias.find(c => c.id === id);
     if (!cat) return;
 
+    // Sobe os dados para os campos de input
     document.getElementById('novaCategoria').value = cat.nome;
     document.getElementById('corNovaCategoria').value = cat.cor || "#3b82f6";
     document.getElementById('timeNovaCategoria').value = cat.timeId || "";
     
-    // Transforma o botão "+" em um botão de "Salvar Edição"
-    const btnAdd = document.querySelector("button[onclick='adicionarCategoria()']");
-    btnAdd.innerHTML = "💾";
-    btnAdd.onclick = () => window.salvarEdicaoCategoria(id);
-    
-    alert("Agora altere a cor ou a logo acima e clique no disquete para salvar!");
+    // Procura o botão de "+" e transforma ele no disquete de Salvar (💾)
+    const btnAcao = document.querySelector("button[onclick='adicionarCategoria()']") || 
+                    document.querySelector("button[onclick='window.adicionarCategoria()']");
+                    
+    if (btnAcao) {
+        btnAcao.innerHTML = "💾";
+        // Quando clicar no disquete, chama a função de salvar que acabamos de criar!
+        btnAcao.setAttribute("onclick", `window.salvarEdicaoCategoria('${id}')`);
+    } else {
+        console.log("Botão de adicionar não encontrado para trocar pelo disquete.");
+    }
 };
 
        window.todasAsCategorias.forEach(cat => {
@@ -1317,7 +1333,19 @@ window.criarTime = async () => {
 
 
 
+    if (!window.usuarioLogado || !window.usuarioLogado.uid) {
+
+        return alert("ERRO: O sistema perdeu seu login. Atualize a página e logue novamente.");
+
+    }
+
+
+
     try {
+
+        console.log("Iniciando criação do time...");
+
+        
 
         const novoTime = {
 
@@ -1329,11 +1357,11 @@ window.criarTime = async () => {
 
             membros: {
 
-                [window.usuarioLogado.email.replace(/\./g, '_')]: "0" // Você é o Dono (0)
+                [window.usuarioLogado.email.replace(/\./g, '_')]: "0" // Você é o Nível 0
 
             },
 
-            configPermissoes: window.DEFAULTS_PERMISSOES, // Já nasce com as permissões padrão
+            configPermissoes: window.DEFAULTS_PERMISSOES || {},
 
             dataCriacao: new Date().toISOString()
 
@@ -1341,19 +1369,25 @@ window.criarTime = async () => {
 
 
 
+        // A MÁGICA AQUI: Usando addDoc e collection diretamente!
+
         await addDoc(collection(db, "times"), novoTime);
+
+        
 
         document.getElementById('nomeNovoTime').value = "";
 
         alert("Time '" + nome + "' criado com sucesso!");
-
-        window.carregarDadosIniciais(); // Atualiza a interface
+		
+		
+await window.atualizarInterfaceDeTimes();
+        
 
     } catch (e) {
 
-        console.error("Erro ao criar time:", e);
+        console.error("ERRO COMPLETO:", e);
 
-        alert("Erro: Verifique as regras de permissão no Console do Firebase.");
+        alert("Erro ao criar: " + e.message); 
 
     }
 
@@ -1500,6 +1534,121 @@ window.atualizarSeletorTimes = async () => {
         
     } catch (e) {}
 };
+
+
+window.atualizarInterfaceDeTimes = async () => {
+
+    if (!window.usuarioLogado) return;
+
+    
+
+    try {
+
+        const q = query(collection(db, "times"));
+
+        const querySnapshot = await getDocs(q);
+
+        
+
+        window.meusTimes = [];
+
+        const emailFormatado = window.usuarioLogado.email.replace(/\./g, '_');
+
+
+
+        // Pega os elementos HTML
+
+        const listaGerencio = document.getElementById('listaTimesModal');
+
+        const listaPertenco = document.getElementById('listaTimesPertencoModal');
+
+        const selectHierarquia = document.getElementById('selecionarTimePermissoes');
+
+        const selectCategoria = document.getElementById('timeNovaCategoria');
+
+
+
+        // Limpa tudo para não duplicar
+
+        if (listaGerencio) listaGerencio.innerHTML = '';
+
+        if (listaPertenco) listaPertenco.innerHTML = '';
+
+        if (selectHierarquia) selectHierarquia.innerHTML = '<option value="">Selecione um Time...</option>';
+
+        if (selectCategoria) selectCategoria.innerHTML = '<option value="" style="color: black;">👤 Pessoal (Sem Time)</option>';
+
+
+
+        querySnapshot.forEach((docSnap) => {
+
+            const time = docSnap.data();
+
+            time.id = docSnap.id;
+
+            
+
+            const souDono = time.criadorUid === window.usuarioLogado.uid;
+
+            const souMembro = time.membros && time.membros[emailFormatado];
+
+
+
+            // Se eu sou dono ou membro, o time me pertence
+
+            if (souDono || souMembro) {
+
+                window.meusTimes.push(time);
+
+                
+
+                // 1. Cria a linha da Lista
+
+                const li = document.createElement('li');
+
+                li.innerHTML = `<strong>${time.nome}</strong>`;
+
+                li.style = "padding: 10px; background: white; margin-bottom: 8px; border-radius: 8px; border: 1px solid #e2e8f0; color: #1e293b;";
+
+                
+
+                if (souDono && listaGerencio) listaGerencio.appendChild(li);
+
+                else if (!souDono && listaPertenco) listaPertenco.appendChild(li);
+
+
+
+                // 2. Adiciona nos Filtros (Apenas se eu for o Dono)
+
+                if (souDono) {
+
+                    const opt = document.createElement('option');
+
+                    opt.value = time.id;
+
+                    opt.textContent = time.nome;
+
+                    
+
+                    if (selectHierarquia) selectHierarquia.appendChild(opt.cloneNode(true));
+
+                    if (selectCategoria) selectCategoria.appendChild(opt.cloneNode(true));
+
+                }
+
+            }
+
+        });
+
+    } catch (e) {
+
+        console.error("Erro ao recarregar times:", e);
+
+    }
+
+};
+
+
 
 // --- TAREFAS ---
 window.setarData = (tipo, el) => {
@@ -1885,49 +2034,57 @@ window.carregarCategoriasModal = () => {
     const lista = document.getElementById('listaCategoriasModal');
     if (!lista || !window.todasAsCategorias) return;
     lista.innerHTML = "";
-    
+
     window.todasAsCategorias.forEach(cat => {
         const item = document.createElement('div');
-        item.style = "display:flex; align-items:center; justify-content:space-between; background:white; padding:10px; border-radius:12px; margin-bottom:8px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.02);";
+        item.style = "display:flex; align-items:center; justify-content:space-between; background:white; padding:12px; border-radius:15px; margin-bottom:10px; border:1px solid #e2e8f0;";
         
         item.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:12px; height:12px; border-radius:50%; background:${cat.cor || '#3b82f6'};"></div>
-                <img src="${cat.logoUrl || 'https://via.placeholder.com/30'}" style="width:25px; height:25px; border-radius:5px; object-fit:cover;">
-                <span style="font-weight:700; color:#1e293b; font-size:0.8rem;">${cat.nome}</span>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:14px; height:14px; border-radius:4px; background:${cat.cor || '#3b82f6'};"></div>
+                <span style="font-weight:800; color:#1e293b; font-size:0.85rem;">${cat.nome}</span>
             </div>
-            <div style="display:flex; gap:8px;">
-                <button onclick="prepararEdicaoCategoria('${cat.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem;">✏️</button>
-                <button onclick="removerCategoria('${cat.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem;">🗑️</button>
+            <div style="display:flex; gap:10px;">
+                <button onclick="prepararEdicaoCategoria('${cat.id}')" style="background:#f1f5f9; border:none; padding:8px; border-radius:10px; cursor:pointer;">✏️</button>
+                <button onclick="removerCategoria('${cat.id}')" style="background:#fee2e2; border:none; padding:8px; border-radius:10px; cursor:pointer;">🗑️</button>
             </div>
         `;
         lista.appendChild(item);
     });
 };
 
+ window.salvarHierarquiaPersonalizada = async () => {
+    // 1. Pega o ID do time selecionado no select
+    const timeId = document.getElementById('selecionarTimePermissoes').value;
+    if (!timeId) return alert("Selecione um time primeiro!");
+
+    // 2. Monta o objeto de novas permissões capturando os checkboxes
+    const niveis = ['D', 'A', 'B', 'C'];
+    const novaConfig = {};
+
+    niveis.forEach(nv => {
+        novaConfig[nv] = {
+            escreverAtividade: document.getElementById(`check-escrever-${nv}`)?.checked || false,
+            excluirAtividade: document.getElementById(`check-excluir-${nv}`)?.checked || false,
+            financeiro: document.getElementById(`check-financeiro-${nv}`)?.checked || false,
+            gerenciarEquipe: document.getElementById(`check-membros-${nv}`)?.checked || false
+        };
     });
 
-
-
+    // 3. Tenta salvar no Firebase
     try {
-
-        await updateDoc(doc(db, "times", timeId), {
-
+        const timeRef = doc(db, "times", timeId);
+        await updateDoc(timeRef, {
             configPermissoes: novaConfig
-
         });
-
         alert("Hierarquia do time atualizada com sucesso!");
-
     } catch (e) {
-
         console.error("Erro ao salvar hierarquia:", e);
-
-        alert("Erro: Apenas o Dono (Nível 0) pode alterar a hierarquia.");
-
+        alert("Erro: Verifique as permissões no Console do Firebase.");
     }
-
 };
+
+
 
 
 window.salvarNovaTarefa = async () => {
@@ -3082,4 +3239,57 @@ window.gerarRelatorioPDF = async (evento) => {
         btn.innerHTML = originalText; 
         btn.disabled = false;
     }
-};
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
