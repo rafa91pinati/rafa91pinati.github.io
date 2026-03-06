@@ -252,11 +252,35 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-window.fazerLogin = () => {
-    const e = document.getElementById('emailLogin').value;
-    const s = document.getElementById('senhaLogin').value;
-    if(!e || !s) return alert("Preencha tudo!");
-    signInWithEmailAndPassword(auth, e, s).catch(error => alert("Erro ao entrar: " + error.code));
+window.fazerLogin = () => {
+    const e = document.getElementById('emailLogin').value;
+    const s = document.getElementById('senhaLogin').value;
+    
+    if(!e || !s) return alert("Preencha tudo!");
+
+    // 1. Tenta a autenticação no Firebase
+    signInWithEmailAndPassword(auth, e, s)
+    .then((userCredential) => {
+        // 2. Define o usuário globalmente para as regras de segurança funcionarem
+        window.usuarioLogado = userCredential.user;
+        
+        console.log("Login realizado! Iniciando sincronização...");
+
+        // 3. DISPARA O CARREGAMENTO (O passo que estava faltando)
+        // Isso vai buscar seus times, cargos D/A/B/C e tarefas
+        if (typeof window.carregarCategorias === 'function') {
+            window.carregarCategorias(); 
+        }
+
+        // 4. Esconde a tela de login
+        const telaLogin = document.getElementById('telaLogin');
+        if (telaLogin) telaLogin.classList.add('escondido');
+        
+    })
+    .catch(error => {
+        console.error("Erro no login:", error);
+        alert("Erro ao entrar: " + error.code);
+    });
 };
 
 window.criarConta = () => {
@@ -950,7 +974,7 @@ window.carregarCategorias = async () => {
         window.renderizarCategoriasNoFiltro();
         
         // Chamadas subsequentes
-        await carregarTarefas();
+       window.filtrarERenderizar();
         if (typeof carregarArquivosFixos === 'function') carregarArquivosFixos();
         if (typeof carregarFinanceiro === 'function') carregarFinanceiro();
 
