@@ -17,7 +17,7 @@
    
 
 </head>
-
+ 
 
 <body> 
 
@@ -195,93 +195,175 @@
 
 <div id="modalTarefa" class="modal-overlay escondido">
 
+
+
     <div class="modal-card" style="background: #f1f5f9; border-radius: 28px; width: 92%; max-width: 400px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden;">
+
+
 
         
 
+
+
         <div class="modal-header" style="padding: 20px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05);">
+
+
 
             <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase; font-size: 1rem;">Nova Tarefa</h3>
 
+
+
             <button class="btn-fechar" onclick="fecharModal('modalTarefa')" style="background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
+
+
 
         </div>
 
 
 
-        <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
-
-            
-
-            <input type="text" id="descTask" placeholder="O que agendar hoje?" style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0; font-weight: 600; box-sizing: border-box; outline: none; background: white; color: #1e293b;">
 
 
 
-            <div id="previewFotosNovas" class="container-fotos"></div>
+
+        <div class="modal-body">
+    <input type="file" id="fotoTask" class="escondido" multiple onchange="prepararFotosNovas(this)">
+    
+    <div id="previewFotosNovas" class="container-fotos"></div>
+    
+    <button type="button" class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">
+        Adicionar Fotos
+    </button>
+</div>
+
+
+
+
 
 
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+
+
 
                 <input type="time" id="horaTask" style="padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box; width: 100%; outline: none; font-weight: 600; background: white;">
 
+
+
                 <button class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()" style="background: #3b82f6; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;">
+
+
 
                     📷 ARQUIVO
 
+
+
                 </button>
+
+
 
                 <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
 
+
+
             </div>
+
+
+
+
 
 
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
 
+
+
                 <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; box-sizing: border-box;">
+
+
 
                     <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
 
+
+
                     <select id="tipoRecorrencia" style="border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.85rem; cursor: pointer;">
+
+
 
                         <option value="nenhuma">Sem recorrência</option>
 
+
+
                         <option value="diario">Diário</option>
+
+
 
                         <option value="2dias">A cada 2 dias</option>
 
+
+
                         <option value="semanal">A cada 1 semana</option>
+
+
 
                         <option value="mensal">A cada 1 mês</option>
 
+
+
                     </select>
 
+
+
                 </div>
+
+
 
                 <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; box-sizing: border-box;">
 
+
+
                     <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
+
+
 
                     <input type="date" id="dataFimRecorrencia" style="border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.85rem;">
 
+
+
                 </div>
 
+
+
             </div>
+
+
+
+
 
 
 
             <div style="display: flex; gap: 10px; margin-top: 5px;">
 
+
+
                 <button onclick="cancelarNovaTarefa(); fecharModal('modalTarefa')" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer;">Cancelar</button>
+
+
 
                 <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">Salvar</button>
 
+
+
             </div>
+
+
 
         </div>
 
+
+
     </div>
+
+
 
 </div>
 
@@ -497,9 +579,12 @@
 
     </button>
 
-    <button class="btn-acao-modal tablink" onclick="abrirAba(event, 'abaHierarquia')" style="border:none; background:none; opacity:0.5;">
-    <span class="icon">⚖️</span>
-    <span class="label">Hierarquia</span>
+    <button class="btn-acao-modal tablink" onclick="abrirAba(event, 'abaHierarquia')" style="border:none; background:none; opacity:0.5;">
+
+    <span class="icon">⚖️</span>
+
+    <span class="label">Hierarquia</span>
+
 </button>
 
 </div>
