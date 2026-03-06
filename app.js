@@ -1885,50 +1885,57 @@ window.carregarCategoriasModal = () => {
     const lista = document.getElementById('listaCategoriasModal');
     if (!lista || !window.todasAsCategorias) return;
     lista.innerHTML = "";
-    
+
     window.todasAsCategorias.forEach(cat => {
         const item = document.createElement('div');
-        // Criando o card visual da categoria
-        item.style = "display:flex; align-items:center; justify-content:space-between; background:white; padding:12px; border-radius:15px; margin-bottom:10px; border:1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.03);";
+        item.style = "display:flex; align-items:center; justify-content:space-between; background:white; padding:12px; border-radius:15px; margin-bottom:10px; border:1px solid #e2e8f0;";
         
         item.innerHTML = `
             <div style="display:flex; align-items:center; gap:12px;">
                 <div style="width:14px; height:14px; border-radius:4px; background:${cat.cor || '#3b82f6'};"></div>
-                <img src="${cat.logoUrl || 'https://via.placeholder.com/30'}" style="width:32px; height:32px; border-radius:8px; object-fit:cover; border: 1px solid #f1f5f9;">
-                <span style="font-weight:800; color:#1e293b; font-size:0.85rem; text-transform: uppercase;">${cat.nome}</span>
+                <span style="font-weight:800; color:#1e293b; font-size:0.85rem;">${cat.nome}</span>
             </div>
             <div style="display:flex; gap:10px;">
-                <button onclick="prepararEdicaoCategoria('${cat.id}')" style="background:#f1f5f9; border:none; padding:8px; border-radius:10px; cursor:pointer; font-size:1rem;">✏️</button>
-                <button onclick="removerCategoria('${cat.id}')" style="background:#fee2e2; border:none; padding:8px; border-radius:10px; cursor:pointer; font-size:1rem;">🗑️</button>
+                <button onclick="prepararEdicaoCategoria('${cat.id}')" style="background:#f1f5f9; border:none; padding:8px; border-radius:10px; cursor:pointer;">✏️</button>
+                <button onclick="removerCategoria('${cat.id}')" style="background:#fee2e2; border:none; padding:8px; border-radius:10px; cursor:pointer;">🗑️</button>
             </div>
         `;
         lista.appendChild(item);
     });
 };
 
- 
+ window.salvarHierarquiaPersonalizada = async () => {
+    // 1. Pega o ID do time selecionado no select
+    const timeId = document.getElementById('selecionarTimePermissoes').value;
+    if (!timeId) return alert("Selecione um time primeiro!");
 
+    // 2. Monta o objeto de novas permissões capturando os checkboxes
+    const niveis = ['D', 'A', 'B', 'C'];
+    const novaConfig = {};
 
+    niveis.forEach(nv => {
+        novaConfig[nv] = {
+            escreverAtividade: document.getElementById(`check-escrever-${nv}`)?.checked || false,
+            excluirAtividade: document.getElementById(`check-excluir-${nv}`)?.checked || false,
+            financeiro: document.getElementById(`check-financeiro-${nv}`)?.checked || false,
+            gerenciarEquipe: document.getElementById(`check-membros-${nv}`)?.checked || false
+        };
+    });
 
+    // 3. Tenta salvar no Firebase
     try {
-
-        await updateDoc(doc(db, "times", timeId), {
-
+        const timeRef = doc(db, "times", timeId);
+        await updateDoc(timeRef, {
             configPermissoes: novaConfig
-
         });
-
         alert("Hierarquia do time atualizada com sucesso!");
-
     } catch (e) {
-
         console.error("Erro ao salvar hierarquia:", e);
-
-        alert("Erro: Apenas o Dono (Nível 0) pode alterar a hierarquia.");
-
+        alert("Erro: Verifique as permissões no Console do Firebase.");
     }
-
 };
+
+
 
 
 window.salvarNovaTarefa = async () => {
