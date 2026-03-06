@@ -513,8 +513,10 @@
 
                 </button>
 				
-				<button id="btnAbaHierarquia" onclick="trocarAbaConfig('Hierarquia')" class="btn-aba-config">
-    <i class="fas fa-sitemap"></i> HIERARQUIA
+				<button id="btnAbaHierarquia" onclick="trocarAbaConfig('Hierarquia')" class="btn-aba-config">
+
+    <i class="fas fa-sitemap"></i> HIERARQUIA
+
 </button>
 
             </div>
@@ -661,29 +663,33 @@
 
                 </div>
 				
-<div id="abaHierarquia" class="aba-conteudo escondido">
-    <h3 style="color: white; margin-bottom: 15px;">Configurar Níveis de Acesso</h3>
-    <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
-        <option value="">Selecione um Time para configurar...</option>
-    </select>
-
-    <table style="width: 100%; color: white; border-collapse: collapse;">
-        <thead>
-            <tr style="border-bottom: 2px solid rgba(255,255,255,0.1);">
-                <th style="text-align: left; padding: 10px;">Nível</th>
-                <th>✍️ Criar</th>
-                <th>🗑️ Excluir</th>
-                <th>💰 Financeiro</th>
-                <th>👥 Equipe</th>
-            </tr>
-        </thead>
-        <tbody id="corpoTabelaPermissoes">
-            </tbody>
-    </table>
-
-    <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">
-        SALVAR CONFIGURAÇÃO
-    </button>
+<div id="abaHierarquia" class="aba-conteudo escondido">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h3 style="color: white; margin:0;">Configurar Permissões</h3>
+        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="padding: 8px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #334155;">
+            <option value="">Selecione o Time...</option>
+        </select>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+                <tr style="border-bottom: 2px solid #334155; background: rgba(0,0,0,0.2);">
+                    <th style="padding: 12px; text-align: left;">Nível</th>
+                    <th>✍️ Criar</th>
+                    <th>🗑️ Excluir</th>
+                    <th>💰 Finan.</th>
+                    <th>👥 Equipe</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabelaPermissoes">
+                </tbody>
+        </table>
+    </div>
+
+    <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">
+        💾 SALVAR ALTERAÇÕES DO TIME
+    </button>
 </div>
                 
 
