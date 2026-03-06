@@ -1839,16 +1839,21 @@ window.fecharModal = (id) => {
 const originalSalvar = window.salvarNovaTarefa;
 
 
-// Otimização: Fecha o modal automaticamente após salvarwindow.carregarCategoriasModal = () => {
+// Otimização: Fecha o modal automaticamente após salvar
+
+window.carregarCategoriasModal = () => {
     const lista = document.getElementById('listaCategoriasModal');
     if (!lista || !window.todasAsCategorias) return;
     lista.innerHTML = "";
+	
+	
     window.todasAsCategorias.forEach(cat => {
         const li = document.createElement('li');
         li.textContent = cat.nome; // Implementação simples só para tirar o erro
         lista.appendChild(li);
     });
 };
+
 window.salvarHierarquiaPersonalizada = async () => {
 
     const timeId = document.getElementById('selecionarTimePermissoes').value;
