@@ -719,9 +719,45 @@ window.carregarCategorias = async () => {
 
 
         // SALVA GLOBALMENTE PARA O NOVO RENDERIZADOR USAR
+window.prepararEdicaoCategoria = (id) => {
+    const cat = window.todasAsCategorias.find(c => c.id === id);
+    if (!cat) return;
 
-        window.todasAsCategorias = arrayCategorias;
+    // Preenche os campos para edição
+    document.getElementById('novaCategoria').value = cat.nome;
+    document.getElementById('corNovaCategoria').value = cat.cor || "#3b82f6";
+    document.getElementById('timeNovaCategoria').value = cat.timeId || "";
+    
+    // Muda o botão de "+" para um botão de "Salvar"
+    const btnAdd = document.querySelector("button[onclick='adicionarCategoria()']");
+    btnAdd.innerHTML = "💾";
+    btnAdd.onclick = () => window.atualizarCategoria(id);
+    
+    alert("Edite as informações acima e clique no disquete para salvar.");
+};
 
+       window.todasAsCategorias.forEach(cat => {
+        const item = document.createElement('div');
+        item.style = `
+            display: flex; align-items: center; justify-content: space-between;
+            background: white; padding: 12px; border-radius: 12px;
+            margin-bottom: 8px; border: 1px solid #e2e8f0;
+        `;
+        
+        item.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${cat.cor || '#3b82f6'};"></div>
+                <img src="${cat.logoUrl || 'https://via.placeholder.com/30'}" style="width: 30px; height: 30px; border-radius: 6px; object-fit: cover;">
+                <span style="font-weight: 700; color: #1e293b; font-size: 0.85rem;">${cat.nome}</span>
+            </div>
+            <div style="display: flex; gap: 5px;">
+                <button onclick="prepararEdicaoCategoria('${cat.id}')" style="background: #f1f5f9; border: none; padding: 8px; border-radius: 8px; cursor: pointer;">✏️</button>
+                <button onclick="removerCategoria('${cat.id}')" style="background: #fee2e2; border: none; padding: 8px; border-radius: 8px; cursor: pointer;">🗑️</button>
+            </div>
+        `;
+        lista.appendChild(item);
+    });
+};
         // 👇 ADICIONE ESSAS 3 LINHAS AQUI 👇
         window.coresCategorias = window.coresCategorias || {};
         window.logosCategorias = window.logosCategorias || {};
@@ -1276,83 +1312,49 @@ window.excluirTime = async (timeId) => {
 
 window.criarTime = async () => {
 
-    const nomeInput = document.getElementById('nomeNovoTime');
+    const nome = document.getElementById('nomeNovoTime').value.trim();
 
-    if (!nomeInput || !nomeInput.value.trim()) return alert("Dê um nome ao seu time!");
-
-
-
-    const nomeTime = nomeInput.value.trim();
-
-    const meuEmail = window.usuarioLogado.email.toLowerCase();
+    if (!nome) return alert("Digite o nome do time!");
 
 
 
     try {
 
-        // 1. CRIA O DOCUMENTO NO FIRESTORE
-
-        // Usamos a estrutura de cargos (D, A, B, C) que definimos
-
         const novoTime = {
 
-            nome: nomeTime,
+            nome: nome,
 
             criadorUid: window.usuarioLogado.uid,
 
-            criadoEm: new Date(),
+            criadorEmail: window.usuarioLogado.email,
 
-            membrosEmails: [meuEmail], // Começa só com você para as Rules liberarem
+            membros: {
 
-            cargos: {
-
-                [meuEmail.replace(/\./g, '_')]: "Dono" // Você nasce como Dono
+                [window.usuarioLogado.email.replace(/\./g, '_')]: "0" // Você é o Dono (0)
 
             },
 
-            permissoes: {
+            configPermissoes: window.DEFAULTS_PERMISSOES, // Já nasce com as permissões padrão
 
-                "A": { escreverAtividade: true, excluirAtividade: true, financeiro: true },
-
-                "B": { escreverAtividade: true, excluirAtividade: false, financeiro: true },
-
-                "C": { escreverAtividade: false, excluirAtividade: false, financeiro: false }
-
-            }
+            dataCriacao: new Date().toISOString()
 
         };
 
 
 
-        const docRef = await addDoc(collection(db, "times"), novoTime);
+        await addDoc(collection(db, "times"), novoTime);
 
-        console.log("Time criado com ID:", docRef.id);
+        document.getElementById('nomeNovoTime').value = "";
 
+        alert("Time '" + nome + "' criado com sucesso!");
 
+        window.carregarDadosIniciais(); // Atualiza a interface
 
-        alert(`Time "${nomeTime}" criado com sucesso!`);
+    } catch (e) {
 
+        console.error("Erro ao criar time:", e);
 
-
-        // 2. LIMPEZA E ATUALIZAÇÃO
-
-        nomeInput.value = "";
-
-        
-
-        // Recarrega a aba de times e as categorias para o novo time aparecer no seletor
-
-        if (typeof window.carregarTimes === 'function') window.carregarTimes();
-
-        if (typeof window.carregarCategorias === 'function') window.carregarCategorias();
-
-
-
-    } catch (error) {
-
-        console.error("Erro ao criar time:", error);
-
-        alert("Erro ao criar time. Verifique sua conexão.");
+        alert("Erro: Verifique as regras de permissão no Console do Firebase.");
 
     }
 
@@ -1881,11 +1883,9 @@ const originalSalvar = window.salvarNovaTarefa;
 // Otimização: Fecha o modal automaticamente após salvar
 
 window.carregarCategoriasModal = () => {
-
     const lista = document.getElementById('listaCategoriasModal');
-
     if (!lista || !window.todasAsCategorias) return;
-
+    
     lista.innerHTML = "";
 
     window.todasAsCategorias.forEach(cat => {
