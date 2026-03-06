@@ -672,34 +672,62 @@
                 </div>
 
 
-<div id="abaHierarquia" class="tabcontent" style="display:none; padding: 15px;">
-    <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1);">
-        <h4 style="color: white; margin-top: 0; margin-bottom: 15px; font-size: 0.9rem;">Configurações de Nível</h4>
-        
-        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="width: 100%; padding: 12px; border-radius: 10px; background: #fff; border: none; margin-bottom: 20px; font-weight: bold; color: #1e293b;">
-            <option value="">Selecione um Time...</option>
-        </select>
-
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.75rem;">
-                <thead>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <th style="padding: 8px; text-align: left;">Nível</th>
-                        <th title="Criar">✍️</th>
-                        <th title="Excluir">🗑️</th>
-                        <th title="Financeiro">💰</th>
-                        <th title="Equipe">👥</th>
-                    </tr>
-                </thead>
-                <tbody id="corpoTabelaPermissoes">
-                    </tbody>
-            </table>
-        </div>
-
-        <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
-            SALVAR ALTERAÇÕES
-        </button>
-    </div>
+<div id="abaHierarquia" class="tabcontent" style="display:none; padding: 15px;">
+
+    <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1);">
+
+        <h4 style="color: white; margin-top: 0; margin-bottom: 15px; font-size: 0.9rem;">Configurações de Nível</h4>
+
+        
+
+        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="width: 100%; padding: 12px; border-radius: 10px; background: #fff; border: none; margin-bottom: 20px; font-weight: bold; color: #1e293b;">
+
+            <option value="">Selecione um Time...</option>
+
+        </select>
+
+
+
+        <div style="overflow-x: auto;">
+
+            <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.75rem;">
+
+                <thead>
+
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+
+                        <th style="padding: 8px; text-align: left;">Nível</th>
+
+                        <th title="Criar">✍️</th>
+
+                        <th title="Excluir">🗑️</th>
+
+                        <th title="Financeiro">💰</th>
+
+                        <th title="Equipe">👥</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="corpoTabelaPermissoes">
+
+                    </tbody>
+
+            </table>
+
+        </div>
+
+
+
+        <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+
+            SALVAR ALTERAÇÕES
+
+        </button>
+
+    </div>
+
 </div>
               
 
@@ -729,38 +757,41 @@
 
 <div id="modalCronograma" class="modal-overlay escondido">
     <div class="modal-content" style="width: 95%; max-width: 600px; padding: 25px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: #ffffff; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-
-    ⏳ LINHA DO TEMPO 
-
-    <span id="cronoBadge" style="font-size: 0.7rem; background: #3b82f6; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;"></span>
-
-</h2>
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <button onclick="gerarPDFCronograma(event)" id="btnPdfCrono" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">📄 PDF</button>
-                <span onclick="document.getElementById('modalCronograma').style.display='none'" style="font-size: 28px; cursor: pointer; color: #94a3b8; line-height: 1;">&times;</span>
-            </div>
-        </div>
-        <div id="cronoContainer"></div>
-    </div>
+        <div style="display: flex; justify-content: space-around; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 15px;">
+    <button class="tablink" onclick="abrirAba(event, 'abaHierarquia')" style="display: flex; flex-direction: column; align-items: center; background: none; border: none; cursor: pointer; color: #64748b;">
+        <i class="fas fa-sitemap" style="font-size: 1.1rem; color: #6366f1; margin-bottom: 5px;"></i>
+        <span style="font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Hierarquia</span>
+    </button>
+</div>
+
+<div id="abaHierarquia" class="tabcontent" style="display:none; padding: 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+        <h3 style="color: white; margin:0; font-size: 1rem;">Permissões do Time</h3>
+        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="padding: 10px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #334155; font-size: 0.8rem;">
+            <option value="">Selecione...</option>
+        </select>
+    </div>
+
+    <div style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px;">
+        <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.8rem; text-align: center;">
+            <thead style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <tr>
+                    <th style="text-align: left; padding: 10px;">Nível</th>
+                    <th title="Criar">✍️</th>
+                    <th title="Excluir">🗑️</th>
+                    <th title="Financeiro">💰</th>
+                    <th title="Equipe">👥</th>
+                </tr>
+            </thead>
+            <tbody id="corpoTabelaPermissoes">
+                </tbody>
+        </table>
+    </div>
+
+    <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 25px; width: 100%; padding: 15px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer;">
+        💾 SALVAR CONFIGURAÇÃO
+    </button>
 </div>
-
-<div id="modalFotoExpandida" class="modal-foto escondido" onclick="fecharFoto()">
-    <img id="imgGrande" src="">
-</div>
-
-<div id="modalOutrasCategorias" class="modal-overlay escondido">
-
-        <div class="modal-card" style="max-width: 400px; padding: 20px;">
-
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-
-                <h3 style="margin:0; font-weight: 900; color: #1e293b; text-transform: uppercase;">Selecione a Categoria</h3>
-
-                <button class="btn-fechar" onclick="fecharModal('modalOutrasCategorias')" style="background: transparent; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">✕</button>
-
-            </div>
 
             <div class="modal-body">
 

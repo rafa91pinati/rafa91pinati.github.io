@@ -1839,78 +1839,16 @@ window.fecharModal = (id) => {
 const originalSalvar = window.salvarNovaTarefa;
 
 
-// Otimização: Fecha o modal automaticamente após salvar
-window.carregarCategoriasModal = () => {
-
+// Otimização: Fecha o modal automaticamente após salvarwindow.carregarCategoriasModal = () => {
     const lista = document.getElementById('listaCategoriasModal');
-
-    if (!lista) return;
-
-
-
-    lista.innerHTML = ""; // Limpa a lista antes de preencher
-
-
-
-    // Usa as categorias que já carregamos no login/filtro
-
-    if (!window.todasAsCategorias || window.todasAsCategorias.length === 0) {
-
-        lista.innerHTML = "<li style='color: #94a3b8; font-size: 0.8rem; padding: 10px;'>Nenhuma categoria encontrada.</li>";
-
-        return;
-
-    }
-
-
-
+    if (!lista || !window.todasAsCategorias) return;
+    lista.innerHTML = "";
     window.todasAsCategorias.forEach(cat => {
-
         const li = document.createElement('li');
-
-        li.style.display = "flex";
-
-        li.style.justifyContent = "between";
-
-        li.style.alignItems = "center";
-
-        li.style.padding = "10px";
-
-        li.style.background = "white";
-
-        li.style.borderRadius = "12px";
-
-        li.style.marginBottom = "8px";
-
-        li.style.borderLeft = `4px solid ${cat.cor}`;
-
-
-
-        const nomeTime = cat.timeId ? ` <small style='color: #3b82f6;'>(Time)</small>` : "";
-
-
-
-        li.innerHTML = `
-
-            <div style="flex: 1;">
-
-                <strong style="color: #1e293b; font-size: 0.9rem;">${cat.nome}</strong>
-
-                ${nomeTime}
-
-            </div>
-
-            <button onclick="removerCategoria('${cat.id}', '${cat.nome}')" style="background: none; border: none; cursor: pointer;">🗑️</button>
-
-        `;
-
+        li.textContent = cat.nome; // Implementação simples só para tirar o erro
         lista.appendChild(li);
-
     });
-
 };
-
-
 window.salvarHierarquiaPersonalizada = async () => {
 
     const timeId = document.getElementById('selecionarTimePermissoes').value;
