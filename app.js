@@ -3,7 +3,7 @@ import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, delet
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
-import { collection, addDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+import { collection, addDoc, getDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 
 if ('serviceWorker' in navigator) {
