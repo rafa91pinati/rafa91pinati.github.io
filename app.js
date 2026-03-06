@@ -1166,99 +1166,50 @@ window.excluirTime = async (timeId) => {
 
 
 
-window.criarTime = async () => {
-
-    // 1. PEGA O TEXTO DIRETO DO SEU LAYOUT (Lembre de colocar o ID correto aqui embaixo)
-
-    const inputNovoTime = document.getElementById("nomeNovoTime");
-
-    const nomeTime = inputNovoTime.value;
-
-    
-
-    // Se o usuário clicar em "Criar" sem digitar nada, avisa ele e para
-
-    if (!nomeTime || nomeTime.trim() === "") {
-
-        return alert("Por favor, digite o nome do time!"); 
-
-    }
-
-
-
-    try {
-
-        // 2. ESTRUTURA COMERCIAL NO FIRESTORE
-
-        const novoTimeData = {
-
-            nome: nomeTime.trim(),
-
-            criadoEm: serverTimestamp(), // Hora exata do Google
-
-            criadorUid: window.usuarioLogado.uid,
-
-            
-
-            // Arrays para o layout
-
-            membros: [{ 
-
-                email: window.usuarioLogado.email, 
-
-                nivel: "Dono" 
-
-            }],
-
-            membrosEmails: [window.usuarioLogado.email],
-
-            
-
-            // DICIONÁRIO DE SEGURANÇA
-
-            cargos: {
-
-                [window.usuarioLogado.email]: "Dono"
-
-            }
-
-        };
-
-
-
-        // Salva no banco de dados
-
-        await addDoc(collection(db, "times"), novoTimeData);
-
-
-
-        alert(`Time "${nomeTime}" criado com sucesso!`);
-
-        
-
-        // 3. LIMPA O CAMPO E ATUALIZA A TELA
-
-        inputNovoTime.value = ""; // Apaga o texto que o usuário digitou
-
-        
-
-        if (typeof window.carregarTimes === 'function') {
-
-            window.carregarTimes();
-
-        }
-
-
-
-    } catch (e) {
-
-        console.error("Erro ao criar time:", e);
-
-        alert("Erro ao criar o time. Verifique o console.");
-
-    }
-
+window.criarTime = async () => {
+    const nomeInput = document.getElementById('nomeNovoTime');
+    if (!nomeInput || !nomeInput.value.trim()) return alert("Dê um nome ao seu time!");
+
+    const nomeTime = nomeInput.value.trim();
+    const meuEmail = window.usuarioLogado.email.toLowerCase();
+
+    try {
+        // 1. CRIA O DOCUMENTO NO FIRESTORE
+        // Usamos a estrutura de cargos (D, A, B, C) que definimos
+        const novoTime = {
+            nome: nomeTime,
+            criadorUid: window.usuarioLogado.uid,
+            criadoEm: new Date(),
+            membrosEmails: [meuEmail], // Começa só com você para as Rules liberarem
+            cargos: {
+                [meuEmail.replace(/\./g, '_')]: "Dono" // Você nasce como Dono
+            },
+            permissoes: {
+                "A": { escreverAtividade: true, excluirAtividade: true, financeiro: true },
+                "B": { escreverAtividade: true, excluirAtividade: false, financeiro: true },
+                "C": { escreverAtividade: false, excluirAtividade: false, financeiro: false }
+            }
+        };
+
+        const docRef = await addDoc(collection(db, "times"), novoTime);
+        console.log("Time criado com ID:", docRef.id);
+
+        alert(`Time "${nomeTime}" criado com sucesso!`);
+
+        // 2. LIMPEZA E ATUALIZAÇÃO
+        nomeInput.value = "";
+        
+        // Recarrega a aba de times e as categorias para o novo time aparecer no seletor
+        if (typeof window.carregarTimes === 'function') window.carregarTimes();
+        if (typeof window.carregarCategorias === 'function') window.carregarCategorias();
+
+    } catch (error) {
+        console.error("Erro ao criar time:", error);
+        alert("Erro ao criar time. Verifique sua conexão.");
+    }
 };
+
+
 window.excluirTime = async (id) => {
     if(confirm("Tem certeza que deseja apagar este time? Isso afetará todos os membros e eles perderão o acesso.")) { 
         try {
@@ -1271,215 +1222,103 @@ window.excluirTime = async (id) => {
     } 
 };
 
-window.adicionarMembro = async (evento, timeId) => {
-
+window.adicionarMembro = async (event, timeId) => {
+    if (event) event.preventDefault(); // Evita que a página recarregue
 
     const emailInput = document.getElementById(`email-membro-${timeId}`);
-
-
     const nivelSelect = document.getElementById(`nivel-membro-${timeId}`);
-
-
-    const emailNovo = emailInput.value.trim().toLowerCase();
-
-
-    const nivelNovo = nivelSelect.value;
-
-
-
-
-
-    if (!emailNovo) return alert("Digite o e-mail do membro!");
-
-
-    if (emailNovo == window.usuarioLogado.email) return alert("Você já é o dono do time!");
-
-
-
-
-
-    const btn = evento.currentTarget;
-
-
-    const textoOriginal = btn.innerHTML;
-
-
-    btn.innerHTML = "⏳..."; btn.disabled = true;
-
-
-
-
-
-    try {
-
-
-        const timeRef = doc(db, "times", timeId);
-
-
-        const timeSnap = await getDoc(timeRef);
-
-
-
-
-
-        if (timeSnap.exists()) {
-
-
-            let timeData = timeSnap.data();
-
-
-            
-
-
-            // Mantemos as suas arrays para o layout funcionar perfeitamente
-
-
-            let membrosAtuais = timeData.membros || [];
-
-
-            let membrosEmailsAtuais = timeData.membrosEmails || [window.usuarioLogado.email];
-
-
-            
-
-
-            // NOVIDADE COMERCIAL: O dicionário de cargos para a segurança do Firebase
-
-
-            let cargos = timeData.cargos || {}; 
-
-
-            // Garante que o criador esteja registrado como Dono por segurança
-
-
-            cargos[window.usuarioLogado.email] = cargos[window.usuarioLogado.email] || "Dono";
-
-
-
-
-
-            if (membrosEmailsAtuais.includes(emailNovo)) {
-
-
-                alert("Este e-mail já está no time!");
-
-
-                btn.innerHTML = textoOriginal; btn.disabled = false;
-
-
-                return;
-
-
-            }
-
-
-
-
-
-            // Atualiza as listas do layout
-
-
-            membrosAtuais.push({ email: emailNovo, nivel: nivelNovo });
-
-
-            membrosEmailsAtuais.push(emailNovo); 
-
-
-            
-
-
-            // Registra o nível do novo usuário no dicionário de segurança
-
-
-            cargos[emailNovo] = nivelNovo; 
-
-
-            
-
-
-            // Salva tudo no Firestore
-
-
-            await updateDoc(timeRef, { 
-
-
-                membros: membrosAtuais, 
-
-
-                membrosEmails: membrosEmailsAtuais,
-
-
-                cargos: cargos // Salvando o novo mapa
-
-
-            });
-
-
-
-
-
-            emailInput.value = "";
-
-
-            if (typeof window.carregarTimes === 'function') window.carregarTimes(); 
-
-
-        }
-
-
-    } catch (e) {
-
-
-        console.error("Erro ao adicionar membro:", e);
-
-
-        alert("Erro ao adicionar membro.");
-
-
-    } finally {
-
-
-        btn.innerHTML = textoOriginal; btn.disabled = false;
-
-
+    
+    if (!emailInput || !emailInput.value) return alert("Digite o e-mail do parceiro.");
+    
+    const novoEmail = emailInput.value.trim().toLowerCase();
+    const novoNivel = nivelSelect.value; // Pega o nível (B ou C) do select que você já tem no HTML
+
+    // 1. Impede adicionar a si mesmo (Dono já tem acesso total)
+    if (novoEmail === window.usuarioLogado.email.toLowerCase()) {
+        return alert("Você já é o dono deste time!");
     }
 
+    try {
+        const timeRef = doc(db, "times", timeId);
 
+        // 2. ATUALIZAÇÃO NO FIREBASE (Adiciona ao Mapa e ao Array)
+        // Usamos arrayUnion para garantir que o e-mail não seja duplicado na lista
+        await updateDoc(timeRef, {
+            [`cargos.${novoEmail.replace(/\./g, '_')}`]: novoNivel, // Define o cargo (Ex: B)
+            membrosEmails: arrayUnion(novoEmail) // Adiciona à lista de permissão das Rules
+        });
+
+        alert(`Sucesso! ${novoEmail} agora faz parte da equipe.`);
+        
+        // 3. LIMPEZA E ATUALIZAÇÃO
+        emailInput.value = ""; // Limpa o campo de texto
+        if (typeof window.carregarTimes === 'function') window.carregarTimes();
+
+    } catch (error) {
+        console.error("Erro ao adicionar membro:", error);
+        alert("Erro: Verifique se você é o Dono (D) ou Administrador (A) deste time.");
+    }
 };
 
 
 window.removerMembro = async (timeId, emailRemover) => {
-    if (!confirm(`Remover ${emailRemover} da equipe?`)) return;
-    try {
-        const timeRef = doc(db, "times", timeId);
-        const timeSnap = await getDoc(timeRef);
 
-        if (timeSnap.exists()) {
-            let timeData = timeSnap.data();
-            let membrosAtuais = timeData.membros || [];
-            let membrosEmailsAtuais = timeData.membrosEmails || [];
-            
-            // Puxa o dicionário de segurança atual
-            let cargosAtuais = timeData.cargos || {}; 
+    // 1. Evita que o dono se remova por acidente
 
-            let novosMembros = membrosAtuais.filter(m => m.email !== emailRemover);
-            let novosEmails = membrosEmailsAtuais.filter(e => e !== emailRemover);
-            
-            // MÁGICA COMERCIAL: Remove a "chave" do usuário do banco de dados de segurança
-            delete cargosAtuais[emailRemover]; 
+    if (emailRemover === window.usuarioLogado.email.toLowerCase()) {
 
-            await updateDoc(timeRef, { 
-                membros: novosMembros, 
-                membrosEmails: novosEmails,
-                cargos: cargosAtuais // Envia o dicionário limpo para o Firebase
-            });
-            
-            if (typeof window.carregarTimes === 'function') window.carregarTimes();
-        }
-    } catch (e) { 
-        console.error("Erro ao remover membro:", e);
-        alert("Erro ao remover membro."); 
+        return alert("Você não pode se remover do próprio time. Para isso, exclua o time.");
+
     }
+
+
+
+    const confirma = confirm(`Deseja remover ${emailRemover} deste time? O acesso dele será revogado imediatamente.`);
+
+    if (!confirma) return;
+
+
+
+    try {
+
+        const timeRef = doc(db, "times", timeId);
+
+        
+
+        // 2. ATUALIZAÇÃO NO FIREBASE (Remove do Mapa e do Array)
+
+        // Usamos arrayRemove para limpar a lista de busca e deleteField para o mapa de cargos
+
+        await updateDoc(timeRef, {
+
+            [`cargos.${emailRemover.replace(/\./g, '_')}`]: deleteField(), // Remove a chave do e-mail
+
+            membrosEmails: arrayRemove(emailRemover) // Remove da lista de permissão das regras
+
+        });
+
+
+
+        alert("Membro removido com sucesso!");
+
+
+
+        // 3. ATUALIZAÇÃO DA INTERFACE
+
+        // Recarrega a lista de times para refletir a saída
+
+        if (typeof window.carregarTimes === 'function') window.carregarTimes();
+
+
+
+    } catch (error) {
+
+        console.error("Erro ao remover membro:", error);
+
+        alert("Erro: Você precisa ser Administrador (A) ou Dono (D) para remover membros.");
+
+    }
+
 };
 
 
