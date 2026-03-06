@@ -1120,64 +1120,51 @@ window.atualizarSeletorMarcadores = async () => {
 };
 
 
-window.carregarTimes = async () => {
-    const listaGerencio = document.getElementById('listaTimesModal');
-    const listaPertenco = document.getElementById('listaTimesPertencoModal');
-    if(!listaGerencio || !listaPertenco || !window.usuarioLogado) return;
-    
-    listaGerencio.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
-    listaPertenco.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
+window.excluirTime = async (timeId) => {
+    // 1. Confirmação de segurança para evitar cliques acidentais
+    const confirmacao = confirm("Tem certeza? Isso removerá o acesso de todos os membros e desvinculará as categorias deste time.");
+    if (!confirmacao) return;
 
     try {
-        const meuEmail = window.usuarioLogado.email.toLowerCase();
-        
-        // Busca times onde o usuário é membro
-        const q = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
-        const snap = await getDocs(q);
-        
-        let htmlGerencio = "";
-        let htmlPertenco = "";
+        console.log(`Iniciando limpeza do time: ${timeId}`);
 
-        snap.forEach(d => {
-            const t = d.data();
-            const id = d.id;
-            const meuCargo = t.cargos[meuEmail]; // Puxa do novo mapa de cargos
+        // 2. BUSCAR CATEGORIAS VINCULADAS
+        // Procuramos no banco todas as categorias que pertencem a este time
+        const qCat = query(collection(db, "categorias"), where("timeId", "==", timeId));
+        const snapCat = await getDocs(qCat);
 
-            // TIMES QUE GERENCIO (Dono ou Admin A)
-            if (t.criadorUid === window.usuarioLogado.uid || meuCargo === 'D' || meuCargo === 'A') {
-                
-                // Transforma o mapa de cargos em lista visual
-                let listaMembrosHtml = Object.keys(t.cargos).map(email => `
-                    <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <span style="font-size:0.8rem;">${email}</span>
-                        <span style="font-weight:bold; color:#f59e0b;">${t.cargos[email]}</span>
-                    </div>
-                `).join('');
-
-                htmlGerencio += `
-                    <li style="background: rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:10px; border-left:4px solid #3b82f6;">
-                        <b style="color:white;">👑 ${t.nome}</b>
-                        <div style="margin-top:10px;">${listaMembrosHtml}</div>
-                        <button onclick="excluirTime('${id}')" style="margin-top:10px; background:rgba(239,68,68,0.2); border:none; color:#ff8080; padding:5px; border-radius:5px; cursor:pointer;">Excluir Time</button>
-                    </li>`;
-            } else {
-                // TIMES QUE PERTENÇO (B ou C)
-                htmlPertenco += `
-                    <li style="background: rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:10px; border-left:4px solid #10b981;">
-                        <b style="color:white;">🤝 ${t.nome}</b>
-                        <div style="font-size:0.8rem; color:#cbd5e1;">Meu Nível: ${meuCargo}</div>
-                    </li>`;
-            }
+        // 3. LIMPEZA EM LOTE (Batch)
+        // Usamos um loop para atualizar cada categoria encontrada
+        const promessasCat = [];
+        snapCat.forEach(docCat => {
+            // Opção A: Tornar a categoria pessoal novamente (mais seguro)
+            promessasCat.push(updateDoc(docCat.ref, {
+                timeId: deleteField(), // Remove o campo timeId
+                uid: window.usuarioLogado.uid // Garante que volta para o dono
+            }));
         });
 
-        listaGerencio.innerHTML = htmlGerencio || "<p style='text-align:center;'>Nenhum time gerenciado.</p>";
-        listaPertenco.innerHTML = htmlPertenco || "<p style='text-align:center;'>Nenhum convite pendente.</p>";
+        // Aguarda todas as categorias serem "limpas"
+        await Promise.all(promessasCat);
+        console.log(`${promessasCat.length} categorias desvínculadas.`);
 
-    } catch (e) {
-        console.error("Erro ao carregar times:", e);
-        listaGerencio.innerHTML = "<p style='color:#ef4444;'>Erro de permissão ou conexão.</p>";
+        // 4. APAGAR O DOCUMENTO DO TIME
+        await deleteDoc(doc(db, "times", timeId));
+
+        alert("Time excluído e categorias sincronizadas com sucesso!");
+
+        // 5. ATUALIZAÇÃO DA INTERFACE
+        // Recarregamos os times no modal e as categorias na tela principal
+        if (typeof window.carregarTimes === 'function') window.carregarTimes();
+        if (typeof window.carregarCategorias === 'function') window.carregarCategorias();
+
+    } catch (error) {
+        console.error("Erro ao excluir time:", error);
+        alert("Erro de permissão: Apenas o Dono (Nível D) pode excluir o time.");
     }
 };
+
+
 
 window.criarTime = async () => {
 
