@@ -1906,7 +1906,7 @@ window.carregarCategoriasModal = () => {
     });
 };
 
-    });
+ 
 
 
 
