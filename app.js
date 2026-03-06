@@ -1536,61 +1536,116 @@ window.atualizarSeletorTimes = async () => {
 };
 
 
-window.atualizarInterfaceDeTimes = async () => {
-    if (!window.usuarioLogado) return;
-    
-    try {
-        const q = query(collection(db, "times"));
-        const querySnapshot = await getDocs(q);
-        
-        window.meusTimes = [];
-        const emailFormatado = window.usuarioLogado.email.replace(/\./g, '_');
-
-        // Pega os elementos HTML
-        const listaGerencio = document.getElementById('listaTimesModal');
-        const listaPertenco = document.getElementById('listaTimesPertencoModal');
-        const selectHierarquia = document.getElementById('selecionarTimePermissoes');
-        const selectCategoria = document.getElementById('timeNovaCategoria');
-
-        // Limpa tudo para não duplicar
-        if (listaGerencio) listaGerencio.innerHTML = '';
-        if (listaPertenco) listaPertenco.innerHTML = '';
-        if (selectHierarquia) selectHierarquia.innerHTML = '<option value="">Selecione um Time...</option>';
-        if (selectCategoria) selectCategoria.innerHTML = '<option value="" style="color: black;">👤 Pessoal (Sem Time)</option>';
-
-        querySnapshot.forEach((docSnap) => {
-            const time = docSnap.data();
-            time.id = docSnap.id;
-            
-            const souDono = time.criadorUid === window.usuarioLogado.uid;
-            const souMembro = time.membros && time.membros[emailFormatado];
-
-            // Se eu sou dono ou membro, o time me pertence
-            if (souDono || souMembro) {
-                window.meusTimes.push(time);
-                
-                // 1. Cria a linha da Lista
-                const li = document.createElement('li');
-                li.innerHTML = `<strong>${time.nome}</strong>`;
-                li.style = "padding: 10px; background: white; margin-bottom: 8px; border-radius: 8px; border: 1px solid #e2e8f0; color: #1e293b;";
-                
-                if (souDono && listaGerencio) listaGerencio.appendChild(li);
-                else if (!souDono && listaPertenco) listaPertenco.appendChild(li);
-
-                // 2. Adiciona nos Filtros (Apenas se eu for o Dono)
-                if (souDono) {
-                    const opt = document.createElement('option');
-                    opt.value = time.id;
-                    opt.textContent = time.nome;
-                    
-                    if (selectHierarquia) selectHierarquia.appendChild(opt.cloneNode(true));
-                    if (selectCategoria) selectCategoria.appendChild(opt.cloneNode(true));
-                }
-            }
-        });
-    } catch (e) {
-        console.error("Erro ao recarregar times:", e);
-    }
+window.atualizarInterfaceDeTimes = async () => {
+
+    if (!window.usuarioLogado) return;
+
+    
+
+    try {
+
+        const q = query(collection(db, "times"));
+
+        const querySnapshot = await getDocs(q);
+
+        
+
+        window.meusTimes = [];
+
+        const emailFormatado = window.usuarioLogado.email.replace(/\./g, '_');
+
+
+
+        // Pega os elementos HTML
+
+        const listaGerencio = document.getElementById('listaTimesModal');
+
+        const listaPertenco = document.getElementById('listaTimesPertencoModal');
+
+        const selectHierarquia = document.getElementById('selecionarTimePermissoes');
+
+        const selectCategoria = document.getElementById('timeNovaCategoria');
+
+
+
+        // Limpa tudo para não duplicar
+
+        if (listaGerencio) listaGerencio.innerHTML = '';
+
+        if (listaPertenco) listaPertenco.innerHTML = '';
+
+        if (selectHierarquia) selectHierarquia.innerHTML = '<option value="">Selecione um Time...</option>';
+
+        if (selectCategoria) selectCategoria.innerHTML = '<option value="" style="color: black;">👤 Pessoal (Sem Time)</option>';
+
+
+
+        querySnapshot.forEach((docSnap) => {
+
+            const time = docSnap.data();
+
+            time.id = docSnap.id;
+
+            
+
+            const souDono = time.criadorUid === window.usuarioLogado.uid;
+
+            const souMembro = time.membros && time.membros[emailFormatado];
+
+
+
+            // Se eu sou dono ou membro, o time me pertence
+
+            if (souDono || souMembro) {
+
+                window.meusTimes.push(time);
+
+                
+
+                // 1. Cria a linha da Lista
+
+                const li = document.createElement('li');
+
+                li.innerHTML = `<strong>${time.nome}</strong>`;
+
+                li.style = "padding: 10px; background: white; margin-bottom: 8px; border-radius: 8px; border: 1px solid #e2e8f0; color: #1e293b;";
+
+                
+
+                if (souDono && listaGerencio) listaGerencio.appendChild(li);
+
+                else if (!souDono && listaPertenco) listaPertenco.appendChild(li);
+
+
+
+                // 2. Adiciona nos Filtros (Apenas se eu for o Dono)
+
+                if (souDono) {
+
+                    const opt = document.createElement('option');
+
+                    opt.value = time.id;
+
+                    opt.textContent = time.nome;
+
+                    
+
+                    if (selectHierarquia) selectHierarquia.appendChild(opt.cloneNode(true));
+
+                    if (selectCategoria) selectCategoria.appendChild(opt.cloneNode(true));
+
+                }
+
+            }
+
+        });
+
+    } catch (e) {
+
+        console.error("Erro ao recarregar times:", e);
+
+    }
+
 };
 
 
@@ -1766,34 +1821,62 @@ lista.innerHTML += `
 }; 
 
 window.ativarEdicao = (id, fotos) => {
+
     // Se clicar na mesma tarefa, fecha a edição. Se for outra, abre.
+
     if (idEmEdicao === id) {
+
         idEmEdicao = null;
+
     } else {
+
         idEmEdicao = id;
+
         // Carrega as fotos que já existem na tarefa para a lista temporária
+
         fotosTemporarias = [...(fotos || [])];
+
     }
+
     
+
     carregarTarefas(); // Recarrega a lista para mostrar o painel de edição
 
-    // Aguarda o painel abrir no HTML para desenhar as fotos
-    if (idEmEdicao) {
-        setTimeout(() => window.renderizarFotosEdicao(), 100);
-    }
-};
-window.renderizarFotosEdicao = () => {
-    const container = document.getElementById(`container-fotos-edit-${idEmEdicao}`);
-    if (!container) return;
 
-    container.innerHTML = fotosTemporarias.map((img, idx) => `
-        <div class="foto-wrapper" style="position: relative; width: 60px; height: 60px;">
-            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-            <button class="btn-remover-foto" 
-                    onclick="event.stopPropagation(); window.removerFotoTemporaria(${idx});" 
-                    style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-weight: bold;">×</button>
-        </div>
-    `).join('');
+
+    // Aguarda o painel abrir no HTML para desenhar as fotos
+
+    if (idEmEdicao) {
+
+        setTimeout(() => window.renderizarFotosEdicao(), 100);
+
+    }
+
+};
+
+
+window.renderizarFotosEdicao = () => {
+    const container = document.getElementById('previewFotosEdicao');
+    if (!container) return;
+    
+    container.innerHTML = '';
+
+    // Renderiza as fotos que já existem no banco
+    fotosTemporarias.forEach((url, index) => {
+        const div = document.createElement('div');
+        div.className = 'foto-item';
+        div.innerHTML = `
+            <img src="${url}">
+            <button class="btn-remover-foto" onclick="removerFotoExistente(${index})">×</button>
+        `;
+        container.appendChild(div);
+    });
+};
+
+// Função para remover a foto da lista temporária antes de salvar
+window.removerFotoExistente = (index) => {
+    fotosTemporarias.splice(index, 1);
+    window.renderizarFotosEdicao();
 };
 window.adicionarFotosEdicao = (input) => {
     const arquivos = Array.from(input.files);
@@ -1813,104 +1896,97 @@ window.adicionarFotosEdicao = (input) => {
 };
 
 
-
-window.salvarAlteracoes = async (id) => {
-
-    const btnSalvar = document.querySelector(`#btn-salvar-${id}`);
-
-    const textoOriginal = btnSalvar ? btnSalvar.innerHTML : "SALVAR";
-
-    
-
-    if (btnSalvar) {
-
-        btnSalvar.innerHTML = "⏳ SUBINDO...";
-
-        btnSalvar.disabled = true;
-
-    }
-
-
+async function salvarAlteracoes(id) {
 
     try {
 
-        let linksFinais = [];
+        // 1. Validar se temos o ID
 
-        for (let foto of fotosTemporarias) {
+        if (!id) return;
 
-            if (foto.startsWith('data:image')) {
+        
 
-                // É uma foto nova!
+        // No seu código, as fotos que já estavam na tarefa estão em 'fotosTemporarias'
 
-                const response = await fetch(foto);
+        // As fotos novas (arquivos do input) devem estar em um array separado, ex: 'fotosNovasEdicao'
 
-                const blob = await response.blob();
+        let urlsFinais = [...fotosTemporarias]; 
 
-                const nomeArquivo = `edit-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
 
-                
+        // 2. Upload das NOVAS fotos para o Storage (se houver)
 
-                const snap = await uploadBytes(sRef, blob);
+        // Certifique-se de que quando o usuário seleciona um arquivo na edição, 
 
-                const url = await getDownloadURL(snap.ref);
+        // ele vai para o array fotosNovasEdicao
 
-                linksFinais.push(url);
+        if (typeof fotosNovasEdicao !== 'undefined' && fotosNovasEdicao.length > 0) {
 
-            } else {
+            for (let file of fotosNovasEdicao) {
 
-                // Já é um link do Firebase, só mantém na lista
+                const refStorage = storage.ref(`tarefas/${id}/${file.name}_${Date.now()}`);
 
-                linksFinais.push(foto);
+                await refStorage.put(file);
+
+                const url = await refStorage.getDownloadURL();
+
+                urlsFinais.push(url);
 
             }
 
         }
 
-        await updateDoc(doc(db, "tarefas", id), {
-        descricao: document.getElementById(`edit-desc-${id}`).value,
-        hora: document.getElementById(`edit-hora-${id}`).value,
-        marcador: document.getElementById(`edit-tag-${id}`).value,
-        fotos: linksFinais
-    });
-	
-	await updateDoc(doc(db, "tarefas", id), {
-        descricao: document.getElementById(`edit-desc-${id}`).value,
-        hora: document.getElementById(`edit-hora-${id}`).value,
-        marcador: document.getElementById(`edit-tag-${id}`).value,
-        fotos: linksFinais
-    });
-	
+
+
+        // 3. Coleta os dados dos inputs (garanta que esses IDs existam no seu HTML de edição)
+
+        const updates = {
+
+            descricao: document.getElementById('descTaskEdicao').value,
+
+            categoria: document.getElementById('catTaskEdicao').value,
+
+            marcador: document.getElementById('marcadorTaskEdicao').value || "",
+
+            hora: document.getElementById('horaTaskEdicao').value,
+
+            fotos: urlsFinais,
+
+            editadoEm: new Date()
+
+        };
 
 
 
-        idEmEdicao = null;
+        // 4. Update no Firestore (Sintaxe Namespaced baseada no seu esqueleto)
 
-        alert("Tarefa atualizada com sucesso!");
+        await db.collection('tarefas').doc(id).update(updates);
 
-      window.filtrarERenderizar();
+
+
+        // 5. Limpeza e UI
+
+        idEmEdicao = null; // Fecha o painel de edição
+
+        if (typeof fotosNovasEdicao !== 'undefined') fotosNovasEdicao = [];
+
+        
+
+        carregarTarefas(); 
+
+        alert("Alterações salvas com sucesso!");
+
+
 
     } catch (error) {
 
-        console.error("Erro ao editar:", error);
+        console.error("Erro ao salvar edição:", error);
 
-        alert("Erro ao salvar alterações.");
-
-    } finally {
-
-        if (btnSalvar) {
-
-            btnSalvar.innerHTML = textoOriginal;
-
-            btnSalvar.disabled = false;
-
-        }
+        alert("Falha ao salvar. Verifique se todos os campos estão preenchidos.");
 
     }
 
-};
-
+}
 
 
 window.excluirTask = async (id) => {
@@ -2030,6 +2106,26 @@ window.carregarCategoriasModal = () => {
 };
 
 
+
+function renderizarPreviewFotosNovas() {
+    const container = document.getElementById('previewFotosNovas');
+    container.innerHTML = ''; // Limpa antes de desenhar
+
+    // 'fotosNovas' deve ser seu array temporário de arquivos (Files)
+    fotosNovas.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'foto-item-preview';
+            div.innerHTML = `
+                <img src="${e.target.result}">
+                <button class="btn-remover-foto" onclick="removerFotoNova(${index})">×</button>
+            `;
+            container.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
 
 
 window.salvarNovaTarefa = async () => {

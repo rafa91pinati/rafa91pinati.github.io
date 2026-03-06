@@ -1,0 +1,326 @@
+ESQUELETO DO PROJETO
+
+========== JAVASCRIPT ==========
+
+[L97] definirPermissoesDoUsuario(timeId)
+[L117] aplicarRestricoesVisuais()
+[L133] marcarComoAtualizado()
+[L140] onload()
+[L194] marcarComoAtualizado()
+[L218] filtrarERenderizar()
+[L257] selecionarTag(valor)
+[L263] selecionarTime(valor)
+
+--- LOGIN E AUTH ---
+
+[L299] fazerLogin()
+[L359] criarConta()
+[L366] fazerLogout()
+
+--- ALARMES ---
+
+[L369] carregarPreferenciasNuvem()
+[L384] atualizarPreferenciasNuvem()
+[L395] solicitarPermissaoNotificacao()
+[L424] testarAlarme()
+
+--- UI GERAL ---
+
+[L451] abrirConfig()
+[L486] abrirAba(evt, nomeAba)
+[L563] preencherSelectTimesPermissoes()
+
+--- CARREGA E DESENHA A TABELA DE HIERARQUIA ---
+
+[L583] carregarConfiguracaoNiveis()
+[L634] toggleSecao(idC, idS)
+[L635] abrirFoto(src)
+
+--- CATEGORIAS ---
+
+[L646] carregarCategorias()
+
+--- LÓGICA DE ORDENAÇÃO POR CLIQUE ---
+
+[L731] prepararEdicaoCategoria(id)
+[L825] definirPermissoesPorCategoria(nomeCategoria)
+[L854] aplicarTravaVisual()
+[L877] renderizarCategoriasNoFiltro()
+[L953] abrirOutrasCategorias()
+[L1047] selecionarCat(nome, cor)
+
+--- SUA LÓGICA ATUAL DE ORDENAÇÃO (MANTIDA) ---
+
+
+--- SUA LÓGICA ATUAL DE FILTRO (MANTIDA) ---
+
+[L1096] adicionarCategoria()
+[L1145] carregarCategorias()
+[L1216] atualizarCorCategoria(id, novaCor)
+[L1217] atualizarNomeCategoria(id, novoNome)
+[L1218] excluirCategoria(id)
+[L1220] atualizarLogoCategoria(id, file)
+
+--- MARCADORES ---
+
+[L1230] adicionarMarcador()
+[L1240] carregarMarcadoresModal()
+[L1260] atualizarSeletorMarcadores()
+[L1282] excluirTime(timeId)
+[L1328] criarTime()
+[L1397] excluirTime(id)
+[L1409] adicionarMembro(event, timeId)
+[L1448] removerMembro(timeId, emailRemover)
+[L1510] atualizarSeletorTimes()
+[L1539] atualizarInterfaceDeTimes()
+
+--- TAREFAS ---
+
+[L1654] setarData(tipo, el)
+[L1702] carregarTarefas()
+
+--- FILTRAGEM DE DATAS ---
+
+[L1823] ativarEdicao(id, fotos)
+[L1840] renderizarFotosEdicao()
+[L1853] adicionarFotosEdicao(input)
+[L1872] salvarAlteracoes(id)
+[L1971] excluirTask(id)
+[L1998] cancelarNovaTarefa()
+[L2011] abrirModal(id)
+[L2022] fecharModal(id)
+[L2033] carregarCategoriasModal()
+[L2056] salvarHierarquiaPersonalizada()
+[L2090] salvarNovaTarefa()
+[L2189] prepararFotosNovas(input)
+[L2190] renderizarPreviewFotosNovas()
+[L2191] removerFotoNova(idx)
+
+--- ARQUIVOS FIXOS ---
+
+[L2194] subirArquivoFixo()
+[L2233] carregarArquivosFixos()
+[L2282] excluirArquivoFixo(id)
+
+--- FINANCEIRO ---
+
+[L2285] adicionarTransacao()
+[L2350] carregarFinanceiro()
+[L2439] excluirTransacao(id)
+
+--- GRÁFICO GANTT E PDF ---
+
+[L2447] abrirCronogramaVisual(evento)
+
+--- NOVO: Pega a data de hoje e zera as horas para comparar de forma justa ---
+
+
+--- NOVO: Verifica se o dMax da tarefa é menor que hoje ---
+
+[L2708] gerarRelatorioPDF(evento)
+[L2856] renderizarTarefaDetalhe(t)
+[L3170] gerarPDFCronograma(evento)
+
+========== CSS ==========
+
+
+--- CONFIGURAÇÕES GERAIS ---
+
+
+--- CLASSES UTILITÁRIAS ---
+
+[L4] .escondido
+[L9] body
+[L31] @keyframes gradientBG
+[L43] .container
+[L65] .modal-login
+[L76] .modal-login-content
+
+--- CABEÇALHO E FILTROS ---
+
+[L89] .novo-header-filtros
+[L105] .btn-date
+[L140] .btn-date.ativo, #btnHoje.ativo
+[L150] .novo-header-filtros input[type="date"]
+[L186] .data-container-white
+
+--- BARRA DE CATEGORIAS ---
+
+[L205] #listaCategorias
+[L233] #listaCategorias button
+[L258] #listaCategorias::-webkit-scrollbar
+
+--- CABEÇALHO DA SEÇÃO DE ATIVIDADES ---
+
+[L267] .header-secao
+[L289] .icone-quadrado
+[L305] .seta-secao
+[L317] .seta-secao.seta-expandida
+
+--- MODAL E COMPONENTES ---
+
+[L326] .modal-overlay
+[L354] .modal-card
+[L366] .btn-arquivo-azul
+[L385] .btn-arquivo-azul:active
+[L399] .modal-body input[type="time"]
+[L411] .btn-fechar-modal
+[L441] .btn-fechar-modal:hover
+[L451] .input-principal
+[L477] .input-principal:focus
+[L487] .input-card-mini
+[L505] .input-card-mini label
+[L523] .input-card-mini select
+[L545] .btn-modal-primario
+[L569] .btn-modal-secundario
+[L593] .barra-acoes-rapidas
+[L621] .btn-acao-modal
+[L647] .btn-acao-modal .icon
+[L655] .btn-acao-modal .label
+[L667] .tarefa-item
+[L689] .modal-card
+
+========== HTML ==========
+
+[L24] <div class="header-principal">
+[L36] <main>
+[L42] <div id="telaLogin" class="modal-login">
+[L44] <div class="modal-login-content">
+[L48] <input id="emailLogin">
+[L50] <input id="senhaLogin">
+[L52] <button>
+[L54] <button>
+[L62] <div class="container">
+[L64] <div class="novo-header-filtros">
+[L70] <button id="btnHoje" class="btn-date">
+[L72] <button id="btnAmanha" class="btn-date">
+[L74] <button id="btnSemana" class="btn-date">
+[L77] <div class="data-container-white">
+[L78] <input id="dataSeletor">
+[L81] <button>
+[L87] <button id="btnMes" class="btn-date">
+[L88] <button id="btnTudo" class="btn-date">
+[L93] <div class="data-container-white">
+[L95] <input id="dataFimFiltro">
+[L108] <div id="listaCategorias">
+[L115] <select id="filtroTagGlobal">
+[L125] <div class="barra-acoes-rapidas">
+[L126] <button class="btn-acao-modal">
+[L127] <span class="icon">
+[L128] <span class="label">
+[L130] <button class="btn-acao-modal">
+[L131] <span class="icon">
+[L132] <span class="label">
+[L134] <button class="btn-acao-modal">
+[L135] <span class="icon">
+[L136] <span class="label">
+[L144] <div class="header-secao">
+[L152] <span id="headerMes">
+[L156] <div class="icone-quadrado">
+[L164] <span id="setaLista" class="seta-secao seta-expandida">
+[L174] <button>
+[L180] <button>
+[L191] <div id="listaTarefas">
+[L196] <div id="modalTarefa" class="modal-overlay escondido">
+[L198] <div class="modal-card">
+[L202] <div class="modal-header">
+[L206] <button class="btn-fechar">
+[L212] <div class="modal-body">
+[L216] <input id="descTask">
+[L220] <div id="previewFotosNovas" class="container-fotos">
+[L226] <input id="horaTask">
+[L228] <button class="btn-arquivo-azul">
+[L234] <input id="fotoTask" class="escondido">
+[L246] <select id="tipoRecorrencia">
+[L266] <input id="dataFimRecorrencia">
+[L276] <button>
+[L278] <button id="btnSalvar">
+[L289] <div id="modalArquivos" class="modal-overlay escondido">
+[L291] <div class="modal-card">
+[L293] <div class="modal-header">
+[L297] <button class="btn-fechar">
+[L303] <div class="modal-body">
+[L305] <input id="nomeArquivoFixo">
+[L313] <span id="file-label">
+[L315] <input id="inputArquivoFixo">
+[L319] <button id="btnSubirFixo">
+[L325] <div id="listaArquivosFixos">
+[L333] <div id="modalFinanceiro" class="modal-overlay escondido">
+[L335] <div class="modal-card">
+[L337] <div class="modal-header">
+[L341] <button class="btn-fechar">
+[L347] <div class="modal-body">
+[L355] <div id="totalReceitas">
+[L363] <div id="totalDespesas">
+[L371] <div id="saldoTotal">
+[L379] <input id="descFinanceiro">
+[L389] <input id="valorFinanceiro">
+[L397] <select id="tipoFinanceiro">
+[L413] <button id="btnArquivoFinanceiro">
+[L415] <input id="arquivoFinanceiro" class="escondido">
+[L417] <button id="btnSalvarFinanceiro">
+[L423] <div id="listaFinanceiro">
+[L431] <div id="modalConfiguracoes" class="modal-overlay escondido">
+[L448] <div class="modal-card">
+[L452] <div class="modal-header">
+[L456] <button class="btn-fechar">
+[L462] <div class="modal-body">
+[L466] <div class="category-tabs">
+[L468] <button class="btn-acao-modal tablink active">
+[L470] <span class="icon">
+[L472] <span class="label">
+[L476] <button class="btn-acao-modal tablink">
+[L478] <span class="icon">
+[L480] <span class="label">
+[L484] <button class="btn-acao-modal tablink">
+[L486] <span class="icon">
+[L488] <span class="label">
+[L492] <button class="btn-acao-modal tablink">
+[L494] <span class="icon">
+[L496] <span class="label">
+[L500] <button class="btn-acao-modal tablink">
+[L502] <span class="icon">
+[L504] <span class="label">
+[L516] <div id="abaAlarme" class="tabcontent">
+[L518] <label class="config-label">
+[L520] <select id="tempoAntecedencia" class="config-input">
+[L538] <label class="config-label">
+[L540] <select id="tipoNotificacao" class="config-input">
+[L550] <label class="config-label">
+[L554] <select id="somAlarmeSelecionado" class="config-input">
+[L564] <button>
+[L570] <button id="btnConectarNuvem">
+[L576] <div id="abaCategorias" class="tabcontent">
+[L578] <label class="config-label">
+[L582] <input id="corNovaCategoria">
+[L584] <input id="novaCategoria" class="config-input">
+[L590] <select id="timeNovaCategoria" class="config-input">
+[L600] <input id="logoCatInput">
+[L604] <button>
+[L612] <label class="config-label">
+[L614] <ul id="listaCategoriasModal">
+[L620] <div id="abaMarcadores" class="tabcontent">
+[L622] <label class="config-label">
+[L626] <input id="nomeNovoMarcador" class="config-input">
+[L628] <button>
+[L636] <label class="config-label">
+[L638] <ul id="listaMarcadoresModal">
+[L644] <div id="abaTimes" class="tabcontent">
+[L646] <label class="config-label">
+[L650] <input id="nomeNovoTime" class="config-input">
+[L652] <button>
+[L658] <label class="config-label">
+[L660] <ul id="listaTimesModal">
+[L664] <label class="config-label">
+[L666] <ul id="listaTimesPertencoModal">
+[L672] <div id="abaHierarquia" class="tabcontent">
+[L676] <label class="config-label">
+[L678] <select id="selecionarTimePermissoes" class="config-input">
+[L708] <tbody id="corpoTabelaPermissoes">
+[L718] <button>
+[L734] <div id="modalCronograma" class="modal-overlay escondido">
+[L735] <div class="modal-content">
+[L738] <button class="tablink">
+[L740] <i class="fas fa-sitemap">
+[L751] <div class="modal-body">
+[L753] <div id="listaTodasCategoriasModal">
