@@ -433,7 +433,7 @@ window.timesDasCategorias = {};
 
 
 window.filtrarERenderizar = () => {
-    console.log("Renderizando Lista de Atividades...");
+    console.log("Renderizando Lista de Atividades com Miniaturas Reforçadas...");
     const lista = document.getElementById('listaTarefas');
     const dataIni = document.getElementById('dataSeletor').value;
     const dataFim = document.getElementById('dataFimFiltro').value;
@@ -461,15 +461,15 @@ window.filtrarERenderizar = () => {
     let html = "";
     filtradas.forEach(t => {
         
-        // A) Lógica das miniaturas de fotos
+        // A) Lógica das miniaturas de fotos (COM !important PARA FORÇAR O TAMANHO)
         let miniaturasHtml = '';
         if (t.fotos && t.fotos.length > 0) {
             miniaturasHtml = '<div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">';
             t.fotos.forEach(fotoUrl => {
                 miniaturasHtml += `
-                    <div style="width: 50px; height: 50px; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; cursor: pointer;"
+                    <div style="width: 50px !important; height: 50px !important; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; cursor: pointer;"
                          onclick="window.abrirFoto('${fotoUrl}')">
-                        <img src="${fotoUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="Anexo">
+                        <img src="${fotoUrl}" style="width: 100% !important; height: 100% !important; object-fit: cover !important;" alt="Anexo">
                     </div>
                 `;
             });
@@ -480,7 +480,7 @@ window.filtrarERenderizar = () => {
         const corCategoria = window.coresCategorias?.[t.categoria] || '#3b82f6';
         const tagHtml = t.marcador ? `<span style="font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">${t.marcador}</span>` : '';
 
-        // C) Constrói o card da tarefa e injeta na lista (aqui é onde as fotos e os dados aparecem!)
+        // C) Constrói o card da tarefa e injeta na lista
         html += `
             <div class="tarefa-item" style="border-left: 4px solid ${corCategoria}; padding: 12px; margin-bottom: 10px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
