@@ -4268,7 +4268,29 @@ window.salvarNovaTarefa = async () => {
 
 window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
 
-const renderizarPreviewFotosNovas = () => { document.getElementById('previewFotosNovas').innerHTML = fotosNovasArray.map((file, idx) => `<div class="foto-wrapper"><img src="${URL.createObjectURL(file)}" class="img-tarefa"><button class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button></div>`).join(''); };
+window.renderizarPreviewFotosNovas = () => {
+    const container = document.getElementById('previewFotosNovas');
+    if (!container) return;
+
+    let html = '<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">';
+
+    window.fotosNovasArray.forEach((file, index) => {
+        const url = URL.createObjectURL(file);
+        html += `
+            <div style="position: relative; width: 60px !important; height: 60px !important; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                <img src="${url}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block; margin: 0; padding: 0;">
+                
+                <button onclick="window.removerFotoNova(${index})" 
+                        style="position: absolute; top: 0; right: 0; background: #ef4444; color: white; border: none; width: 20px; height: 20px; cursor: pointer; font-size: 14px; font-weight: bold; line-height: 1; border-bottom-left-radius: 4px;">
+                    ×
+                </button>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+};;
 
 window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
 
