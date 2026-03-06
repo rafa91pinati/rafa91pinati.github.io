@@ -479,47 +479,49 @@
 
             
 
-            <div class="category-tabs" style="display: flex; justify-content: space-evenly; background: white; padding: 15px 10px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+            <div class="category-tabs" style="display: flex; justify-content: space-around; background: white; padding: 15px 5px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); overflow-x: auto; gap: 5px;">
 
-                <button id="btnAbaAlarme" class="btn-acao-modal tablink config-tablink active" onclick="abrirAba(event, 'abaAlarme')">
+    <button class="btn-acao-modal tablink active" onclick="abrirAba(event, 'abaAlarme')">
 
-                    <span class="icon">🔔</span>
+        <span class="icon">🔔</span>
 
-                    <span class="label">Alarmes</span>
+        <span class="label">Alarmes</span>
 
-                </button>
+    </button>
 
-                <button class="btn-acao-modal tablink config-tablink" onclick="abrirAba(event, 'abaCategorias')">
+    <button class="btn-acao-modal tablink" onclick="abrirAba(event, 'abaCategorias')">
 
-                    <span class="icon">📂</span>
+        <span class="icon">📂</span>
 
-                    <span class="label">Categorias</span>
+        <span class="label">Categorias</span>
 
-                </button>
+    </button>
 
-                <button class="btn-acao-modal tablink config-tablink" onclick="abrirAba(event, 'abaMarcadores')">
+    <button class="btn-acao-modal tablink" onclick="abrirAba(event, 'abaMarcadores')">
 
-                    <span class="icon">🔖</span>
+        <span class="icon">🔖</span>
 
-                    <span class="label">Etapas</span>
+        <span class="label">Etapas</span>
 
-                </button>
+    </button>
 
-                <button class="btn-acao-modal tablink config-tablink" onclick="abrirAba(event, 'abaTimes')">
+    <button class="btn-acao-modal tablink" onclick="abrirAba(event, 'abaTimes')">
 
-                    <span class="icon">👥</span>
+        <span class="icon">👥</span>
 
-                    <span class="label">Times</span>
+        <span class="label">Times</span>
 
-                </button>
-				
-				<div class="tablink" onclick="abrirAba(event, 'abaHierarquia')" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 65px;">
+    </button>
 
-    <div style="background: rgba(255,255,255,0.08); width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
+    <button class="btn-acao-modal tablink" onclick="abrirAba(event, 'abaHierarquia')">
 
-        <i class="fas fa-sitemap" style="color: #6366f1; font-size: 1.1rem;"></i>
+        <span class="icon">⚖️</span>
 
-    </div>
+        <span class="label">Hierarquia</span>
+
+    </button>
+
+</div>
 
     <span style="font-size: 0.6rem; font-weight: bold; color: #94a3b8; text-transform: uppercase;">Hierarquia</span>
 
@@ -659,99 +661,48 @@
 
 
 
-            <div id="abaTimes" class="tabcontent" style="display: none;">
-
-                <label class="config-label" style="margin-top: 0;">Criar Novo Time:</label>
-
-                <div style="display: flex; gap: 8px;">
-
-                    <input type="text" id="nomeNovoTime" class="config-input" placeholder="Ex: Equipe de Manutenção" style="flex: 1;">
-
-                    <button onclick="criarTime()" style="background: linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:12px 20px; border-radius:12px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">Criar</button>
-
-
-
-                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
-
-
-
-                <label class="config-label" style="color: #3b82f6;">👑 Times que gerencio:</label>
-
-
-
-                <ul id="listaTimesModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-
-
-
-                
-
-
-
-                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">
-
-
-
-                <label class="config-label" style="color: #10b981;">🤝 Times que pertenço:</label>
-
-
-
-                <ul id="listaTimesPertencoModal" style="padding-left:0; list-style:none; margin-top:0; max-height: 200px; overflow-y: auto;"></ul>
-
-
-
-            </div>
-                </div>
-
-
-<div id="abaHierarquia" class="tabcontent" style="display:none; padding: 15px;">
-    <h4 style="color: white; margin-bottom: 15px;">Configurações de Nível</h4>
-    <div id="corpoTabelaPermissoes"></div>
-
-
-    <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1);">
-
-        <h4 style="color: white; margin-bottom: 15px; font-size: 0.9rem;">Configurações de Acesso</h4>
-
-        
-
-        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold;">
-
-            <option value="">Selecione um Time...</option>
-
-        </select>
-
-                <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer;">
-
-
-
-            💾 SALVAR HIERARQUIA
-
-
-
-        </button>
-		
-
-        <div style="overflow-x: auto;">
-
-            <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.75rem;">
-
-                <thead>
-
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-
-                        <th style="padding: 10px; text-align: left;">Nível</th>
-
-                        <th>✍️</th><th>🗑️</th><th>💰</th><th>👥</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody id="corpoTabelaPermissoes"></tbody>
-
-            </table>
-
-        </div>
+            <div id="abaTimes" class="tabcontent" style="display: none; padding: 10px;">
+    <label class="config-label" style="margin-top: 0;">Criar Novo Time:</label>
+    <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <input type="text" id="nomeNovoTime" class="config-input" placeholder="Ex: Equipe de Manutenção" style="flex: 1;">
+        <button onclick="criarTime()" style="background: #10b981; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">Criar</button>
+    </div>
+
+    <label class="config-label" style="color: #3b82f6;">👑 Times que gerencio:</label>
+    <ul id="listaTimesModal" style="padding:0; list-style:none; margin-bottom: 20px;"></ul>
+
+    <label class="config-label" style="color: #10b981;">🤝 Times que pertenço:</label>
+    <ul id="listaTimesPertencoModal" style="padding:0; list-style:none;"></ul>
+</div>
+
+<div id="abaHierarquia" class="tabcontent" style="display: none; padding: 10px;">
+    <div style="background: #f8fafc; border-radius: 18px; padding: 15px; border: 1px solid #e2e8f0;">
+        <label class="config-label" style="margin-top: 0;">Time para Configurar:</label>
+        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" class="config-input" style="margin-bottom: 20px;">
+            <option value="">Selecione um Time...</option>
+        </select>
+
+        <div style="overflow-x: auto; margin-bottom: 20px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e2e8f0;">
+                        <th style="text-align: left; padding: 8px;">Nível</th>
+                        <th title="Criar">✍️</th>
+                        <th title="Excluir">🗑️</th>
+                        <th title="Financeiro">💰</th>
+                        <th title="Membros">👥</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabelaPermissoes">
+                    </tbody>
+            </table>
+        </div>
+
+        <button onclick="salvarHierarquiaPersonalizada()" style="width: 100%; padding: 15px; background: #3b82f6; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.2);">
+            💾 SALVAR PERMISSÕES
+        </button>
+    </div>
+</div>
 </div>
     </div>
 
