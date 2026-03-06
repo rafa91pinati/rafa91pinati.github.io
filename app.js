@@ -575,52 +575,57 @@ window.preencherSelectTimesPermissoes = () => {
 };
 
 
-
+// --- CARREGA E DESENHA A TABELA DE HIERARQUIA ---
 window.carregarConfiguracaoNiveis = async () => {
     const timeId = document.getElementById('selecionarTimePermissoes').value;
     const corpoTabela = document.getElementById('corpoTabelaPermissoes');
     
+    // Se não tiver time selecionado, limpa a tabela
     if (!timeId || !corpoTabela) {
-        corpoTabela.innerHTML = "";
+        if (corpoTabela) corpoTabela.innerHTML = "";
         return;
     }
 
     try {
-        // 1. Busca os dados frescos do time no Firestore
+        // Busca os dados do time selecionado no Firebase
         const docSnap = await getDoc(doc(db, "times", timeId));
         if (!docSnap.exists()) return;
         
         const dadosTime = docSnap.data();
-        // Se o time não tiver configPermissoes ainda, usa o nosso dicionário padrão
-        const config = dadosTime.configPermissoes || window.DEFAULTS_PERMISSOES;
+        
+        // Se o time já tiver permissões salvas, usa elas. Se não, usa o padrão.
+        const config = dadosTime.configPermissoes || window.DEFAULTS_PERMISSOES || {};
 
         const niveis = ['D', 'A', 'B', 'C'];
-        corpoTabela.innerHTML = "";
+        let htmlTabela = "";
 
-        // 2. Monta as linhas da tabela dinamicamente
+        // Para cada nível, cria uma linha na tabela com os IDs exatos que o botão Salvar precisa
         niveis.forEach(nv => {
             const p = config[nv] || { escreverAtividade: false, excluirAtividade: false, financeiro: false, gerenciarEquipe: false };
             
-            const tr = document.createElement('tr');
-            tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-            
-            tr.innerHTML = `
-                <td style="padding: 12px; font-weight: bold; color: #94a3b8;">Nível ${nv}</td>
-                <td style="text-align:center;"><input type="checkbox" id="check-escrever-${nv}" ${p.escreverAtividade ? 'checked' : ''}></td>
-                <td style="text-align:center;"><input type="checkbox" id="check-excluir-${nv}" ${p.excluirAtividade ? 'checked' : ''}></td>
-                <td style="text-align:center;"><input type="checkbox" id="check-financeiro-${nv}" ${p.financeiro ? 'checked' : ''}></td>
-                <td style="text-align:center;"><input type="checkbox" id="check-membros-${nv}" ${p.gerenciarEquipe ? 'checked' : ''}></td>
+            htmlTabela += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 15px 10px; font-weight: bold; color: #cbd5e1; text-align: left;">Nível ${nv}</td>
+                    
+                    <td><input type="checkbox" id="check-escrever-${nv}" ${p.escreverAtividade ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                    
+                    <td><input type="checkbox" id="check-excluir-${nv}" ${p.excluirAtividade ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                    
+                    <td><input type="checkbox" id="check-financeiro-${nv}" ${p.financeiro ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                    
+                    <td><input type="checkbox" id="check-membros-${nv}" ${p.gerenciarEquipe ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                </tr>
             `;
-            corpoTabela.appendChild(tr);
         });
+
+        // Injeta o HTML pronto na tela
+        corpoTabela.innerHTML = htmlTabela;
 
     } catch (e) {
         console.error("Erro ao carregar níveis:", e);
-        alert("Erro ao acessar as configurações do time.");
+        alert("Erro ao ler as configurações deste time. Verifique sua conexão e regras do Firebase.");
     }
 };
-
-
 
 window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
 window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
@@ -1309,54 +1314,41 @@ window.excluirTime = async (timeId) => {
 
 
 
-window.criarTime = async () => {
-
-    const nome = document.getElementById('nomeNovoTime').value.trim();
-
-    if (!nome) return alert("Digite o nome do time!");
-
-
-
-    try {
-
-        const novoTime = {
-
-            nome: nome,
-
-            criadorUid: window.usuarioLogado.uid,
-
-            criadorEmail: window.usuarioLogado.email,
-
-            membros: {
-
-                [window.usuarioLogado.email.replace(/\./g, '_')]: "0" // Você é o Dono (0)
-
-            },
-
-            configPermissoes: window.DEFAULTS_PERMISSOES, // Já nasce com as permissões padrão
-
-            dataCriacao: new Date().toISOString()
-
-        };
-
-
-
-        await addDoc(collection(db, "times"), novoTime);
-
-        document.getElementById('nomeNovoTime').value = "";
-
-        alert("Time '" + nome + "' criado com sucesso!");
-
-        window.carregarDadosIniciais(); // Atualiza a interface
-
-    } catch (e) {
-
-        console.error("Erro ao criar time:", e);
-
-        alert("Erro: Verifique as regras de permissão no Console do Firebase.");
-
-    }
-
+window.criarTime = async () => {
+    const nome = document.getElementById('nomeNovoTime').value.trim();
+    if (!nome) return alert("Digite o nome do time!");
+
+    // Se o usuário não estiver logado ou a variável sumiu, avisa na hora
+    if (!window.usuarioLogado || !window.usuarioLogado.uid) {
+        return alert("ERRO: O sistema perdeu seu login. Atualize a página e logue novamente.");
+    }
+
+    try {
+        console.log("Iniciando criação do time...");
+        
+        const novoTime = {
+            nome: nome,
+            criadorUid: window.usuarioLogado.uid,
+            criadorEmail: window.usuarioLogado.email,
+            membros: {
+                [window.usuarioLogado.email.replace(/\./g, '_')]: "0" // Nível 0 (Dono)
+            },
+            configPermissoes: window.DEFAULTS_PERMISSOES || {},
+            dataCriacao: new Date().toISOString()
+        };
+
+        // Usa os comandos do Firebase (se eles não existirem, o Catch vai dedurar)
+        await window.addDoc(window.collection(window.db, "times"), novoTime);
+        
+        document.getElementById('nomeNovoTime').value = "";
+        alert("Time '" + nome + "' criado com sucesso!");
+        if(typeof window.carregarDadosIniciais === 'function') window.carregarDadosIniciais();
+
+    } catch (e) {
+        console.error("ERRO COMPLETO:", e);
+        // AQUI ESTÁ O PULO DO GATO: Mostra o erro real do sistema!
+        alert("ERRO REAL DO SISTEMA: " + e.message); 
+    }
 };
 
 
