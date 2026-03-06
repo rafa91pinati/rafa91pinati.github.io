@@ -728,19 +728,26 @@ window.carregarCategorias = async () => {
 
         // SALVA GLOBALMENTE PARA O NOVO RENDERIZADOR USAR
 window.prepararEdicaoCategoria = (id) => {
+    // Acha a categoria na sua lista global
     const cat = window.todasAsCategorias.find(c => c.id === id);
     if (!cat) return;
 
+    // Sobe os dados para os campos de input
     document.getElementById('novaCategoria').value = cat.nome;
     document.getElementById('corNovaCategoria').value = cat.cor || "#3b82f6";
     document.getElementById('timeNovaCategoria').value = cat.timeId || "";
     
-    // Transforma o botão "+" em um botão de "Salvar Edição"
-    const btnAdd = document.querySelector("button[onclick='adicionarCategoria()']");
-    btnAdd.innerHTML = "💾";
-    btnAdd.onclick = () => window.salvarEdicaoCategoria(id);
-    
-    alert("Agora altere a cor ou a logo acima e clique no disquete para salvar!");
+    // Procura o botão de "+" e transforma ele no disquete de Salvar (💾)
+    const btnAcao = document.querySelector("button[onclick='adicionarCategoria()']") || 
+                    document.querySelector("button[onclick='window.adicionarCategoria()']");
+                    
+    if (btnAcao) {
+        btnAcao.innerHTML = "💾";
+        // Quando clicar no disquete, chama a função de salvar que acabamos de criar!
+        btnAcao.setAttribute("onclick", `window.salvarEdicaoCategoria('${id}')`);
+    } else {
+        console.log("Botão de adicionar não encontrado para trocar pelo disquete.");
+    }
 };
 
        window.todasAsCategorias.forEach(cat => {
@@ -1317,40 +1324,72 @@ window.excluirTime = async (timeId) => {
 
 
 
-window.criarTime = async () => {
-    const nome = document.getElementById('nomeNovoTime').value.trim();
-    if (!nome) return alert("Digite o nome do time!");
-
-    if (!window.usuarioLogado || !window.usuarioLogado.uid) {
-        return alert("ERRO: O sistema perdeu seu login. Atualize a página e logue novamente.");
-    }
-
-    try {
-        console.log("Iniciando criação do time...");
-        
-        const novoTime = {
-            nome: nome,
-            criadorUid: window.usuarioLogado.uid,
-            criadorEmail: window.usuarioLogado.email,
-            membros: {
-                [window.usuarioLogado.email.replace(/\./g, '_')]: "0" // Você é o Nível 0
-            },
-            configPermissoes: window.DEFAULTS_PERMISSOES || {},
-            dataCriacao: new Date().toISOString()
-        };
-
-        // A MÁGICA AQUI: Usando addDoc e collection diretamente!
-        await addDoc(collection(db, "times"), novoTime);
-        
-        document.getElementById('nomeNovoTime').value = "";
+window.criarTime = async () => {
+
+    const nome = document.getElementById('nomeNovoTime').value.trim();
+
+    if (!nome) return alert("Digite o nome do time!");
+
+
+
+    if (!window.usuarioLogado || !window.usuarioLogado.uid) {
+
+        return alert("ERRO: O sistema perdeu seu login. Atualize a página e logue novamente.");
+
+    }
+
+
+
+    try {
+
+        console.log("Iniciando criação do time...");
+
+        
+
+        const novoTime = {
+
+            nome: nome,
+
+            criadorUid: window.usuarioLogado.uid,
+
+            criadorEmail: window.usuarioLogado.email,
+
+            membros: {
+
+                [window.usuarioLogado.email.replace(/\./g, '_')]: "0" // Você é o Nível 0
+
+            },
+
+            configPermissoes: window.DEFAULTS_PERMISSOES || {},
+
+            dataCriacao: new Date().toISOString()
+
+        };
+
+
+
+        // A MÁGICA AQUI: Usando addDoc e collection diretamente!
+
+        await addDoc(collection(db, "times"), novoTime);
+
+        
+
+        document.getElementById('nomeNovoTime').value = "";
+
         alert("Time '" + nome + "' criado com sucesso!");
 		
-		await window.atualizarInterfaceDeTimes();
-        
-    } catch (e) {
-        console.error("ERRO COMPLETO:", e);
-        alert("Erro ao criar: " + e.message); 
-    }
+		
+await window.atualizarInterfaceDeTimes();
+        
+
+    } catch (e) {
+
+        console.error("ERRO COMPLETO:", e);
+
+        alert("Erro ao criar: " + e.message); 
+
+    }
+
 };
 
 
