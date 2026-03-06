@@ -208,6 +208,7 @@ let fotosNovasArray = [];
 let tipoFiltroTempo = 'dia'; 
 let tagFiltroAtiva = ""; 
 let timeFiltroAtivo = "";
+let fotosNovas = [];
 
 window.usuarioLogado = null;
 window.tarefasMonitoramento = [];
@@ -1855,28 +1856,50 @@ window.ativarEdicao = (id, fotos) => {
 };
 
 
-window.renderizarFotosEdicao = () => {
-    const container = document.getElementById('previewFotosEdicao');
-    if (!container) return;
-    
-    container.innerHTML = '';
-
-    // Renderiza as fotos que já existem no banco
-    fotosTemporarias.forEach((url, index) => {
-        const div = document.createElement('div');
-        div.className = 'foto-item';
-        div.innerHTML = `
-            <img src="${url}">
-            <button class="btn-remover-foto" onclick="removerFotoExistente(${index})">×</button>
-        `;
-        container.appendChild(div);
-    });
-};
-
-// Função para remover a foto da lista temporária antes de salvar
-window.removerFotoExistente = (index) => {
-    fotosTemporarias.splice(index, 1);
-    window.renderizarFotosEdicao();
+window.renderizarFotosEdicao = () => {
+
+    const container = document.getElementById('previewFotosEdicao');
+
+    if (!container) return;
+
+    
+
+    container.innerHTML = '';
+
+
+
+    // Renderiza as fotos que já existem no banco
+
+    fotosTemporarias.forEach((url, index) => {
+
+        const div = document.createElement('div');
+
+        div.className = 'foto-item';
+
+        div.innerHTML = `
+
+            <img src="${url}">
+
+            <button class="btn-remover-foto" onclick="removerFotoExistente(${index})">×</button>
+
+        `;
+
+        container.appendChild(div);
+
+    });
+
+};
+
+
+
+// Função para remover a foto da lista temporária antes de salvar
+
+window.removerFotoExistente = (index) => {
+
+    fotosTemporarias.splice(index, 1);
+
+    window.renderizarFotosEdicao();
+
 };
 window.adicionarFotosEdicao = (input) => {
     const arquivos = Array.from(input.files);
@@ -1896,96 +1919,65 @@ window.adicionarFotosEdicao = (input) => {
 };
 
 
-async function salvarAlteracoes(id) {
-
-    try {
-
-        // 1. Validar se temos o ID
-
-        if (!id) return;
-
-        
-
-        // No seu código, as fotos que já estavam na tarefa estão em 'fotosTemporarias'
-
-        // As fotos novas (arquivos do input) devem estar em um array separado, ex: 'fotosNovasEdicao'
-
-        let urlsFinais = [...fotosTemporarias]; 
-
-
-
-        // 2. Upload das NOVAS fotos para o Storage (se houver)
-
-        // Certifique-se de que quando o usuário seleciona um arquivo na edição, 
-
-        // ele vai para o array fotosNovasEdicao
-
-        if (typeof fotosNovasEdicao !== 'undefined' && fotosNovasEdicao.length > 0) {
-
-            for (let file of fotosNovasEdicao) {
-
-                const refStorage = storage.ref(`tarefas/${id}/${file.name}_${Date.now()}`);
-
-                await refStorage.put(file);
-
-                const url = await refStorage.getDownloadURL();
-
-                urlsFinais.push(url);
-
-            }
-
-        }
-
-
-
-        // 3. Coleta os dados dos inputs (garanta que esses IDs existam no seu HTML de edição)
-
-        const updates = {
-
-            descricao: document.getElementById('descTaskEdicao').value,
-
-            categoria: document.getElementById('catTaskEdicao').value,
-
-            marcador: document.getElementById('marcadorTaskEdicao').value || "",
-
-            hora: document.getElementById('horaTaskEdicao').value,
-
-            fotos: urlsFinais,
-
-            editadoEm: new Date()
-
-        };
-
-
-
-        // 4. Update no Firestore (Sintaxe Namespaced baseada no seu esqueleto)
-
-        await db.collection('tarefas').doc(id).update(updates);
-
-
-
-        // 5. Limpeza e UI
-
-        idEmEdicao = null; // Fecha o painel de edição
-
-        if (typeof fotosNovasEdicao !== 'undefined') fotosNovasEdicao = [];
-
-        
-
-        carregarTarefas(); 
-
-        alert("Alterações salvas com sucesso!");
-
-
-
-    } catch (error) {
-
-        console.error("Erro ao salvar edição:", error);
-
-        alert("Falha ao salvar. Verifique se todos os campos estão preenchidos.");
-
-    }
-
+async function salvarNovaTarefa() {
+    const desc = document.getElementById('descTask').value;
+    const data = document.getElementById('dataSeletor').value; // Pegando a data do filtro atual
+
+    if (!desc) return alert("Por favor, digite uma descrição.");
+
+    try {
+        // Bloqueia o botão para evitar cliques duplos
+        const btn = document.getElementById('btnSalvar');
+        btn.disabled = true;
+        btn.innerText = "Salvando...";
+
+        let urlsFotos = [];
+
+        // 1. Upload das fotos para o Storage
+        if (fotosNovas.length > 0) {
+            for (let file of fotosNovas) {
+                const nomeArquivo = `${Date.now()}_${file.name}`;
+                // Ajuste o caminho conforme sua estrutura no Firebase Storage
+                const refStorage = storage.ref(`tarefas/${auth.currentUser.uid}/${nomeArquivo}`);
+                const snapshot = await refStorage.put(file);
+                const url = await snapshot.ref.getDownloadURL();
+                urlsFotos.push(url);
+            }
+        }
+
+        // 2. Salva no Firestore
+        await db.collection('tarefas').add({
+            uid: auth.currentUser.uid,
+            timeId: window.timeSelecionadoId || "",
+            descricao: desc,
+            dataString: data,
+            hora: document.getElementById('horaTask').value,
+            recorrencia: document.getElementById('tipoRecorrencia').value,
+            dataFimRecorrencia: document.getElementById('dataFimRecorrencia').value,
+            fotos: urlsFotos,
+            criadoEm: new Date(),
+            categoria: "Geral" // Ou a categoria selecionada
+        });
+
+        // 3. Limpa tudo e fecha
+        fotosNovas = [];
+        document.getElementById('descTask').value = "";
+        document.getElementById('previewFotosNovas').innerHTML = "";
+        fecharModal('modalTarefa');
+        
+        // Se você tem a função de carregar a lista:
+        if (typeof carregarTarefas === 'function') carregarTarefas();
+
+        alert("Tarefa salva com sucesso!");
+
+    } catch (error) {
+        console.error("Erro ao salvar:", error);
+        alert("Erro ao salvar a tarefa. Verifique sua conexão.");
+    } finally {
+        const btn = document.getElementById('btnSalvar');
+        btn.disabled = false;
+        btn.innerText = "Salvar";
+    }
 }
 
 
@@ -2106,28 +2098,24 @@ window.carregarCategoriasModal = () => {
 };
 
 
-
-function renderizarPreviewFotosNovas() {
+window.renderizarPreviewFotosNovas = () => {
     const container = document.getElementById('previewFotosNovas');
-    container.innerHTML = ''; // Limpa antes de desenhar
+    container.innerHTML = ''; // Limpa para redesenhar
 
-    // 'fotosNovas' deve ser seu array temporário de arquivos (Files)
     fotosNovas.forEach((file, index) => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const div = document.createElement('div');
-            div.className = 'foto-item-preview';
+            div.className = 'foto-item';
             div.innerHTML = `
                 <img src="${e.target.result}">
-                <button class="btn-remover-foto" onclick="removerFotoNova(${index})">×</button>
+                <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${index})">✕</button>
             `;
             container.appendChild(div);
         };
         reader.readAsDataURL(file);
     });
-}
-
-
+};
 window.salvarNovaTarefa = async () => {
     const btn = document.getElementById('btnSalvar');
     const textoOriginal = btn.innerHTML;
@@ -2227,10 +2215,25 @@ window.salvarNovaTarefa = async () => {
     }
 };
 
-window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
+window.prepararFotosNovas = (input) => {
+    if (input.files) {
+        // Adiciona os arquivos selecionados ao nosso array global
+        const arquivos = Array.from(input.files);
+        fotosNovas = [...fotosNovas, ...arquivos];
+        
+        // Desenha os quadradinhos na tela
+        renderizarPreviewFotosNovas();
+        
+        // Limpa o input para poder selecionar a mesma foto se quiser
+        input.value = ""; 
+    }
+};
 
 
-window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
+window.removerFotoNova = (index) => {
+    fotosNovas.splice(index, 1);
+    renderizarPreviewFotosNovas();
+};
 
 // --- ARQUIVOS FIXOS ---
 window.subirArquivoFixo = async () => {
