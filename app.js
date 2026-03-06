@@ -476,43 +476,112 @@ window.abrirConfig = () => {
 
 
 
-window.abrirAba = (evt, nomeAba) => {
+
+window.abrirAba = (evt, nomeAba) => {
+
+    let i, tabcontent, tablinks;
+
+    
+
+    // Esconde todos os conteúdos
+
+    tabcontent = document.getElementsByClassName("tabcontent");
+
+    for (i = 0; i < tabcontent.length; i++) {
+
+        tabcontent[i].style.display = "none";
+
+    }
+
+    
+
+    // Remove a classe 'active' de todos os botões
+
+    tablinks = document.getElementsByClassName("tablink");
+
+    for (i = 0; i < tablinks.length; i++) {
+
+        tablinks[i].classList.remove("active");
+
+    }
+
+    
+
+    // Mostra a aba atual e adiciona 'active' no botão clicado
+
+    document.getElementById(nomeAba).style.display = "block";
+
+    evt.currentTarget.classList.add("active");if (nomeAba === 'abaHierarquia') {
+        if (typeof window.preencherSelectTimesPermissoes === 'function') {
+            window.preencherSelectTimesPermissoes();
+        }
+}
+};
+window.preencherSelectTimesPermissoes = () => {
+    const select = document.getElementById('selecionarTimePermissoes');
+    if (!select) return;
 
-    let i, tabcontent, tablinks;
+    select.innerHTML = '<option value="">Selecione o Time...</option>';
 
-    
-
-    // Esconde todos os conteúdos
-
-    tabcontent = document.getElementsByClassName("tabcontent");
-
-    for (i = 0; i < tabcontent.length; i++) {
-
-        tabcontent[i].style.display = "none";
-
-    }
-
-    
-
-    // Remove a classe 'active' de todos os botões
-
-    tablinks = document.getElementsByClassName("tablink");
-
-    for (i = 0; i < tablinks.length; i++) {
-
-        tablinks[i].classList.remove("active");
-
-    }
-
-    
-
-    // Mostra a aba atual e adiciona 'active' no botão clicado
-
-    document.getElementById(nomeAba).style.display = "block";
-
-    evt.currentTarget.classList.add("active");
-
+    // Filtra apenas os times onde você é o Dono (Nível 0)
+    const meusTimes = window.meusTimesBrutos || []; 
+    meusTimes.forEach(t => {
+        if (t.criadorUid === window.usuarioLogado.uid) {
+            const opt = document.createElement('option');
+            opt.value = t.id;
+            opt.textContent = t.nome;
+            select.appendChild(opt);
+        }
+    });
 };
+
+
+
+window.carregarConfiguracaoNiveis = async () => {
+    const timeId = document.getElementById('selecionarTimePermissoes').value;
+    const corpoTabela = document.getElementById('corpoTabelaPermissoes');
+    
+    if (!timeId || !corpoTabela) {
+        corpoTabela.innerHTML = "";
+        return;
+    }
+
+    try {
+        // 1. Busca os dados frescos do time no Firestore
+        const docSnap = await getDoc(doc(db, "times", timeId));
+        if (!docSnap.exists()) return;
+        
+        const dadosTime = docSnap.data();
+        // Se o time não tiver configPermissoes ainda, usa o nosso dicionário padrão
+        const config = dadosTime.configPermissoes || window.DEFAULTS_PERMISSOES;
+
+        const niveis = ['D', 'A', 'B', 'C'];
+        corpoTabela.innerHTML = "";
+
+        // 2. Monta as linhas da tabela dinamicamente
+        niveis.forEach(nv => {
+            const p = config[nv] || { escreverAtividade: false, excluirAtividade: false, financeiro: false, gerenciarEquipe: false };
+            
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+            
+            tr.innerHTML = `
+                <td style="padding: 12px; font-weight: bold; color: #94a3b8;">Nível ${nv}</td>
+                <td style="text-align:center;"><input type="checkbox" id="check-escrever-${nv}" ${p.escreverAtividade ? 'checked' : ''}></td>
+                <td style="text-align:center;"><input type="checkbox" id="check-excluir-${nv}" ${p.excluirAtividade ? 'checked' : ''}></td>
+                <td style="text-align:center;"><input type="checkbox" id="check-financeiro-${nv}" ${p.financeiro ? 'checked' : ''}></td>
+                <td style="text-align:center;"><input type="checkbox" id="check-membros-${nv}" ${p.gerenciarEquipe ? 'checked' : ''}></td>
+            `;
+            corpoTabela.appendChild(tr);
+        });
+
+    } catch (e) {
+        console.error("Erro ao carregar níveis:", e);
+        alert("Erro ao acessar as configurações do time.");
+    }
+};
+
+
 
 window.toggleSecao = (idC, idS) => { document.getElementById(idC).classList.toggle('escondido'); if(idS) document.getElementById(idS).classList.toggle('seta-expandida'); };
 window.abrirFoto = (src) => { document.getElementById('imgGrande').src = src; document.getElementById('modalFotoExpandida').classList.remove('escondido'); };
@@ -1842,31 +1911,56 @@ window.carregarCategoriasModal = () => {
 };
 
 
-window.salvarHierarquiaPersonalizada = async () => {
-    const timeId = document.getElementById('selecionarTimePermissoes').value;
-    if (!timeId) return alert("Selecione um time primeiro!");
-
-    const niveis = ['D', 'A', 'B', 'C'];
-    const novaConfig = {};
-
-    niveis.forEach(nv => {
-        novaConfig[nv] = {
-            escreverAtividade: document.getElementById(`check-escrever-${nv}`).checked,
-            excluirAtividade: document.getElementById(`check-excluir-${nv}`).checked,
-            financeiro: document.getElementById(`check-financeiro-${nv}`).checked,
-            gerenciarEquipe: document.getElementById(`check-membros-${nv}`).checked
-        };
-    });
-
-    try {
-        await updateDoc(doc(db, "times", timeId), {
-            configPermissoes: novaConfig
-        });
-        alert("Hierarquia do time atualizada com sucesso!");
-    } catch (e) {
-        console.error("Erro ao salvar hierarquia:", e);
-        alert("Erro: Apenas o Dono (Nível 0) pode alterar a hierarquia.");
-    }
+window.salvarHierarquiaPersonalizada = async () => {
+
+    const timeId = document.getElementById('selecionarTimePermissoes').value;
+
+    if (!timeId) return alert("Selecione um time primeiro!");
+
+
+
+    const niveis = ['D', 'A', 'B', 'C'];
+
+    const novaConfig = {};
+
+
+
+    niveis.forEach(nv => {
+
+        novaConfig[nv] = {
+
+            escreverAtividade: document.getElementById(`check-escrever-${nv}`).checked,
+
+            excluirAtividade: document.getElementById(`check-excluir-${nv}`).checked,
+
+            financeiro: document.getElementById(`check-financeiro-${nv}`).checked,
+
+            gerenciarEquipe: document.getElementById(`check-membros-${nv}`).checked
+
+        };
+
+    });
+
+
+
+    try {
+
+        await updateDoc(doc(db, "times", timeId), {
+
+            configPermissoes: novaConfig
+
+        });
+
+        alert("Hierarquia do time atualizada com sucesso!");
+
+    } catch (e) {
+
+        console.error("Erro ao salvar hierarquia:", e);
+
+        alert("Erro: Apenas o Dono (Nível 0) pode alterar a hierarquia.");
+
+    }
+
 };
 
 
