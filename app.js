@@ -720,9 +720,9 @@ window.selecionarCat = (nome, cor) => {
     // Re-renderiza chamando a função principal
     carregarCategorias();
 };
-
 window.adicionarCategoria = async () => {
-    const nome = document.getElementById('novaCategoria').value;
+    const nomeInput = document.getElementById('novaCategoria');
+    const nome = nomeInput.value.trim();
     const cor = document.getElementById('corNovaCategoria').value;
     const logoInput = document.getElementById('logoCatInput');
     const logoFile = logoInput ? logoInput.files[0] : null;
@@ -731,94 +731,113 @@ window.adicionarCategoria = async () => {
     if(!nome) return alert("Digite o nome da categoria!");
 
     const btn = document.querySelector("button[onclick='adicionarCategoria()']");
-    btn.disabled = true; 
-    btn.innerHTML = "⏳";
+    const textoOriginal = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = "⏳";
     
-    let logoBase64 = "";
-
     try {
-        if (logoFile) logoBase64 = await window.fileToBase64(logoFile);
+        let finalLogo = "";
+
+        // Se houver logo, fazemos upload para o Storage (mais profissional e barato)
+        if (logoFile) {
+            const nomeArquivo = `logos/${window.usuarioLogado.uid}/${Date.now()}_${logoFile.name}`;
+            const sRef = ref(storage, nomeArquivo);
+            const snap = await uploadBytes(sRef, logoFile);
+            finalLogo = await getDownloadURL(snap.ref);
+        }
         
         await addDoc(collection(db, "categorias"), { 
             nome: nome, 
             cor: cor, 
-            logoUrl: logoBase64, 
+            logoUrl: finalLogo, 
             uid: window.usuarioLogado.uid, 
             timeId: timeSelecionado || null,
-            criadoEm: new Date() 
+            criadoEm: serverTimestamp() // Data do servidor
         });
         
-        document.getElementById('novaCategoria').value = "";
+        nomeInput.value = "";
         if (logoInput) logoInput.value = "";
         
-        carregarCategoriasModal();
-        carregarCategorias(); 
+        if (typeof carregarCategoriasModal === 'function') carregarCategoriasModal();
+        await carregarCategorias(); 
         alert("Categoria criada com sucesso!");
+
     } catch (e) { 
-        alert("Erro ao salvar a categoria no banco de dados."); 
+        console.error(e);
+        alert("Erro ao salvar a categoria."); 
     } finally { 
-        btn.disabled = false; 
-        btn.innerHTML = "+"; 
+        btn.disabled = false; btn.innerHTML = textoOriginal; 
     }
 };
-
-window.carregarCategoriasModal = async () => {
-    const lista = document.getElementById('listaCategoriasModal');
-    if (!lista || !window.usuarioLogado) return;
-    lista.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
+window.carregarCategorias = async () => {
+    const c = document.getElementById('listaCategorias');
+    if (!window.usuarioLogado) return;
 
     try {
         const meuEmail = window.usuarioLogado.email ? window.usuarioLogado.email.toLowerCase() : "";
-        let meusTimesIds = [];
-
-        if (meuEmail) {
+        
+        // ECONOMIA: Só busca os times no banco se ainda não tivermos a lista global
+        if (!window.meusTimesIds) {
+            window.meusTimesIds = [];
             const qTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
             const snapTimes = await getDocs(qTimes);
-            snapTimes.forEach(d => meusTimesIds.push(d.id));
+            snapTimes.forEach(d => window.meusTimesIds.push(d.id));
         }
 
+        // Busca categorias pessoais
         const qCatPessoal = query(collection(db, "categorias"), where("uid", "==", window.usuarioLogado.uid));
         const snapCatPessoal = await getDocs(qCatPessoal);
 
         let categoriasUnicas = new Map();
-        snapCatPessoal.forEach(d => categoriasUnicas.set(d.id, d.data()));
+        snapCatPessoal.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
 
-        if (meusTimesIds.length > 0) {
+        // Busca categorias dos times (em lotes de 10)
+        if (window.meusTimesIds.length > 0) {
             const lotes = [];
-            for (let i = 0; i < meusTimesIds.length; i += 10) lotes.push(meusTimesIds.slice(i, i + 10));
+            for (let i = 0; i < window.meusTimesIds.length; i += 10) lotes.push(window.meusTimesIds.slice(i, i + 10));
+            
             for (let lote of lotes) {
                 const qCatTime = query(collection(db, "categorias"), where("timeId", "in", lote));
                 const snapCatTime = await getDocs(qCatTime);
-                snapCatTime.forEach(d => categoriasUnicas.set(d.id, d.data()));
+                snapCatTime.forEach(d => { categoriasUnicas.set(d.id, d.data()); });
             }
         }
 
-        lista.innerHTML = "";
-
-        categoriasUnicas.forEach((c, id) => {
-            const logoPreview = c.logoUrl ? `<img src="${c.logoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:4px;">` : `<span style="font-size:12px;">🖼️</span>`;
-            const badgeTime = c.timeId ? `<span style="font-size: 0.65rem; background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: bold;">TIME</span>` : ``;
-            
-            lista.innerHTML += `
-                <li style="display:flex; align-items:center; gap:8px; margin-bottom:10px; background: rgba(0,0,0,0.2); padding:10px; border-radius:8px; border: 1px solid rgba(255,255,255,0.1);">
-                    <input type="color" value="${c.cor || '#007bff'}" onchange="atualizarCorCategoria('${id}', this.value)" style="width:35px; height:35px; border:none; padding:0; border-radius:4px; cursor:pointer; background:none;">
-                    <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;" onclick="document.getElementById('logo-edit-${id}').click()" title="Alterar Logo">
-                        ${logoPreview}
-                        <input type="file" id="logo-edit-${id}" accept="image/*" style="display: none;" onchange="atualizarLogoCategoria('${id}', this.files[0])">
-                    </div>
-                    <div style="flex:1; display:flex; flex-direction:column; justify-content: center;">
-                        <input type="text" value="${c.nome}" style="background:transparent; border:none; color:white; font-size:0.9rem; margin:0; padding:0;" onchange="atualizarNomeCategoria('${id}', this.value)">
-                        <div style="margin-top: 4px;">${badgeTime}</div>
-                    </div>
-                    <button onclick="excluirCategoria('${id}')" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; padding:8px; border-radius:6px; cursor:pointer;">🗑️</button>
-                </li>`;
+        let arrayCategorias = Array.from(categoriasUnicas.values());
+        
+        // Lógica de ordenação (Mantida a sua original)
+        let ordemCliques = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
+        arrayCategorias.sort((a, b) => {
+            let idxA = ordemCliques.indexOf(a.nome);
+            let idxB = ordemCliques.indexOf(b.nome);
+            if (idxA === -1) idxA = 999;
+            if (idxB === -1) idxB = 999;
+            return idxA - idxB;
         });
 
-        if(categoriasUnicas.size == 0) lista.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Nenhuma encontrada.</p>";
-    } catch (e) { 
-        lista.innerHTML = "<p style='text-align:center; color:#ff4d4d;'>Erro ao carregar.</p>"; 
+        window.todasAsCategorias = arrayCategorias;
+        window.coresCategorias = {};
+        window.logosCategorias = {};
+        window.timesDasCategorias = {};
+
+        arrayCategorias.forEach((cat) => {
+            window.coresCategorias[cat.nome] = cat.cor;
+            if (cat.logoUrl) window.logosCategorias[cat.nome] = cat.logoUrl;
+            if (cat.timeId) window.timesDasCategorias[cat.nome] = cat.timeId;
+        });
+
+        window.renderizarCategoriasNoFiltro();
+        
+        // Chamadas subsequentes
+        await carregarTarefas();
+        if (typeof carregarArquivosFixos === 'function') carregarArquivosFixos();
+        if (typeof carregarFinanceiro === 'function') carregarFinanceiro();
+
+    } catch (e) {
+        console.error("Erro detalhado nas categorias:", e.message); 
+        if (c) c.innerHTML = `<span style='color: #ef4444;'>Erro: ${e.message}</span>`;
     }
 };
+
 
 window.atualizarCorCategoria = async (id, novaCor) => { await updateDoc(doc(db, "categorias", id), { cor: novaCor }); carregarCategorias(); };
 window.atualizarNomeCategoria = async (id, novoNome) => { if(novoNome.trim()) { await updateDoc(doc(db, "categorias", id), { nome: novoNome }); carregarCategorias(); } };
