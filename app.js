@@ -1900,7 +1900,7 @@ window.excluirTask = async (id) => {
     }
 }; 
 
-window.filtrarERenderizar(); } };
+window.filtrarERenderizar(); 
 
 window.cancelarNovaTarefa = () => {
     document.getElementById('descTask').value = ""; document.getElementById('horaTask').value = "";
