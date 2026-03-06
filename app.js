@@ -518,6 +518,37 @@ window.carregarCategorias = async () => {
 
 };
 
+
+
+window.definirPermissoesPorCategoria = (nomeCategoria) => {
+    // 1. Descobre qual o time dessa categoria
+    const timeId = window.timesDasCategorias[nomeCategoria];
+
+    // 2. Se não tiver timeId, é uma categoria pessoal (Poder Total)
+    if (!timeId) {
+        window.minhasPermissoesAtuais = { tudo: true };
+        console.log("Categoria pessoal: Acesso total liberado.");
+        return aplicarRestricoesVisuais();
+    }
+
+    // 3. Se tiver timeId, busca o cargo do usuário e as permissões do time
+    const dadosTime = window.timesDicionario[timeId];
+    if (dadosTime) {
+        const meuEmail = window.usuarioLogado.email.toLowerCase();
+        const meuCargo = dadosTime.cargos[meuEmail] || "C"; // Padrão C se não achar
+        
+        // Aqui usamos as letras D, A, B, C que você definiu no documento
+        window.minhasPermissoesAtuais = dadosTime.permissoes ? 
+            dadosTime.permissoes[meuCargo] : 
+            DEFAULTS_PERMISSOES[meuCargo];
+
+        console.log(`Categoria do time ${dadosTime.nome}. Nível: ${meuCargo}`);
+    }
+    
+    aplicarRestricoesVisuais();
+};
+
+
 // ==========================================
 
 // FUNÇÕES DE RENDERIZAÇÃO DO FILTRO (EM LINHA ÚNICA)
@@ -1753,7 +1784,32 @@ window.salvarAlteracoes = async (id) => {
 
 
 
-window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
+window.excluirTask = async (id) => {
+    if (!confirm("Tem certeza que deseja apagar esta atividade?")) return;
+
+    try {
+        // 1. DELETA NO BANCO DE DADOS (FIRESTORE)
+        await deleteDoc(doc(db, "tarefas", id));
+
+        // 2. ATUALIZA NA MEMÓRIA LOCAL (SEM IR AO GOOGLE)
+        if (window.todasAsTarefasBrutas) {
+            // Remove o item do array filtrando apenas o que NÃO tem esse ID
+            window.todasAsTarefasBrutas = window.todasAsTarefasBrutas.filter(t => t.id !== id);
+        }
+
+        // 3. ATUALIZA A TELA INSTANTANEAMENTE
+        window.filtrarERenderizar();
+
+        // (Opcional) Feedback para o usuário
+        console.log("Tarefa removida com sucesso");
+
+    } catch (e) {
+        console.error("Erro ao excluir tarefa:", e);
+        alert("Erro ao excluir. Verifique sua conexão.");
+    }
+}; 
+
+window.filtrarERenderizar(); } };
 
 window.cancelarNovaTarefa = () => {
     document.getElementById('descTask').value = ""; document.getElementById('horaTask').value = "";
