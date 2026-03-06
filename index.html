@@ -142,31 +142,56 @@
 </div>
 
 
-                            <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
-
-        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 0; height: 100%;">
-
-            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
-
-                <div class="icone-quadrado"></div> ATIVIDADES
-
-            </span>
-
-            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
-
-        </div>
-        
-        <div style="display: flex; gap: 8px;">
-            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📊 Gráfico
-            </button>
-            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                📄 PDF
-            </button>
-        </div>
-    </div>
-    
-    <div id="listaTarefas">Carregando atividades...</div>
+                            <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
+
+
+
+        <div onclick="toggleSecao('listaTarefas', 'setaLista')" style="display: flex; align-items: center; gap: 10px; flex: 0; height: 100%;">
+
+
+
+            <span id="headerMes" style="display: flex; align-items: center; gap: 10px;">
+
+
+
+                <div class="icone-quadrado"></div> ATIVIDADES
+
+
+
+            </span>
+
+
+
+            <span id="setaLista" class="seta-secao seta-expandida">▼</span>
+
+
+
+        </div>
+
+        
+
+        <div style="display: flex; gap: 8px;">
+
+            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+
+                📊 Gráfico
+
+            </button>
+
+            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+
+                📄 PDF
+
+            </button>
+
+        </div>
+
+    </div>
+
+    
+
+    <div id="listaTarefas">Carregando atividades...</div>
+
 
 
 </div>
@@ -487,6 +512,10 @@
                     <span class="label">Times</span>
 
                 </button>
+				
+				<button id="btnAbaHierarquia" onclick="trocarAbaConfig('Hierarquia')" class="btn-aba-config">
+    <i class="fas fa-sitemap"></i> HIERARQUIA
+</button>
 
             </div>
 
