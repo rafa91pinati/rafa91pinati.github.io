@@ -3,6 +3,8 @@ import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, delet
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-messaging.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+import { collection, addDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
+
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -1318,7 +1320,6 @@ window.criarTime = async () => {
     const nome = document.getElementById('nomeNovoTime').value.trim();
     if (!nome) return alert("Digite o nome do time!");
 
-    // Se o usuário não estiver logado ou a variável sumiu, avisa na hora
     if (!window.usuarioLogado || !window.usuarioLogado.uid) {
         return alert("ERRO: O sistema perdeu seu login. Atualize a página e logue novamente.");
     }
@@ -1331,23 +1332,24 @@ window.criarTime = async () => {
             criadorUid: window.usuarioLogado.uid,
             criadorEmail: window.usuarioLogado.email,
             membros: {
-                [window.usuarioLogado.email.replace(/\./g, '_')]: "0" // Nível 0 (Dono)
+                [window.usuarioLogado.email.replace(/\./g, '_')]: "0" // Você é o Nível 0
             },
             configPermissoes: window.DEFAULTS_PERMISSOES || {},
             dataCriacao: new Date().toISOString()
         };
 
-        // Usa os comandos do Firebase (se eles não existirem, o Catch vai dedurar)
-        await window.addDoc(window.collection(window.db, "times"), novoTime);
+        // A MÁGICA AQUI: Usando addDoc e collection diretamente!
+        await addDoc(collection(db, "times"), novoTime);
         
         document.getElementById('nomeNovoTime').value = "";
         alert("Time '" + nome + "' criado com sucesso!");
+        
+        // Atualiza a tela para o time novo aparecer
         if(typeof window.carregarDadosIniciais === 'function') window.carregarDadosIniciais();
 
     } catch (e) {
         console.error("ERRO COMPLETO:", e);
-        // AQUI ESTÁ O PULO DO GATO: Mostra o erro real do sistema!
-        alert("ERRO REAL DO SISTEMA: " + e.message); 
+        alert("Erro ao criar: " + e.message); 
     }
 };
 
