@@ -723,17 +723,16 @@ window.prepararEdicaoCategoria = (id) => {
     const cat = window.todasAsCategorias.find(c => c.id === id);
     if (!cat) return;
 
-    // Preenche os campos para edição
     document.getElementById('novaCategoria').value = cat.nome;
     document.getElementById('corNovaCategoria').value = cat.cor || "#3b82f6";
     document.getElementById('timeNovaCategoria').value = cat.timeId || "";
     
-    // Muda o botão de "+" para um botão de "Salvar"
+    // Transforma o botão "+" em um botão de "Salvar Edição"
     const btnAdd = document.querySelector("button[onclick='adicionarCategoria()']");
     btnAdd.innerHTML = "💾";
-    btnAdd.onclick = () => window.atualizarCategoria(id);
+    btnAdd.onclick = () => window.salvarEdicaoCategoria(id);
     
-    alert("Edite as informações acima e clique no disquete para salvar.");
+    alert("Agora altere a cor ou a logo acima e clique no disquete para salvar!");
 };
 
        window.todasAsCategorias.forEach(cat => {
@@ -1885,48 +1884,26 @@ const originalSalvar = window.salvarNovaTarefa;
 window.carregarCategoriasModal = () => {
     const lista = document.getElementById('listaCategoriasModal');
     if (!lista || !window.todasAsCategorias) return;
-    
     lista.innerHTML = "";
-
+    
     window.todasAsCategorias.forEach(cat => {
-
-        const li = document.createElement('li');
-
-        li.textContent = cat.nome;
-
-        lista.appendChild(li);
-
+        const item = document.createElement('div');
+        item.style = "display:flex; align-items:center; justify-content:space-between; background:white; padding:10px; border-radius:12px; margin-bottom:8px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.02);";
+        
+        item.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:12px; height:12px; border-radius:50%; background:${cat.cor || '#3b82f6'};"></div>
+                <img src="${cat.logoUrl || 'https://via.placeholder.com/30'}" style="width:25px; height:25px; border-radius:5px; object-fit:cover;">
+                <span style="font-weight:700; color:#1e293b; font-size:0.8rem;">${cat.nome}</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button onclick="prepararEdicaoCategoria('${cat.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem;">✏️</button>
+                <button onclick="removerCategoria('${cat.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem;">🗑️</button>
+            </div>
+        `;
+        lista.appendChild(item);
     });
-
 };
-
-window.salvarHierarquiaPersonalizada = async () => {
-
-    const timeId = document.getElementById('selecionarTimePermissoes').value;
-
-    if (!timeId) return alert("Selecione um time primeiro!");
-
-
-
-    const niveis = ['D', 'A', 'B', 'C'];
-
-    const novaConfig = {};
-
-
-
-    niveis.forEach(nv => {
-
-        novaConfig[nv] = {
-
-            escreverAtividade: document.getElementById(`check-escrever-${nv}`).checked,
-
-            excluirAtividade: document.getElementById(`check-excluir-${nv}`).checked,
-
-            financeiro: document.getElementById(`check-financeiro-${nv}`).checked,
-
-            gerenciarEquipe: document.getElementById(`check-membros-${nv}`).checked
-
-        };
 
     });
 

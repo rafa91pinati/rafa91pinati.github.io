@@ -513,13 +513,10 @@
 
     </button>
 
-    <button class="btn-acao-modal tablink" onclick="abrirAba(event, 'abaHierarquia')">
-
-        <span class="icon">⚖️</span>
-
-        <span class="label">Hierarquia</span>
-
-    </button>
+    <button class="btn-acao-modal tablink" onclick="abrirAba(event, 'abaHierarquia')" style="border:none; background:none; opacity:0.5;">
+    <span class="icon">⚖️</span>
+    <span class="label">Hierarquia</span>
+</button>
 
 </div>
 
@@ -657,47 +654,88 @@
 
 
 
-            <div id="abaTimes" class="tabcontent" style="display: none; padding: 10px;">
-    <label class="config-label" style="margin-top: 0;">Criar Novo Time:</label>
-    <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-        <input type="text" id="nomeNovoTime" class="config-input" placeholder="Ex: Equipe de Manutenção" style="flex: 1;">
-        <button onclick="criarTime()" style="background: #10b981; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">Criar</button>
-    </div>
-
-    <label class="config-label" style="color: #3b82f6;">👑 Times que gerencio:</label>
-    <ul id="listaTimesModal" style="padding:0; list-style:none; margin-bottom: 20px;"></ul>
-
-    <label class="config-label" style="color: #10b981;">🤝 Times que pertenço:</label>
-    <ul id="listaTimesPertencoModal" style="padding:0; list-style:none;"></ul>
-</div>
-
-<div id="abaHierarquia" class="tabcontent" style="display: none; padding: 10px;">
-    <div style="background: #f8fafc; border-radius: 18px; padding: 15px; border: 1px solid #e2e8f0;">
-        <label class="config-label" style="margin-top: 0;">Time para Configurar:</label>
-        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" class="config-input" style="margin-bottom: 20px;">
-            <option value="">Selecione um Time...</option>
-        </select>
-
-        <div style="overflow-x: auto; margin-bottom: 20px;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #e2e8f0;">
-                        <th style="text-align: left; padding: 8px;">Nível</th>
-                        <th title="Criar">✍️</th>
-                        <th title="Excluir">🗑️</th>
-                        <th title="Financeiro">💰</th>
-                        <th title="Membros">👥</th>
-                    </tr>
-                </thead>
-                <tbody id="corpoTabelaPermissoes">
-                    </tbody>
-            </table>
-        </div>
-
-        <button onclick="salvarHierarquiaPersonalizada()" style="width: 100%; padding: 15px; background: #3b82f6; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.2);">
-            💾 SALVAR PERMISSÕES
-        </button>
-    </div>
+            <div id="abaTimes" class="tabcontent" style="display: none; padding: 10px;">
+
+    <label class="config-label" style="margin-top: 0;">Criar Novo Time:</label>
+
+    <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+
+        <input type="text" id="nomeNovoTime" class="config-input" placeholder="Ex: Equipe de Manutenção" style="flex: 1;">
+
+        <button onclick="criarTime()" style="background: #10b981; color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:bold; cursor:pointer;">Criar</button>
+
+    </div>
+
+
+
+    <label class="config-label" style="color: #3b82f6;">👑 Times que gerencio:</label>
+
+    <ul id="listaTimesModal" style="padding:0; list-style:none; margin-bottom: 20px;"></ul>
+
+
+
+    <label class="config-label" style="color: #10b981;">🤝 Times que pertenço:</label>
+
+    <ul id="listaTimesPertencoModal" style="padding:0; list-style:none;"></ul>
+
+</div>
+
+
+
+<div id="abaHierarquia" class="tabcontent" style="display: none; padding: 10px;">
+
+    <div style="background: #f8fafc; border-radius: 18px; padding: 15px; border: 1px solid #e2e8f0;">
+
+        <label class="config-label" style="margin-top: 0;">Time para Configurar:</label>
+
+        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" class="config-input" style="margin-bottom: 20px;">
+
+            <option value="">Selecione um Time...</option>
+
+        </select>
+
+
+
+        <div style="overflow-x: auto; margin-bottom: 20px;">
+
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+
+                <thead>
+
+                    <tr style="border-bottom: 2px solid #e2e8f0;">
+
+                        <th style="text-align: left; padding: 8px;">Nível</th>
+
+                        <th title="Criar">✍️</th>
+
+                        <th title="Excluir">🗑️</th>
+
+                        <th title="Financeiro">💰</th>
+
+                        <th title="Membros">👥</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="corpoTabelaPermissoes">
+
+                    </tbody>
+
+            </table>
+
+        </div>
+
+
+
+        <button onclick="salvarHierarquiaPersonalizada()" style="width: 100%; padding: 15px; background: #3b82f6; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.2);">
+
+            💾 SALVAR PERMISSÕES
+
+        </button>
+
+    </div>
+
 </div>
 
 
