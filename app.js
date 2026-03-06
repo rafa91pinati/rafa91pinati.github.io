@@ -91,6 +91,41 @@ const DEFAULTS_PERMISSOES = {
     }
 };
 
+window.definirPermissoesDoUsuario = (timeId) => {
+    const meuEmail = window.usuarioLogado.email.toLowerCase();
+    const dadosTime = window.timesDicionario[timeId]; // Puxa do cache global que criamos
+    
+    if (!dadosTime) return;
+
+    const meuCargo = dadosTime.cargos[meuEmail] || "C"; // Se não achar, vira 'C' por segurança
+    
+    // Se o time tiver permissões customizadas no banco, usa elas. 
+    // Se não, usa o padrão (DEFAULTS_PERMISSOES)
+    window.minhasPermissoesAtuais = dadosTime.permissoes ? dadosTime.permissoes[meuCargo] : DEFAULTS_PERMISSOES[meuCargo];
+
+    console.log(`Logado como nível ${meuCargo}. Permissões carregadas.`);
+    
+    // Agora damos um "tapa" na tela para esconder o que ele não pode ver
+    aplicarRestricoesVisuais();
+};
+
+
+
+function aplicarRestricoesVisuais() {
+    const perms = window.minhasPermissoesAtuais;
+    
+    // Se não tem permissão de ver financeiro, esconde a aba inteira
+    const abaFinanceiro = document.getElementById('aba-financeiro');
+    if (abaFinanceiro) {
+        abaFinanceiro.style.display = perms.verFinanceiro ? 'block' : 'none';
+    }
+
+    // Se não pode excluir, esconde todos os botões de lixeira da tela
+    document.querySelectorAll('.btn-excluir-task').forEach(btn => {
+        btn.style.display = perms.excluirAtividade ? 'block' : 'none';
+    });
+}
+
 
 window.marcarComoAtualizado = () => {
     const versaoAtual = "4.3.6";
@@ -564,6 +599,23 @@ window.definirPermissoesPorCategoria = (nomeCategoria) => {
 };
 
 
+window.aplicarTravaVisual = () => {
+    const perms = window.minhasPermissoesAtuais;
+    const btnFinanceiro = document.querySelector("button[onclick*='modalFinanceiro']");
+    
+    if (btnFinanceiro) {
+        // Se não tiver permissão 'financeiro' (sua nova letra), o botão some
+        btnFinanceiro.style.display = (perms.tudo || perms.financeiro) ? "flex" : "none";
+    }
+    
+    // Bloqueia o botão de Adicionar Tarefa se for Nível C (Visualizador)
+    const btnAdd = document.querySelector("button[onclick*='modalTarefa']");
+    if (btnAdd) {
+        btnAdd.style.opacity = (perms.tudo || perms.escreverAtividade) ? "1" : "0.3";
+        btnAdd.style.pointerEvents = (perms.tudo || perms.escreverAtividade) ? "auto" : "none";
+    }
+};
+
 // ==========================================
 
 // FUNÇÕES DE RENDERIZAÇÃO DO FILTRO (EM LINHA ÚNICA)
@@ -741,13 +793,19 @@ window.abrirOutrasCategorias = function() {
 
 
 window.selecionarCat = (nome, cor) => {
-    // Registra o clique para a ordenação (Geral não entra na lista pois é fixa no início)
+
+    // --- SUA LÓGICA ATUAL DE ORDENAÇÃO (MANTIDA) ---
+
     if (nome !== "Geral") {
         let ordem = JSON.parse(localStorage.getItem('ordemCliquesCategorias')) || [];
         ordem = ordem.filter(n => n !== nome);
         ordem.unshift(nome);
         localStorage.setItem('ordemCliquesCategorias', JSON.stringify(ordem.slice(0, 50))); 
     }
+
+
+
+    // --- SUA LÓGICA ATUAL DE FILTRO (MANTIDA) ---
 
     if (nome == "Geral") {
         categoriasAtivas = ["Geral"]; 
@@ -761,11 +819,28 @@ window.selecionarCat = (nome, cor) => {
         }
     }
 
+
+
     localStorage.setItem('categoriasAgendaAtivas', JSON.stringify(categoriasAtivas));
 
+    // 👇 ADIÇÃO PARA O LIFE SYNC COMERCIAL 👇
+    // 1. Pega a última categoria clicada para definir o "clima" das permissões
+    if (categoriasAtivas.length > 0) {
+        const ultimaCat = categoriasAtivas[categoriasAtivas.length - 1];
+        
+        // Se a função existir, ela vai travar/liberar os botões (💰, ➕, 🗑️)
+        if (typeof window.definirPermissoesPorCategoria === 'function') {
+            window.definirPermissoesPorCategoria(ultimaCat);
+        }
+    }
+
+
+
     // Re-renderiza chamando a função principal
-    carregarCategorias();
+
+    carregarCategorias(); // Isso vai chamar o filtrarERenderizar internamente
 };
+
 window.adicionarCategoria = async () => {
     const nomeInput = document.getElementById('novaCategoria');
     const nome = nomeInput.value.trim();
@@ -814,6 +889,7 @@ window.adicionarCategoria = async () => {
         btn.disabled = false; btn.innerHTML = textoOriginal; 
     }
 };
+
 window.carregarCategorias = async () => {
     const c = document.getElementById('listaCategorias');
     if (!window.usuarioLogado) return;
