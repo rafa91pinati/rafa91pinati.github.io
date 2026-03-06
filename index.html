@@ -513,15 +513,15 @@
 
                 </button>
 				
-				<div class="tablink" onclick="abrirAba(event, 'abaHierarquia')" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 60px;">
+				<div class="tablink" onclick="abrirAba(event, 'abaHierarquia')" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 65px;">
 
-    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 12px; margin-bottom: 5px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+    <div style="background: rgba(255,255,255,0.08); width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
 
         <i class="fas fa-sitemap" style="color: #6366f1; font-size: 1.1rem;"></i>
 
     </div>
 
-    <span style="font-size: 0.65rem; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Hierarquia</span>
+    <span style="font-size: 0.6rem; font-weight: bold; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Hierarquia</span>
 
 </div>
 
@@ -672,62 +672,35 @@
                 </div>
 
 
-<div id="abaHierarquia" class="tabcontent" style="display:none; padding: 15px;">
-
-    <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1);">
-
-        <h4 style="color: white; margin-top: 0; margin-bottom: 15px; font-size: 0.9rem;">Configurações de Nível</h4>
-
-        
-
-        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="width: 100%; padding: 12px; border-radius: 10px; background: #fff; border: none; margin-bottom: 20px; font-weight: bold; color: #1e293b;">
-
-            <option value="">Selecione um Time...</option>
-
-        </select>
-
-
-
-        <div style="overflow-x: auto;">
-
-            <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.75rem;">
-
-                <thead>
-
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-
-                        <th style="padding: 8px; text-align: left;">Nível</th>
-
-                        <th title="Criar">✍️</th>
-
-                        <th title="Excluir">🗑️</th>
-
-                        <th title="Financeiro">💰</th>
-
-                        <th title="Equipe">👥</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody id="corpoTabelaPermissoes">
-
-                    </tbody>
-
-            </table>
-
-        </div>
-
-
-
-        <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
-
-            SALVAR ALTERAÇÕES
-
-        </button>
-
-    </div>
-
+<div id="abaHierarquia" class="tabcontent" style="display:none; padding: 15px;">
+    <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+            <h4 style="color: white; margin:0; font-size: 0.9rem;">Configurar Permissões (0-D-A-B-C)</h4>
+            <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="padding: 8px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #334155; font-size: 0.75rem;">
+                <option value="">Selecione o Time...</option>
+            </select>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.7rem; text-align: center;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2);">
+                        <th style="padding: 10px; text-align: left;">Nível</th>
+                        <th>✍️</th>
+                        <th>🗑️</th>
+                        <th>💰</th>
+                        <th>👥</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabelaPermissoes">
+                    </tbody>
+            </table>
+        </div>
+
+        <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer;">
+            💾 SALVAR HIERARQUIA
+        </button>
+    </div>
 </div>
               
 
@@ -757,40 +730,74 @@
 
 <div id="modalCronograma" class="modal-overlay escondido">
     <div class="modal-content" style="width: 95%; max-width: 600px; padding: 25px;">
-        <div style="display: flex; justify-content: space-around; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 15px;">
-    <button class="tablink" onclick="abrirAba(event, 'abaHierarquia')" style="display: flex; flex-direction: column; align-items: center; background: none; border: none; cursor: pointer; color: #64748b;">
-        <i class="fas fa-sitemap" style="font-size: 1.1rem; color: #6366f1; margin-bottom: 5px;"></i>
-        <span style="font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Hierarquia</span>
-    </button>
-</div>
-
-<div id="abaHierarquia" class="tabcontent" style="display:none; padding: 20px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-        <h3 style="color: white; margin:0; font-size: 1rem;">Permissões do Time</h3>
-        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="padding: 10px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #334155; font-size: 0.8rem;">
-            <option value="">Selecione...</option>
-        </select>
-    </div>
-
-    <div style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px;">
-        <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.8rem; text-align: center;">
-            <thead style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <tr>
-                    <th style="text-align: left; padding: 10px;">Nível</th>
-                    <th title="Criar">✍️</th>
-                    <th title="Excluir">🗑️</th>
-                    <th title="Financeiro">💰</th>
-                    <th title="Equipe">👥</th>
-                </tr>
-            </thead>
-            <tbody id="corpoTabelaPermissoes">
-                </tbody>
-        </table>
-    </div>
-
-    <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 25px; width: 100%; padding: 15px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer;">
-        💾 SALVAR CONFIGURAÇÃO
-    </button>
+        <div style="display: flex; justify-content: space-around; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 15px;">
+
+    <button class="tablink" onclick="abrirAba(event, 'abaHierarquia')" style="display: flex; flex-direction: column; align-items: center; background: none; border: none; cursor: pointer; color: #64748b;">
+
+        <i class="fas fa-sitemap" style="font-size: 1.1rem; color: #6366f1; margin-bottom: 5px;"></i>
+
+        <span style="font-size: 0.65rem; font-weight: bold; text-transform: uppercase;">Hierarquia</span>
+
+    </button>
+
+</div>
+
+
+
+<div id="abaHierarquia" class="tabcontent" style="display:none; padding: 20px;">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+
+        <h3 style="color: white; margin:0; font-size: 1rem;">Permissões do Time</h3>
+
+        <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="padding: 10px; border-radius: 8px; background: #1e293b; color: white; border: 1px solid #334155; font-size: 0.8rem;">
+
+            <option value="">Selecione...</option>
+
+        </select>
+
+    </div>
+
+
+
+    <div style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px;">
+
+        <table style="width: 100%; color: white; border-collapse: collapse; font-size: 0.8rem; text-align: center;">
+
+            <thead style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+
+                <tr>
+
+                    <th style="text-align: left; padding: 10px;">Nível</th>
+
+                    <th title="Criar">✍️</th>
+
+                    <th title="Excluir">🗑️</th>
+
+                    <th title="Financeiro">💰</th>
+
+                    <th title="Equipe">👥</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="corpoTabelaPermissoes">
+
+                </tbody>
+
+        </table>
+
+    </div>
+
+
+
+    <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 25px; width: 100%; padding: 15px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer;">
+
+        💾 SALVAR CONFIGURAÇÃO
+
+    </button>
+
 </div>
 
             <div class="modal-body">
