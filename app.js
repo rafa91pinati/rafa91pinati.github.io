@@ -292,35 +292,64 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-window.fazerLogin = () => {
-    const e = document.getElementById('emailLogin').value;
-    const s = document.getElementById('senhaLogin').value;
-    
-    if(!e || !s) return alert("Preencha tudo!");
-
-    // 1. Tenta a autenticação no Firebase
-    signInWithEmailAndPassword(auth, e, s)
-    .then((userCredential) => {
-        // 2. Define o usuário globalmente para as regras de segurança funcionarem
-        window.usuarioLogado = userCredential.user;
-        
-        console.log("Login realizado! Iniciando sincronização...");
-
-        // 3. DISPARA O CARREGAMENTO (O passo que estava faltando)
-        // Isso vai buscar seus times, cargos D/A/B/C e tarefas
-        if (typeof window.carregarCategorias === 'function') {
-            window.carregarCategorias(); 
-        }
-
-        // 4. Esconde a tela de login
-        const telaLogin = document.getElementById('telaLogin');
-        if (telaLogin) telaLogin.classList.add('escondido');
-        
-    })
-    .catch(error => {
-        console.error("Erro no login:", error);
-        alert("Erro ao entrar: " + error.code);
-    });
+window.fazerLogin = () => {
+
+    const e = document.getElementById('emailLogin').value;
+
+    const s = document.getElementById('senhaLogin').value;
+
+    
+
+    if(!e || !s) return alert("Preencha tudo!");
+
+
+
+    // 1. Tenta a autenticação no Firebase
+
+    signInWithEmailAndPassword(auth, e, s)
+
+    .then((userCredential) => {
+
+        // 2. Define o usuário globalmente para as regras de segurança funcionarem
+
+        window.usuarioLogado = userCredential.user;
+
+        
+
+        console.log("Login realizado! Iniciando sincronização...");
+
+
+
+        // 3. DISPARA O CARREGAMENTO (O passo que estava faltando)
+
+        // Isso vai buscar seus times, cargos D/A/B/C e tarefas
+
+        if (typeof window.carregarCategorias === 'function') {
+
+            window.carregarCategorias(); 
+
+        }
+
+
+
+        // 4. Esconde a tela de login
+
+        const telaLogin = document.getElementById('telaLogin');
+
+        if (telaLogin) telaLogin.classList.add('escondido');
+
+        
+
+    })
+
+    .catch(error => {
+
+        console.error("Erro no login:", error);
+
+        alert("Erro ao entrar: " + error.code);
+
+    });
+
 };
 
 window.criarConta = () => {
@@ -2000,6 +2029,42 @@ const originalSalvar = window.salvarNovaTarefa;
 
 
 // Otimização: Fecha o modal automaticamente após salvar
+window.carregarCategoriasModal = () => {
+    const lista = document.getElementById('listaCategoriasModal');
+    if (!lista) return;
+
+    lista.innerHTML = ""; // Limpa a lista antes de preencher
+
+    // Usa as categorias que já carregamos no login/filtro
+    if (!window.todasAsCategorias || window.todasAsCategorias.length === 0) {
+        lista.innerHTML = "<li style='color: #94a3b8; font-size: 0.8rem; padding: 10px;'>Nenhuma categoria encontrada.</li>";
+        return;
+    }
+
+    window.todasAsCategorias.forEach(cat => {
+        const li = document.createElement('li');
+        li.style.display = "flex";
+        li.style.justifyContent = "between";
+        li.style.alignItems = "center";
+        li.style.padding = "10px";
+        li.style.background = "white";
+        li.style.borderRadius = "12px";
+        li.style.marginBottom = "8px";
+        li.style.borderLeft = `4px solid ${cat.cor}`;
+
+        const nomeTime = cat.timeId ? ` <small style='color: #3b82f6;'>(Time)</small>` : "";
+
+        li.innerHTML = `
+            <div style="flex: 1;">
+                <strong style="color: #1e293b; font-size: 0.9rem;">${cat.nome}</strong>
+                ${nomeTime}
+            </div>
+            <button onclick="removerCategoria('${cat.id}', '${cat.nome}')" style="background: none; border: none; cursor: pointer;">🗑️</button>
+        `;
+        lista.appendChild(li);
+    });
+};
+
 
 window.salvarNovaTarefa = async () => {
     const btn = document.getElementById('btnSalvar');
