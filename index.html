@@ -631,7 +631,31 @@
                     <button onclick="criarTime()" style="background: linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:12px 20px; border-radius:12px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">Criar</button>
 
                 </div>
+				
+<div id="abaHierarquia" class="aba-conteudo escondido">
+    <h3 style="color: white; margin-bottom: 15px;">Configurar Níveis de Acesso</h3>
+    <select id="selecionarTimePermissoes" onchange="carregarConfiguracaoNiveis()" style="width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+        <option value="">Selecione um Time para configurar...</option>
+    </select>
 
+    <table style="width: 100%; color: white; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 2px solid rgba(255,255,255,0.1);">
+                <th style="text-align: left; padding: 10px;">Nível</th>
+                <th>✍️ Criar</th>
+                <th>🗑️ Excluir</th>
+                <th>💰 Financeiro</th>
+                <th>👥 Equipe</th>
+            </tr>
+        </thead>
+        <tbody id="corpoTabelaPermissoes">
+            </tbody>
+    </table>
+
+    <button onclick="salvarHierarquiaPersonalizada()" style="margin-top: 20px; width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">
+        SALVAR CONFIGURAÇÃO
+    </button>
+</div>
                 
 
                 <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.05); margin: 20px 0;">

@@ -1166,47 +1166,88 @@ window.excluirTime = async (timeId) => {
 
 
 
-window.criarTime = async () => {
-    const nomeInput = document.getElementById('nomeNovoTime');
-    if (!nomeInput || !nomeInput.value.trim()) return alert("Dê um nome ao seu time!");
-
-    const nomeTime = nomeInput.value.trim();
-    const meuEmail = window.usuarioLogado.email.toLowerCase();
-
-    try {
-        // 1. CRIA O DOCUMENTO NO FIRESTORE
-        // Usamos a estrutura de cargos (D, A, B, C) que definimos
-        const novoTime = {
-            nome: nomeTime,
-            criadorUid: window.usuarioLogado.uid,
-            criadoEm: new Date(),
-            membrosEmails: [meuEmail], // Começa só com você para as Rules liberarem
-            cargos: {
-                [meuEmail.replace(/\./g, '_')]: "Dono" // Você nasce como Dono
-            },
-            permissoes: {
-                "A": { escreverAtividade: true, excluirAtividade: true, financeiro: true },
-                "B": { escreverAtividade: true, excluirAtividade: false, financeiro: true },
-                "C": { escreverAtividade: false, excluirAtividade: false, financeiro: false }
-            }
-        };
-
-        const docRef = await addDoc(collection(db, "times"), novoTime);
-        console.log("Time criado com ID:", docRef.id);
-
-        alert(`Time "${nomeTime}" criado com sucesso!`);
-
-        // 2. LIMPEZA E ATUALIZAÇÃO
-        nomeInput.value = "";
-        
-        // Recarrega a aba de times e as categorias para o novo time aparecer no seletor
-        if (typeof window.carregarTimes === 'function') window.carregarTimes();
-        if (typeof window.carregarCategorias === 'function') window.carregarCategorias();
-
-    } catch (error) {
-        console.error("Erro ao criar time:", error);
-        alert("Erro ao criar time. Verifique sua conexão.");
-    }
+window.criarTime = async () => {
+
+    const nomeInput = document.getElementById('nomeNovoTime');
+
+    if (!nomeInput || !nomeInput.value.trim()) return alert("Dê um nome ao seu time!");
+
+
+
+    const nomeTime = nomeInput.value.trim();
+
+    const meuEmail = window.usuarioLogado.email.toLowerCase();
+
+
+
+    try {
+
+        // 1. CRIA O DOCUMENTO NO FIRESTORE
+
+        // Usamos a estrutura de cargos (D, A, B, C) que definimos
+
+        const novoTime = {
+
+            nome: nomeTime,
+
+            criadorUid: window.usuarioLogado.uid,
+
+            criadoEm: new Date(),
+
+            membrosEmails: [meuEmail], // Começa só com você para as Rules liberarem
+
+            cargos: {
+
+                [meuEmail.replace(/\./g, '_')]: "Dono" // Você nasce como Dono
+
+            },
+
+            permissoes: {
+
+                "A": { escreverAtividade: true, excluirAtividade: true, financeiro: true },
+
+                "B": { escreverAtividade: true, excluirAtividade: false, financeiro: true },
+
+                "C": { escreverAtividade: false, excluirAtividade: false, financeiro: false }
+
+            }
+
+        };
+
+
+
+        const docRef = await addDoc(collection(db, "times"), novoTime);
+
+        console.log("Time criado com ID:", docRef.id);
+
+
+
+        alert(`Time "${nomeTime}" criado com sucesso!`);
+
+
+
+        // 2. LIMPEZA E ATUALIZAÇÃO
+
+        nomeInput.value = "";
+
+        
+
+        // Recarrega a aba de times e as categorias para o novo time aparecer no seletor
+
+        if (typeof window.carregarTimes === 'function') window.carregarTimes();
+
+        if (typeof window.carregarCategorias === 'function') window.carregarCategorias();
+
+
+
+    } catch (error) {
+
+        console.error("Erro ao criar time:", error);
+
+        alert("Erro ao criar time. Verifique sua conexão.");
+
+    }
+
 };
 
 
@@ -1798,6 +1839,34 @@ window.carregarCategoriasModal = () => {
 
     });
 
+};
+
+
+window.salvarHierarquiaPersonalizada = async () => {
+    const timeId = document.getElementById('selecionarTimePermissoes').value;
+    if (!timeId) return alert("Selecione um time primeiro!");
+
+    const niveis = ['D', 'A', 'B', 'C'];
+    const novaConfig = {};
+
+    niveis.forEach(nv => {
+        novaConfig[nv] = {
+            escreverAtividade: document.getElementById(`check-escrever-${nv}`).checked,
+            excluirAtividade: document.getElementById(`check-excluir-${nv}`).checked,
+            financeiro: document.getElementById(`check-financeiro-${nv}`).checked,
+            gerenciarEquipe: document.getElementById(`check-membros-${nv}`).checked
+        };
+    });
+
+    try {
+        await updateDoc(doc(db, "times", timeId), {
+            configPermissoes: novaConfig
+        });
+        alert("Hierarquia do time atualizada com sucesso!");
+    } catch (e) {
+        console.error("Erro ao salvar hierarquia:", e);
+        alert("Erro: Apenas o Dono (Nível 0) pode alterar a hierarquia.");
+    }
 };
 
 
