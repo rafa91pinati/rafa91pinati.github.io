@@ -1652,53 +1652,106 @@ window.adicionarFotosEdicao = (input) => {
     input.value = ""; // Limpa o input para permitir selecionar a mesma foto de novo
 };
 
+
+
 window.salvarAlteracoes = async (id) => {
+
     const btnSalvar = document.querySelector(`#btn-salvar-${id}`);
+
     const textoOriginal = btnSalvar ? btnSalvar.innerHTML : "SALVAR";
+
     
+
     if (btnSalvar) {
+
         btnSalvar.innerHTML = "⏳ SUBINDO...";
+
         btnSalvar.disabled = true;
+
     }
+
+
 
     try {
+
         let linksFinais = [];
+
         for (let foto of fotosTemporarias) {
+
             if (foto.startsWith('data:image')) {
+
                 // É uma foto nova!
+
                 const response = await fetch(foto);
+
                 const blob = await response.blob();
+
                 const nomeArquivo = `edit-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
                 const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
+
                 
+
                 const snap = await uploadBytes(sRef, blob);
+
                 const url = await getDownloadURL(snap.ref);
+
                 linksFinais.push(url);
+
             } else {
+
                 // Já é um link do Firebase, só mantém na lista
+
                 linksFinais.push(foto);
+
             }
+
         }
+
         await updateDoc(doc(db, "tarefas", id), {
-            descricao: document.getElementById(`edit-desc-${id}`).value,
-            hora: document.getElementById(`edit-hora-${id}`).value,
-            marcador: document.getElementById(`edit-tag-${id}`).value, // Garante que a etapa também salve
-            fotos: linksFinais
-        });
+        descricao: document.getElementById(`edit-desc-${id}`).value,
+        hora: document.getElementById(`edit-hora-${id}`).value,
+        marcador: document.getElementById(`edit-tag-${id}`).value,
+        fotos: linksFinais
+    });
+	
+	await updateDoc(doc(db, "tarefas", id), {
+        descricao: document.getElementById(`edit-desc-${id}`).value,
+        hora: document.getElementById(`edit-hora-${id}`).value,
+        marcador: document.getElementById(`edit-tag-${id}`).value,
+        fotos: linksFinais
+    });
+	
+
+
 
         idEmEdicao = null;
+
         alert("Tarefa atualizada com sucesso!");
-        carregarTarefas();
+
+      window.filtrarERenderizar();
+
     } catch (error) {
+
         console.error("Erro ao editar:", error);
+
         alert("Erro ao salvar alterações.");
+
     } finally {
+
         if (btnSalvar) {
+
             btnSalvar.innerHTML = textoOriginal;
+
             btnSalvar.disabled = false;
+
         }
+
     }
+
 };
+
+
 
 window.excluirTask = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "tarefas", id)); carregarTarefas(); } };
 
