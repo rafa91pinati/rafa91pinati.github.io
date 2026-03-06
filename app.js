@@ -757,7 +757,7 @@ window.prepararEdicaoCategoria = (id) => {
         `;
         lista.appendChild(item);
     });
-};
+
         // 👇 ADICIONE ESSAS 3 LINHAS AQUI 👇
         window.coresCategorias = window.coresCategorias || {};
         window.logosCategorias = window.logosCategorias || {};
