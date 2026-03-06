@@ -1120,188 +1120,63 @@ window.atualizarSeletorMarcadores = async () => {
 };
 
 
-window.carregarTimes = async () => {
-
+window.carregarTimes = async () => {
     const listaGerencio = document.getElementById('listaTimesModal');
-
     const listaPertenco = document.getElementById('listaTimesPertencoModal');
-
     if(!listaGerencio || !listaPertenco || !window.usuarioLogado) return;
-
     
-
     listaGerencio.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
-
     listaPertenco.innerHTML = "<p style='text-align:center; color:#cbd5e1;'>Carregando...</p>";
 
-
-
     try {
-
-        const meuEmailFormatado = window.usuarioLogado.email.trim().toLowerCase();
-
+        const meuEmail = window.usuarioLogado.email.toLowerCase();
         
-
-        // CONSULTA ÚNICA: Busca todos os times que o e-mail do usuário participa de uma só vez
-
-        const qTodosOsTimes = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmailFormatado));
-
-        const snapTodos = await getDocs(qTodosOsTimes);
-
+        // Busca times onde o usuário é membro
+        const q = query(collection(db, "times"), where("membrosEmails", "array-contains", meuEmail));
+        const snap = await getDocs(q);
         
-
         let htmlGerencio = "";
-
         let htmlPertenco = "";
 
-        let contGerencio = 0;
-
-        let contPertenco = 0;
-
-
-
-        snapTodos.forEach(d => {
-
+        snap.forEach(d => {
             const t = d.data();
+            const id = d.id;
+            const meuCargo = t.cargos[meuEmail]; // Puxa do novo mapa de cargos
 
-            
-
-            // SEPARAÇÃO NO FRONTEND (Evita cobrar mais uma leitura do banco)
-
-            if (t.criadorUid === window.usuarioLogado.uid) {
-
-                // --- CARD: TIMES QUE GERENCIO ---
-
-                contGerencio++;
-
+            // TIMES QUE GERENCIO (Dono ou Admin A)
+            if (t.criadorUid === window.usuarioLogado.uid || meuCargo === 'D' || meuCargo === 'A') {
                 
-
-                let htmlMembros = (t.membros || []).map(m => `
-
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; padding-top:6px; border-top: 1px solid rgba(255,255,255,0.05);">
-
-                        <span style="font-size: 0.85rem; word-break: break-all;">${m.email} ${m.email == meuEmailFormatado ? '<b style="color:#10b981;">(Você)</b>' : ''}</span> 
-
-                        <div style="display:flex; align-items:center; gap:10px;">
-
-                            <span style="font-weight:bold; color:#f59e0b; font-size: 0.8rem;">Nível ${m.nivel}</span>
-
-                            ${m.email !== meuEmailFormatado ? `<button onclick="removerMembro('${d.id}', '${m.email}')" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ff8080; cursor:pointer; font-size:0.9rem; padding: 4px 8px; border-radius: 6px;" title="Remover membro">✕</button>` : ''}
-
-                        </div>
-
+                // Transforma o mapa de cargos em lista visual
+                let listaMembrosHtml = Object.keys(t.cargos).map(email => `
+                    <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <span style="font-size:0.8rem;">${email}</span>
+                        <span style="font-weight:bold; color:#f59e0b;">${t.cargos[email]}</span>
                     </div>
-
                 `).join('');
 
-
-
                 htmlGerencio += `
-
-                    <li style="background: rgba(255,255,255,0.08); padding:15px; border-radius:12px; margin-bottom:12px; border: 1px solid rgba(37, 99, 235, 0.3); border-left: 4px solid #3b82f6;">
-
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-
-                            <b style="color:#ffffff; font-size:1.1rem;">👑 ${t.nome}</b>
-
-                            <button onclick="excluirTime('${d.id}')" style="background:rgba(239, 68, 68, 0.3); border:none; color:#ff8080; cursor:pointer; border-radius:8px; padding:6px 10px; font-weight:bold;">🗑️ Excluir</button>
-
-                        </div>
-
-                        
-
-                        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-
-                            <input type="email" id="email-membro-${d.id}" placeholder="E-mail do parceiro" style="flex:1; padding: 8px; border-radius: 8px; border: none; font-size: 0.85rem; margin:0; outline: none;">
-
-                            <select id="nivel-membro-${d.id}" style="padding: 8px; border-radius: 8px; border: none; font-size: 0.85rem; margin:0; outline: none; cursor: pointer;">
-
-                                <option value="B">Nível B (Editor)</option>
-
-                                <option value="C">Nível C (Visual)</option>
-
-                            </select>
-
-                            <button onclick="adicionarMembro(event, '${d.id}')" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">+ Add</button>
-
-                        </div>
-
-
-
-                        <div style="font-size: 0.8rem; color: #cbd5e1; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-
-                            <div style="font-weight: bold; margin-bottom: 5px; color: #94a3b8; text-transform: uppercase; font-size: 0.7rem;">Membros da Equipe:</div>
-
-                            ${htmlMembros}
-
-                        </div>
-
+                    <li style="background: rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:10px; border-left:4px solid #3b82f6;">
+                        <b style="color:white;">👑 ${t.nome}</b>
+                        <div style="margin-top:10px;">${listaMembrosHtml}</div>
+                        <button onclick="excluirTime('${id}')" style="margin-top:10px; background:rgba(239,68,68,0.2); border:none; color:#ff8080; padding:5px; border-radius:5px; cursor:pointer;">Excluir Time</button>
                     </li>`;
-
-                    
-
             } else {
-
-                // --- CARD: TIMES QUE PERTENÇO (Convidado) ---
-
-                contPertenco++;
-
-                const meuPerfil = (t.membros || []).find(m => m.email == meuEmailFormatado);
-
-                const meuNivel = meuPerfil ? meuPerfil.nivel : "?";
-
-                
-
-                // Ajustado para buscar quem é o "Dono" do time de acordo com a nossa nova regra
-
-                const donoDoTime = (t.membros || []).find(m => m.nivel === 'Dono' || m.nivel === 'A');
-
-
-
+                // TIMES QUE PERTENÇO (B ou C)
                 htmlPertenco += `
-
-                    <li style="background: rgba(255,255,255,0.08); padding:15px; border-radius:12px; margin-bottom:12px; border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981;">
-
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-
-                            <b style="color:#ffffff; font-size:1.1rem;">🤝 ${t.nome}</b>
-
-                            <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem;">Meu Nível: ${meuNivel}</span>
-
-                        </div>
-
-                        <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 5px;">
-
-                            Administrador: ${donoDoTime ? donoDoTime.email : 'Desconhecido'}
-
-                        </div>
-
+                    <li style="background: rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:10px; border-left:4px solid #10b981;">
+                        <b style="color:white;">🤝 ${t.nome}</b>
+                        <div style="font-size:0.8rem; color:#cbd5e1;">Meu Nível: ${meuCargo}</div>
                     </li>`;
-
             }
-
         });
 
-
-
-        // INSERE O HTML NA TELA APÓS MONTAR TUDO
-
-        listaGerencio.innerHTML = contGerencio > 0 ? htmlGerencio : "<p style='text-align:center; color:#94a3b8; font-size: 0.85rem;'>Você não gerencia nenhum time.</p>";
-
-        listaPertenco.innerHTML = contPertenco > 0 ? htmlPertenco : "<p style='text-align:center; color:#94a3b8; font-size: 0.85rem;'>Você não foi convidado para outros times.</p>";
-
-        
+        listaGerencio.innerHTML = htmlGerencio || "<p style='text-align:center;'>Nenhum time gerenciado.</p>";
+        listaPertenco.innerHTML = htmlPertenco || "<p style='text-align:center;'>Nenhum convite pendente.</p>";
 
     } catch (e) {
-
         console.error("Erro ao carregar times:", e);
-
-        listaGerencio.innerHTML = "<p style='color:#ef4444; text-align:center;'>Erro ao carregar os times.</p>";
-
-        listaPertenco.innerHTML = "";
-
+        listaGerencio.innerHTML = "<p style='color:#ef4444;'>Erro de permissão ou conexão.</p>";
     }
-
 };
 
 window.criarTime = async () => {
@@ -2029,40 +1904,74 @@ const originalSalvar = window.salvarNovaTarefa;
 
 
 // Otimização: Fecha o modal automaticamente após salvar
-window.carregarCategoriasModal = () => {
-    const lista = document.getElementById('listaCategoriasModal');
-    if (!lista) return;
-
-    lista.innerHTML = ""; // Limpa a lista antes de preencher
-
-    // Usa as categorias que já carregamos no login/filtro
-    if (!window.todasAsCategorias || window.todasAsCategorias.length === 0) {
-        lista.innerHTML = "<li style='color: #94a3b8; font-size: 0.8rem; padding: 10px;'>Nenhuma categoria encontrada.</li>";
-        return;
-    }
-
-    window.todasAsCategorias.forEach(cat => {
-        const li = document.createElement('li');
-        li.style.display = "flex";
-        li.style.justifyContent = "between";
-        li.style.alignItems = "center";
-        li.style.padding = "10px";
-        li.style.background = "white";
-        li.style.borderRadius = "12px";
-        li.style.marginBottom = "8px";
-        li.style.borderLeft = `4px solid ${cat.cor}`;
-
-        const nomeTime = cat.timeId ? ` <small style='color: #3b82f6;'>(Time)</small>` : "";
-
-        li.innerHTML = `
-            <div style="flex: 1;">
-                <strong style="color: #1e293b; font-size: 0.9rem;">${cat.nome}</strong>
-                ${nomeTime}
-            </div>
-            <button onclick="removerCategoria('${cat.id}', '${cat.nome}')" style="background: none; border: none; cursor: pointer;">🗑️</button>
-        `;
-        lista.appendChild(li);
-    });
+window.carregarCategoriasModal = () => {
+
+    const lista = document.getElementById('listaCategoriasModal');
+
+    if (!lista) return;
+
+
+
+    lista.innerHTML = ""; // Limpa a lista antes de preencher
+
+
+
+    // Usa as categorias que já carregamos no login/filtro
+
+    if (!window.todasAsCategorias || window.todasAsCategorias.length === 0) {
+
+        lista.innerHTML = "<li style='color: #94a3b8; font-size: 0.8rem; padding: 10px;'>Nenhuma categoria encontrada.</li>";
+
+        return;
+
+    }
+
+
+
+    window.todasAsCategorias.forEach(cat => {
+
+        const li = document.createElement('li');
+
+        li.style.display = "flex";
+
+        li.style.justifyContent = "between";
+
+        li.style.alignItems = "center";
+
+        li.style.padding = "10px";
+
+        li.style.background = "white";
+
+        li.style.borderRadius = "12px";
+
+        li.style.marginBottom = "8px";
+
+        li.style.borderLeft = `4px solid ${cat.cor}`;
+
+
+
+        const nomeTime = cat.timeId ? ` <small style='color: #3b82f6;'>(Time)</small>` : "";
+
+
+
+        li.innerHTML = `
+
+            <div style="flex: 1;">
+
+                <strong style="color: #1e293b; font-size: 0.9rem;">${cat.nome}</strong>
+
+                ${nomeTime}
+
+            </div>
+
+            <button onclick="removerCategoria('${cat.id}', '${cat.nome}')" style="background: none; border: none; cursor: pointer;">🗑️</button>
+
+        `;
+
+        lista.appendChild(li);
+
+    });
+
 };
 
 
