@@ -476,47 +476,85 @@ window.abrirConfig = () => {
 
 
 
-
-window.abrirAba = (evt, nomeAba) => {
-
-    let i, tabcontent, tablinks;
-
-    
-
-    // Esconde todos os conteúdos
-
-    tabcontent = document.getElementsByClassName("tabcontent");
-
-    for (i = 0; i < tabcontent.length; i++) {
-
-        tabcontent[i].style.display = "none";
-
-    }
-
-    
-
-    // Remove a classe 'active' de todos os botões
-
-    tablinks = document.getElementsByClassName("tablink");
-
-    for (i = 0; i < tablinks.length; i++) {
-
-        tablinks[i].classList.remove("active");
-
-    }
-
-    
-
-    // Mostra a aba atual e adiciona 'active' no botão clicado
-
-    document.getElementById(nomeAba).style.display = "block";
-
-    evt.currentTarget.classList.add("active");if (nomeAba === 'abaHierarquia') {
+
+
+window.abrirAba = (evt, nomeAba) => {
+
+
+
+    let i, tabcontent, tablinks;
+
+
+
+    
+
+
+
+    // Esconde todos os conteúdos
+
+
+
+    tabcontent = document.getElementsByClassName("tabcontent");
+
+
+
+    for (i = 0; i < tabcontent.length; i++) {
+
+
+
+        tabcontent[i].style.display = "none";
+
+
+
+    }
+
+
+
+    
+
+
+
+    // Remove a classe 'active' de todos os botões
+
+
+
+    tablinks = document.getElementsByClassName("tablink");
+
+
+
+    for (i = 0; i < tablinks.length; i++) {
+
+
+
+        tablinks[i].classList.remove("active");
+
+
+
+    }
+
+
+
+    
+
+
+
+    // Mostra a aba atual e adiciona 'active' no botão clicado
+
+
+
+    document.getElementById(nomeAba).style.display = "block";
+
+
+
+    evt.currentTarget.classList.add("active");
+if (nomeAba === 'abaHierarquia') {
         if (typeof window.preencherSelectTimesPermissoes === 'function') {
             window.preencherSelectTimesPermissoes();
         }
-}
-};
+}
+
+};
+
 window.preencherSelectTimesPermissoes = () => {
     const select = document.getElementById('selecionarTimePermissoes');
     if (!select) return;
@@ -1842,16 +1880,23 @@ const originalSalvar = window.salvarNovaTarefa;
 // Otimização: Fecha o modal automaticamente após salvar
 
 window.carregarCategoriasModal = () => {
+
     const lista = document.getElementById('listaCategoriasModal');
+
     if (!lista || !window.todasAsCategorias) return;
+
     lista.innerHTML = "";
-	
-	
+
     window.todasAsCategorias.forEach(cat => {
+
         const li = document.createElement('li');
-        li.textContent = cat.nome; // Implementação simples só para tirar o erro
+
+        li.textContent = cat.nome;
+
         lista.appendChild(li);
+
     });
+
 };
 
 window.salvarHierarquiaPersonalizada = async () => {
