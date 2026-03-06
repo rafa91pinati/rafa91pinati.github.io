@@ -1343,11 +1343,10 @@ window.criarTime = async () => {
         await addDoc(collection(db, "times"), novoTime);
         
         document.getElementById('nomeNovoTime').value = "";
-        alert("Time '" + nome + "' criado com sucesso!");
+        alert("Time '" + nome + "' criado com sucesso!");
+		
+		await window.atualizarInterfaceDeTimes();
         
-        // Atualiza a tela para o time novo aparecer
-        if(typeof window.carregarDadosIniciais === 'function') window.carregarDadosIniciais();
-
     } catch (e) {
         console.error("ERRO COMPLETO:", e);
         alert("Erro ao criar: " + e.message); 
@@ -1495,6 +1494,64 @@ window.atualizarSeletorTimes = async () => {
         
     } catch (e) {}
 };
+
+
+window.atualizarInterfaceDeTimes = async () => {
+    if (!window.usuarioLogado) return;
+    
+    try {
+        // 1. Busca todos os times no Firebase
+        const q = query(collection(db, "times"));
+        const querySnapshot = await getDocs(q);
+        
+        window.meusTimes = [];
+        const emailFormatado = window.usuarioLogado.email.replace(/\./g, '_');
+
+        querySnapshot.forEach((docSnap) => {
+            const time = docSnap.data();
+            time.id = docSnap.id;
+            // Pega só os times que você criou ou que você foi convidado
+            if (time.criadorUid === window.usuarioLogado.uid || (time.membros && time.membros[emailFormatado])) {
+                window.meusTimes.push(time);
+            }
+        });
+
+        // 2. Pega os elementos do HTML onde os times devem aparecer
+        const listaGerencio = document.getElementById('listaTimesModal');
+        const listaPertenco = document.getElementById('listaTimesPertencoModal');
+        const selectHierarquia = document.getElementById('selecionarTimePermissoes');
+        const selectCategoria = document.getElementById('timeNovaCategoria');
+
+        // 3. Limpa as listas antigas para não duplicar
+        if (listaGerencio) listaGerencio.innerHTML = '';
+        if (listaPertenco) listaPertenco.innerHTML = '';
+        if (selectHierarquia) selectHierarquia.innerHTML = '<option value="">Selecione um Time...</option>';
+        if (selectCategoria) selectCategoria.innerHTML = '<option value="" style="color: black;">👤 Pessoal (Sem Time)</option>';
+
+        // 4. Preenche a tela com os times reais
+        window.meusTimes.forEach(time => {
+            const souDono = time.criadorUid === window.usuarioLogado.uid;
+            
+            // Desenha na Aba Times
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${time.nome}</strong>`;
+            li.style = "padding: 10px; background: white; margin-bottom: 8px; border-radius: 8px; border: 1px solid #e2e8f0; color: #1e293b;";
+            
+            if (souDono && listaGerencio) listaGerencio.appendChild(li);
+            else if (!souDono && listaPertenco) listaPertenco.appendChild(li);
+
+            // Adiciona como opção nos Filtros (Selects)
+            const optionHTML = `<option value="${time.id}">${time.nome}</option>`;
+            if (selectHierarquia && souDono) selectHierarquia.insertAdjacentHTML('beforeend', optionHTML);
+            if (selectCategoria) selectCategoria.insertAdjacentHTML('beforeend', optionHTML);
+        });
+
+    } catch (e) {
+        console.error("Erro ao recarregar times na tela:", e);
+    }
+};
+
+
 
 // --- TAREFAS ---
 window.setarData = (tipo, el) => {
