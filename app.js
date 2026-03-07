@@ -432,80 +432,154 @@ window.timesDasCategorias = {};
 
 
 
-window.filtrarERenderizar = () => {
-    console.log("Renderizando Lista de Atividades com Miniaturas Reforçadas...");
-    const lista = document.getElementById('listaTarefas');
-    const dataIni = document.getElementById('dataSeletor').value;
-    const dataFim = document.getElementById('dataFimFiltro').value;
-    
-    if (!window.todasAsTarefasBrutas) return;
-
-    // 1. FILTRAGEM EM MEMÓRIA
-    let filtradas = window.todasAsTarefasBrutas.filter(t => {
-        const passaCategoria = window.categoriasAtivas.includes("Geral") ? t.categoria !== "Pessoal" : window.categoriasAtivas.includes(t.categoria);
-        
-        let passaData = true;
-        if (window.tipoFiltroTempo === 'semana') passaData = (window.arrayDiasSemana || []).includes(t.dataString);
-        else if (dataIni && dataFim) passaData = t.dataString >= dataIni && t.dataString <= dataFim;
-        else if (dataIni) passaData = t.dataString === dataIni;
-
-        const passaTag = window.tagFiltroAtiva ? t.marcador === window.tagFiltroAtiva : true;
-        
-        return passaCategoria && passaData && passaTag;
-    });
-
-    // 2. ORDENAÇÃO
-    filtradas.sort((a, b) => a.dataString.localeCompare(b.dataString) || (a.hora || "00:00").localeCompare(b.hora || "00:00"));
-
-    // 3. RENDERIZAÇÃO DO HTML
-    let html = "";
-    filtradas.forEach(t => {
-        
-        // A) Lógica das miniaturas de fotos (COM !important PARA FORÇAR O TAMANHO)
-        let miniaturasHtml = '';
-        if (t.fotos && t.fotos.length > 0) {
-            miniaturasHtml = '<div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">';
-            t.fotos.forEach(fotoUrl => {
-                miniaturasHtml += `
-                    <div style="width: 50px !important; height: 50px !important; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; cursor: pointer;"
-                         onclick="window.abrirFoto('${fotoUrl}')">
-                        <img src="${fotoUrl}" style="width: 100% !important; height: 100% !important; object-fit: cover !important;" alt="Anexo">
-                    </div>
-                `;
-            });
-            miniaturasHtml += '</div>';
-        }
-
-        // B) Puxa a cor dinâmica da categoria
-        const corCategoria = window.coresCategorias?.[t.categoria] || '#3b82f6';
-        const tagHtml = t.marcador ? `<span style="font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">${t.marcador}</span>` : '';
-
-        // C) Constrói o card da tarefa e injeta na lista
-        html += `
-            <div class="tarefa-item" style="border-left: 4px solid ${corCategoria}; padding: 12px; margin-bottom: 10px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <div style="flex: 1;">
-                        <div style="font-size: 15px; font-weight: 700; color: #1e293b;">
-                            ${t.hora ? t.hora + ' - ' : ''} ${t.descricao} ${tagHtml}
-                        </div>
-                        <div style="font-size: 12px; color: ${corCategoria}; font-weight: 600; margin-top: 4px;">
-                            🏷️ ${t.categoria}
-                        </div>
-                        
-                        ${miniaturasHtml}
-                        
-                    </div>
-                    
-                    <div class="acoes-tarefa" style="display: flex; gap: 12px; margin-left: 10px;">
-                        <button onclick="window.ativarEdicao('${t.id}', '${t.fotos ? t.fotos.join(',') : ''}')" style="background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">✏️</button>
-                        <button onclick="window.excluirTask('${t.id}')" style="background: none; border: none; cursor: pointer; color: #ef4444; font-size: 16px;">🗑️</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    lista.innerHTML = html || "<p style='text-align:center; margin-top:20px; color:#94a3b8; font-weight: 500;'>Nenhuma atividade encontrada para este filtro.</p>";
+window.filtrarERenderizar = () => {
+
+    console.log("Renderizando Lista de Atividades com Miniaturas Reforçadas...");
+
+    const lista = document.getElementById('listaTarefas');
+
+    const dataIni = document.getElementById('dataSeletor').value;
+
+    const dataFim = document.getElementById('dataFimFiltro').value;
+
+    
+
+    if (!window.todasAsTarefasBrutas) return;
+
+
+
+    // 1. FILTRAGEM EM MEMÓRIA
+
+    let filtradas = window.todasAsTarefasBrutas.filter(t => {
+
+        const passaCategoria = window.categoriasAtivas.includes("Geral") ? t.categoria !== "Pessoal" : window.categoriasAtivas.includes(t.categoria);
+
+        
+
+        let passaData = true;
+
+        if (window.tipoFiltroTempo === 'semana') passaData = (window.arrayDiasSemana || []).includes(t.dataString);
+
+        else if (dataIni && dataFim) passaData = t.dataString >= dataIni && t.dataString <= dataFim;
+
+        else if (dataIni) passaData = t.dataString === dataIni;
+
+
+
+        const passaTag = window.tagFiltroAtiva ? t.marcador === window.tagFiltroAtiva : true;
+
+        
+
+        return passaCategoria && passaData && passaTag;
+
+    });
+
+
+
+    // 2. ORDENAÇÃO
+
+    filtradas.sort((a, b) => a.dataString.localeCompare(b.dataString) || (a.hora || "00:00").localeCompare(b.hora || "00:00"));
+
+
+
+    // 3. RENDERIZAÇÃO DO HTML
+
+    let html = "";
+
+    filtradas.forEach(t => {
+
+        
+
+        // A) Lógica das miniaturas de fotos (COM !important PARA FORÇAR O TAMANHO)
+
+        let miniaturasHtml = '';
+
+        if (t.fotos && t.fotos.length > 0) {
+
+            miniaturasHtml = '<div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">';
+
+            t.fotos.forEach(fotoUrl => {
+
+                miniaturasHtml += `
+
+                    <div style="width: 50px !important; height: 50px !important; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; cursor: pointer;"
+
+                         onclick="window.abrirFoto('${fotoUrl}')">
+
+                        <img src="${fotoUrl}" style="width: 100% !important; height: 100% !important; object-fit: cover !important;" alt="Anexo">
+
+                    </div>
+
+                `;
+
+            });
+
+            miniaturasHtml += '</div>';
+
+        }
+
+
+
+        // B) Puxa a cor dinâmica da categoria
+
+        const corCategoria = window.coresCategorias?.[t.categoria] || '#3b82f6';
+
+        const tagHtml = t.marcador ? `<span style="font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">${t.marcador}</span>` : '';
+
+
+
+        // C) Constrói o card da tarefa e injeta na lista
+
+        html += `
+
+            <div class="tarefa-item" style="border-left: 4px solid ${corCategoria}; padding: 12px; margin-bottom: 10px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+
+                    <div style="flex: 1;">
+
+                        <div style="font-size: 15px; font-weight: 700; color: #1e293b;">
+
+                            ${t.hora ? t.hora + ' - ' : ''} ${t.descricao} ${tagHtml}
+
+                        </div>
+
+                        <div style="font-size: 12px; color: ${corCategoria}; font-weight: 600; margin-top: 4px;">
+
+                            🏷️ ${t.categoria}
+
+                        </div>
+
+                        
+
+                        ${miniaturasHtml}
+
+                        
+
+                    </div>
+
+                    
+
+                    <div class="acoes-tarefa" style="display: flex; gap: 12px; margin-left: 10px;">
+
+                        <button onclick="window.ativarEdicao('${t.id}', '${t.fotos ? t.fotos.join(',') : ''}')" style="background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">✏️</button>
+
+                        <button onclick="window.excluirTask('${t.id}')" style="background: none; border: none; cursor: pointer; color: #ef4444; font-size: 16px;">🗑️</button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+
+
+    lista.innerHTML = html || "<p style='text-align:center; margin-top:20px; color:#94a3b8; font-weight: 500;'>Nenhuma atividade encontrada para este filtro.</p>";
+
 };
 
 
@@ -3716,112 +3790,70 @@ window.adicionarFotosEdicao = (input) => {
 
 
 
-window.salvarAlteracoes = async (id) => {
-
-    const btnSalvar = document.querySelector(`#btn-salvar-${id}`);
-
-    const textoOriginal = btnSalvar ? btnSalvar.innerHTML : "SALVAR";
-
-
-
-    if (btnSalvar) {
-
-        btnSalvar.innerHTML = "⏳ SUBINDO...";
-
-        btnSalvar.disabled = true;
-
-    }
-
-
-
-    try {
-
-        let linksFinais = [];
-
-
-
-        for (let foto of window.fotosTemporarias) { // Adicionado window. por segurança
-
-            if (foto.startsWith('data:image')) {
-
-                // É uma foto nova!
-
-                const response = await fetch(foto);
-
-                const blob = await response.blob();
-
-                const nomeArquivo = `edit-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
-
-                
-
-                const snap = await uploadBytes(sRef, blob);
-
-                const url = await getDownloadURL(snap.ref);
-
-                linksFinais.push(url);
-
-            } else {
-
-                // Já é um link do Firebase, só mantém na lista
-
-                linksFinais.push(foto);
-
-            }
-
-        }
-
-
-
-        // SALVAMENTO ÚNICO (Removida a duplicação que travava a função)
-
-        await updateDoc(doc(db, "tarefas", id), {
-
-            descricao: document.getElementById(`edit-desc-${id}`).value,
-
-            hora: document.getElementById(`edit-hora-${id}`).value,
-
-            marcador: document.getElementById(`edit-tag-${id}`).value,
-
-            fotos: linksFinais
-
-        });
-
-
-
-        window.idEmEdicao = null;
-
-        alert("Tarefa atualizada com sucesso!");
-
-        
-
-        if (typeof window.filtrarERenderizar === 'function') {
-
-            window.filtrarERenderizar();
-
-        }
-
-
-
-    } catch (error) {
-
-        console.error("Erro ao editar:", error);
-
-        alert("Erro ao salvar alterações.");
-
-    } finally {
-
-        if (btnSalvar) {
-
-            btnSalvar.innerHTML = textoOriginal;
-
-            btnSalvar.disabled = false;
-
-        }
-
-    }
-
+window.salvarAlteracoes = async (id) => {
+    const btnSalvar = document.querySelector(`#btn-salvar-${id}`);
+    const textoOriginal = btnSalvar ? btnSalvar.innerHTML : "SALVAR";
+
+    if (btnSalvar) {
+        btnSalvar.innerHTML = "⏳ SUBINDO...";
+        btnSalvar.disabled = true;
+    }
+
+    try {
+        console.log("Iniciando salvamento da edição. ID:", id);
+        let linksFinais = [];
+        
+        // Puxa as fotos temporárias de forma segura, seja ela window ou let/const
+        const fotosArray = window.fotosTemporarias || (typeof fotosTemporarias !== 'undefined' ? fotosTemporarias : []);
+        console.log("Fotos para processar:", fotosArray);
+
+        for (let foto of fotosArray) {
+            if (foto.startsWith('data:image')) {
+                console.log("Fazendo upload de foto nova...");
+                const response = await fetch(foto);
+                const blob = await response.blob();
+                const nomeArquivo = `edit-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
+                
+                const snap = await uploadBytes(sRef, blob);
+                const url = await getDownloadURL(snap.ref);
+                linksFinais.push(url);
+            } else {
+                linksFinais.push(foto); // Já era link do Firestore
+            }
+        }
+
+        // Verifica de forma segura se os inputs existem no HTML antes de pegar o valor
+        const elDesc = document.getElementById(`edit-desc-${id}`);
+        const elHora = document.getElementById(`edit-hora-${id}`);
+        const elTag = document.getElementById(`edit-tag-${id}`);
+
+        if (!elDesc) throw new Error("Campo de descrição não encontrado no HTML da edição.");
+
+        await updateDoc(doc(db, "tarefas", id), {
+            descricao: elDesc.value,
+            hora: elHora ? elHora.value : "",
+            marcador: elTag ? elTag.value : "",
+            fotos: linksFinais
+        });
+
+        console.log("Tarefa salva com sucesso no banco!");
+        window.idEmEdicao = null;
+        alert("Tarefa atualizada com sucesso!");
+        
+        if (typeof window.filtrarERenderizar === 'function') {
+            window.filtrarERenderizar();
+        }
+
+    } catch (error) {
+        console.error("ERRO DETALHADO AO SALVAR EDIÇÃO:", error);
+        alert("Erro ao salvar alterações. Pressione F12 e veja a aba Console para saber o motivo exato.");
+    } finally {
+        if (btnSalvar) {
+            btnSalvar.innerHTML = textoOriginal;
+            btnSalvar.disabled = false;
+        }
+    }
 };
 
 
