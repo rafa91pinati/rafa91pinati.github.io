@@ -3603,10 +3603,10 @@ lista.innerHTML += `
         </div>
 
         <div style="flex: 1;">
-
-            <div style="font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: #3b82f6;">🏷️ ${t.marcador || 'Geral'}</div>
-
-            <div style="font-weight: 700; color: #1e293b;">${t.hora ? '<span style="color: #3b82f6;">'+t.hora+'</span> ' : ''}${t.descricao}</div>
+    <div style="font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: #3b82f6;">🏷️ ${t.marcador || 'Geral'}</div>
+    <div style="font-weight: 700; color: #1e293b;">${t.hora ? '<span style="color: #3b82f6;">'+t.hora+'</span> ' : ''}${t.descricao}</div>
+    ${fotosPreviewLista}
+</div>
 
         </div>
 
@@ -3790,70 +3790,134 @@ window.adicionarFotosEdicao = (input) => {
 
 
 
-window.salvarAlteracoes = async (id) => {
-    const btnSalvar = document.querySelector(`#btn-salvar-${id}`);
-    const textoOriginal = btnSalvar ? btnSalvar.innerHTML : "SALVAR";
-
-    if (btnSalvar) {
-        btnSalvar.innerHTML = "⏳ SUBINDO...";
-        btnSalvar.disabled = true;
-    }
-
-    try {
-        console.log("Iniciando salvamento da edição. ID:", id);
-        let linksFinais = [];
-        
-        // Puxa as fotos temporárias de forma segura, seja ela window ou let/const
-        const fotosArray = window.fotosTemporarias || (typeof fotosTemporarias !== 'undefined' ? fotosTemporarias : []);
-        console.log("Fotos para processar:", fotosArray);
-
-        for (let foto of fotosArray) {
-            if (foto.startsWith('data:image')) {
-                console.log("Fazendo upload de foto nova...");
-                const response = await fetch(foto);
-                const blob = await response.blob();
-                const nomeArquivo = `edit-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
-                
-                const snap = await uploadBytes(sRef, blob);
-                const url = await getDownloadURL(snap.ref);
-                linksFinais.push(url);
-            } else {
-                linksFinais.push(foto); // Já era link do Firestore
-            }
-        }
-
-        // Verifica de forma segura se os inputs existem no HTML antes de pegar o valor
-        const elDesc = document.getElementById(`edit-desc-${id}`);
-        const elHora = document.getElementById(`edit-hora-${id}`);
-        const elTag = document.getElementById(`edit-tag-${id}`);
-
-        if (!elDesc) throw new Error("Campo de descrição não encontrado no HTML da edição.");
-
-        await updateDoc(doc(db, "tarefas", id), {
-            descricao: elDesc.value,
-            hora: elHora ? elHora.value : "",
-            marcador: elTag ? elTag.value : "",
-            fotos: linksFinais
-        });
-
-        console.log("Tarefa salva com sucesso no banco!");
-        window.idEmEdicao = null;
-        alert("Tarefa atualizada com sucesso!");
-        
-        if (typeof window.filtrarERenderizar === 'function') {
-            window.filtrarERenderizar();
-        }
-
-    } catch (error) {
-        console.error("ERRO DETALHADO AO SALVAR EDIÇÃO:", error);
-        alert("Erro ao salvar alterações. Pressione F12 e veja a aba Console para saber o motivo exato.");
-    } finally {
-        if (btnSalvar) {
-            btnSalvar.innerHTML = textoOriginal;
-            btnSalvar.disabled = false;
-        }
-    }
+window.salvarAlteracoes = async (id) => {
+
+    const btnSalvar = document.querySelector(`#btn-salvar-${id}`);
+
+    const textoOriginal = btnSalvar ? btnSalvar.innerHTML : "SALVAR";
+
+
+
+    if (btnSalvar) {
+
+        btnSalvar.innerHTML = "⏳ SUBINDO...";
+
+        btnSalvar.disabled = true;
+
+    }
+
+
+
+    try {
+
+        console.log("Iniciando salvamento da edição. ID:", id);
+
+        let linksFinais = [];
+
+        
+
+        // Puxa as fotos temporárias de forma segura, seja ela window ou let/const
+
+        const fotosArray = window.fotosTemporarias || (typeof fotosTemporarias !== 'undefined' ? fotosTemporarias : []);
+
+        console.log("Fotos para processar:", fotosArray);
+
+
+
+        for (let foto of fotosArray) {
+
+            if (foto.startsWith('data:image')) {
+
+                console.log("Fazendo upload de foto nova...");
+
+                const response = await fetch(foto);
+
+                const blob = await response.blob();
+
+                const nomeArquivo = `edit-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+                const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
+
+                
+
+                const snap = await uploadBytes(sRef, blob);
+
+                const url = await getDownloadURL(snap.ref);
+
+                linksFinais.push(url);
+
+            } else {
+
+                linksFinais.push(foto); // Já era link do Firestore
+
+            }
+
+        }
+
+
+
+        // Verifica de forma segura se os inputs existem no HTML antes de pegar o valor
+
+        const elDesc = document.getElementById(`edit-desc-${id}`);
+
+        const elHora = document.getElementById(`edit-hora-${id}`);
+
+        const elTag = document.getElementById(`edit-tag-${id}`);
+
+
+
+        if (!elDesc) throw new Error("Campo de descrição não encontrado no HTML da edição.");
+
+
+
+        await updateDoc(doc(db, "tarefas", id), {
+
+            descricao: elDesc.value,
+
+            hora: elHora ? elHora.value : "",
+
+            marcador: elTag ? elTag.value : "",
+
+            fotos: linksFinais
+
+        });
+
+
+
+        console.log("Tarefa salva com sucesso no banco!");
+
+        window.idEmEdicao = null;
+
+        alert("Tarefa atualizada com sucesso!");
+
+        
+
+        if (typeof window.filtrarERenderizar === 'function') {
+
+            window.filtrarERenderizar();
+
+        }
+
+
+
+    } catch (error) {
+
+        console.error("ERRO DETALHADO AO SALVAR EDIÇÃO:", error);
+
+        alert("Erro ao salvar alterações. Pressione F12 e veja a aba Console para saber o motivo exato.");
+
+    } finally {
+
+        if (btnSalvar) {
+
+            btnSalvar.innerHTML = textoOriginal;
+
+            btnSalvar.disabled = false;
+
+        }
+
+    }
+
 };
 
 
@@ -4102,195 +4166,125 @@ window.carregarCategoriasModal = () => {
 
 window.salvarNovaTarefa = async () => {
 
-    const btn = document.getElementById('btnSalvar');
-
-    const textoOriginal = btn.innerHTML;
-
-    
-
     try {
 
-        const desc = document.getElementById('descTask').value;
+        const desc = document.getElementById('descTask').value.trim();
 
-        const hora = document.getElementById('horaTask').value;
+        const hora = document.getElementById('horaTask').value || "";
 
-        const dataInicioTexto = document.getElementById('dataSeletor').value;
+        const data = document.getElementById('dataSeletor').value;
 
-        const tipoRec = document.getElementById('tipoRecorrencia').value;
-
-        const dataFimInput = document.getElementById('dataFimRecorrencia').value;
+        const btn = document.getElementById('btnSalvar');
 
 
 
-        if (!desc || !dataInicioTexto || !window.usuarioLogado) {
+        if (!desc) return alert("Descreva a tarefa.");
 
-            return alert("Preencha a descrição e a data de início!");
-
-        }
+        if (!window.usuarioLogado) return alert("Faça login primeiro.");
 
 
-
-        btn.innerHTML = "⌛ Enviando...";
 
         btn.disabled = true;
 
-
-
-        // 2. UPLOAD DAS FOTOS (Mantido intacto, está ótimo)
-
-        let linksFinais = [];
-
-        for (let fotoFile of fotosNovasArray) {
-
-            const nomeArquivo = `${Date.now()}_${fotoFile.name}`;
-
-            const sRef = ref(storage, `tarefas/${window.usuarioLogado.uid}/${nomeArquivo}`);
-
-            const snap = await uploadBytes(sRef, fotoFile);
-
-            const url = await getDownloadURL(snap.ref);
-
-            linksFinais.push(url);
-
-        }
+        btn.innerText = "Salvando...";
 
 
 
-        // 3. LÓGICA DE DATAS COM TRAVA DE SEGURANÇA COMERCIAL
-
-        let datasParaSalvar = [];
-
-        let dataAtual = new Date(dataInicioTexto + 'T00:00:00');
-
-        datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
+        let urlsFotos = [];
 
 
 
-        if (tipoRec !== 'nenhuma' && dataFimInput) {
+        for (const file of fotosNovas) {
 
-            const dataFim = new Date(dataFimInput + 'T23:59:59');
+            const nomeArquivo = `tarefas/${window.usuarioLogado.uid}/${Date.now()}_${file.name}`;
 
-            let contadorOcorrencias = 0; // Trava de segurança
+            const storageRef = ref(storage, nomeArquivo);
 
 
 
-            while (true) {
+            await uploadBytes(storageRef, file);
 
-                if (tipoRec === 'diario') dataAtual.setDate(dataAtual.getDate() + 1);
+            const url = await getDownloadURL(storageRef);
 
-                else if (tipoRec === '2dias') dataAtual.setDate(dataAtual.getDate() + 2);
-
-                else if (tipoRec === 'semanal') dataAtual.setDate(dataAtual.getDate() + 7);
-
-                else if (tipoRec === 'mensal') dataAtual.setMonth(dataAtual.getMonth() + 1);
-
-                
-
-                if (dataAtual > dataFim || contadorOcorrencias >= 365) break; // Limita a 1 ano ou 365 eventos
-
-                
-
-                datasParaSalvar.push(dataAtual.toISOString().split('T')[0]);
-
-                contadorOcorrencias++;
-
-            }
+            urlsFotos.push(url);
 
         }
 
 
 
-        // 4. SALVAMENTO NO FIRESTORE USANDO BATCH (LOTE)
+        const categoriaPrincipal = categoriasAtivas.includes("Geral")
 
-        const categoriaPrincipal = window.todasAsCategorias && window.todasAsCategorias.includes("Geral") ? "Geral" : (categoriasAtivas[0] || "Geral");
+            ? "Geral"
 
-        const idDoTimeDaCategoria = window.timesDasCategorias ? (window.timesDasCategorias[categoriaPrincipal] || null) : null;
-
-
-
-        // Inicia o lote
-
-        const lote = writeBatch(db);
-
-        
-
-        // Pega a referência da coleção apenas uma vez
-
-        const tarefasRef = collection(db, "tarefas");
+            : categoriasAtivas[categoriasAtivas.length - 1];
 
 
 
-        // Corta para as primeiras 500 para respeitar o limite máximo do batch do Firestore
-
-        const datasLimitadas = datasParaSalvar.slice(0, 500); 
+        const idDoTimeDaCategoria = window.timesDasCategorias[categoriaPrincipal] || null;
 
 
 
-        datasLimitadas.forEach(dataStr => {
+        await addDoc(collection(db, "tarefas"), {
 
-            const novaTarefaRef = doc(tarefasRef); // Cria uma referência com ID automático
+            uid: window.usuarioLogado.uid,
 
-            lote.set(novaTarefaRef, { 
+            timeId: idDoTimeDaCategoria,
 
-                uid: window.usuarioLogado.uid, 
+            descricao: desc,
 
-                timeId: idDoTimeDaCategoria,
+            dataString: data,
 
-                categoria: categoriaPrincipal,
+            hora: hora,
 
-                descricao: desc, 
+            recorrencia: document.getElementById('tipoRecorrencia').value || "nenhuma",
 
-                marcador: tagFiltroAtiva || null, 
+            dataFimRecorrencia: document.getElementById('dataFimRecorrencia').value || "",
 
-                hora: hora, 
+            fotos: urlsFotos,
 
-                dataString: dataStr,
+            categoria: categoriaPrincipal,
 
-                fotos: linksFinais,
-
-                criadoEm: serverTimestamp(), // Pega a hora exata do servidor do Google
-
-                alarmeAtivo: true,
-
-                alertaDisparado: false
-
-            });
+            criadoEm: serverTimestamp()
 
         });
 
 
 
-        // Executa todas as gravações de uma vez só
+        fotosNovas = [];
 
-        await lote.commit();
+        document.getElementById('descTask').value = "";
 
+        document.getElementById('horaTask').value = "";
 
+        document.getElementById('fotoTask').value = "";
 
-        // 5. LIMPEZA E FECHAMENTO
+        document.getElementById('previewFotosNovas').innerHTML = "";
 
-        if (typeof window.fecharModal === 'function') window.fecharModal('modalTarefa'); 
-
-        if (typeof cancelarNovaTarefa === 'function') cancelarNovaTarefa();
-
-        if (typeof window.carregarTarefas === 'function') await window.carregarTarefas();
-
-        
-
-        alert(datasLimitadas.length > 1 ? `${datasLimitadas.length} tarefas agendadas!` : "Tarefa salva!");
+        document.getElementById('statusFotosNovas').innerText = "Nenhuma foto anexada";
 
 
 
-    } catch (e) { 
+        fecharModal('modalTarefa');
 
-        console.error("Erro completo:", e);
+        await carregarTarefas();
 
-        alert("Erro ao salvar a tarefa. Verifique o console."); 
 
-    } finally { 
 
-        btn.innerHTML = textoOriginal; 
+        alert("Tarefa salva com sucesso!");
 
-        btn.disabled = false; 
+    } catch (e) {
+
+        console.error("Erro ao salvar tarefa:", e);
+
+        alert("Erro ao salvar a tarefa.");
+
+    } finally {
+
+        const btn = document.getElementById('btnSalvar');
+
+        btn.disabled = false;
+
+        btn.innerText = "Salvar";
 
     }
 
@@ -4301,30 +4295,110 @@ window.salvarNovaTarefa = async () => {
 window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
 
 window.renderizarPreviewFotosNovas = () => {
+
     const container = document.getElementById('previewFotosNovas');
+
+    const status = document.getElementById('statusFotosNovas');
+
     if (!container) return;
 
-    let html = '<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">';
 
-    window.fotosNovasArray.forEach((file, index) => {
-        const url = URL.createObjectURL(file);
-        html += `
-            <div style="position: relative; width: 60px !important; height: 60px !important; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
-                <img src="${url}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block; margin: 0; padding: 0;">
-                
-                <button onclick="window.removerFotoNova(${index})" 
-                        style="position: absolute; top: 0; right: 0; background: #ef4444; color: white; border: none; width: 20px; height: 20px; cursor: pointer; font-size: 14px; font-weight: bold; line-height: 1; border-bottom-left-radius: 4px;">
-                    ×
-                </button>
-            </div>
-        `;
+
+    container.innerHTML = '';
+
+
+
+    if (fotosNovas.length === 0) {
+
+        if (status) status.innerText = 'Nenhuma foto anexada';
+
+        return;
+
+    }
+
+
+
+    if (status) {
+
+        status.innerText = `Você anexou ${fotosNovas.length} foto(s)`;
+
+        status.className = 'status-fotos-anexadas';
+
+    }
+
+
+
+    fotosNovas.forEach((file, index) => {
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+
+            const div = document.createElement('div');
+
+            div.className = 'foto-item-preview';
+
+            div.innerHTML = `
+
+                <img src="${e.target.result}" alt="Miniatura">
+
+                <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${index})">✕</button>
+
+            `;
+
+            container.appendChild(div);
+
+        };
+
+        reader.readAsDataURL(file);
+
     });
 
-    html += '</div>';
-    container.innerHTML = html;
-};;
+};
 
-window.removerFotoNova = (idx) => { fotosNovasArray.splice(idx, 1); renderizarPreviewFotosNovas(); };
+
+
+window.prepararFotosNovas = (input) => {
+
+    if (!input.files || input.files.length === 0) return;
+
+
+
+    const arquivos = Array.from(input.files);
+
+
+
+    for (const file of arquivos) {
+
+        if (fotosNovas.length >= 4) {
+
+            alert("Máximo de 4 fotos por tarefa.");
+
+            break;
+
+        }
+
+        fotosNovas.push(file);
+
+    }
+
+
+
+    window.renderizarPreviewFotosNovas();
+
+    input.value = "";
+
+};
+
+
+
+window.removerFotoNova = (idx) => {
+
+    fotosNovas.splice(idx, 1);
+
+    window.renderizarPreviewFotosNovas();
+
+};
 
 
 
