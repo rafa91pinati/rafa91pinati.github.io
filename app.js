@@ -4389,7 +4389,7 @@ window.prepararFotosNovas = (input) => {
 
 
 
-    window.renderizarPreviewFotosNovas();
+    window.renderizarPreviewFotosNovas()
 
     input.value = "";
 
