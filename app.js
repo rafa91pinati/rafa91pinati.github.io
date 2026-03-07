@@ -452,9 +452,10 @@ window.filtrarERenderizar = () => {
 
     let filtradas = window.todasAsTarefasBrutas.filter(t => {
 
-        const passaCategoria = window.categoriasAtivas.includes("Geral") ? t.categoria !== "Pessoal" : window.categoriasAtivas.includes(t.categoria);
-
-        
+const categoriasSelecionadas = window.categoriasAtivas || categoriasAtivas || ["Geral"];
+const passaCategoria = categoriasSelecionadas.includes("Geral")
+    ? t.categoria !== "Pessoal"
+    : categoriasSelecionadas.includes(t.categoria);
 
         let passaData = true;
 
@@ -3487,6 +3488,11 @@ window.carregarTarefas = async () => {
         snapPessoal.forEach(d => tarefasBrutas.push({ id: d.id, ...d.data() }));
 
 
+window.todasAsTarefasBrutas = tarefas;
+window.tarefasMonitoramento = tarefas;
+window.filtrarERenderizar();
+return;
+
 
         if (meusTimesIds.length > 0) {
 
@@ -3962,7 +3968,7 @@ window.excluirTask = async (id) => {
 
         console.log("Tarefa removida com sucesso");
 
-
+window.filtrarERenderizar(); 
 
     } catch (e) {
 
@@ -3976,7 +3982,7 @@ window.excluirTask = async (id) => {
 
 
 
-window.filtrarERenderizar(); 
+
 
 
 
@@ -4271,6 +4277,14 @@ window.salvarNovaTarefa = async () => {
 
 
         alert("Tarefa salva com sucesso!");
+		
+fotosNovasArray = [];
+document.getElementById('descTask').value = "";
+document.getElementById('horaTask').value = "";
+document.getElementById('fotoTask').value = "";
+document.getElementById('tipoRecorrencia').value = "nenhuma";
+document.getElementById('dataFimRecorrencia').value = "";
+renderizarPreviewFotosNovas();
 
     } catch (e) {
 
@@ -4292,63 +4306,54 @@ window.salvarNovaTarefa = async () => {
 
 
 
-window.prepararFotosNovas = (input) => { Array.from(input.files).forEach(f => { if (fotosNovasArray.length < 4) fotosNovasArray.push(f); renderizarPreviewFotosNovas(); }); input.value = ""; };
-
-window.renderizarPreviewFotosNovas = () => {
-
-    const container = document.getElementById('previewFotosNovas');
-
-    const status = document.getElementById('statusFotosNovas');
-
-    if (!container) return;
-
-
-
-    container.innerHTML = '';
-
-
-
-    if (fotosNovas.length === 0) {
-
-        if (status) status.innerText = 'Nenhuma foto anexada';
-
-        return;
-
-    }
-
-
-
-    if (status) {
-
-        status.innerText = `Você anexou ${fotosNovas.length} foto(s)`;
-
-        status.className = 'status-fotos-anexadas';
-
-    }
-
-
-
-    fotosNovas.forEach((file, index) => {
-
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-
-            const div = document.createElement('div');
-
-            div.className = 'foto-item-preview';
-
-            div.innerHTML = `
-
-                <img src="${e.target.result}" alt="Miniatura">
-
-                <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${index})">✕</button>
-
-            `;
-
-            container.appendChild(div);
-
-        };
+window.prepararFotosNovas = (input) => {
+    const arquivos = Array.from(input.files || []);
+
+    for (const f of arquivos) {
+        if (fotosNovasArray.length >= 4) {
+            alert("Máximo de 4 fotos por atividade.");
+            break;
+        }
+        fotosNovasArray.push(f);
+    }
+
+    renderizarPreviewFotosNovas();
+    input.value = "";
+};
+
+const renderizarPreviewFotosNovas = () => {
+    const preview = document.getElementById('previewFotosNovas');
+    const status = document.getElementById('statusFotosNovas');
+
+    if (!preview || !status) return;
+
+    preview.innerHTML = "";
+
+    if (fotosNovasArray.length === 0) {
+        status.innerText = "";
+        status.classList.add('escondido');
+        return;
+    }
+
+    status.innerText = `Você anexou ${fotosNovasArray.length} foto(s). Toque no X para excluir.`;
+    status.classList.remove('escondido');
+
+    fotosNovasArray.forEach((file, idx) => {
+        const url = URL.createObjectURL(file);
+
+        preview.innerHTML += `
+            <div class="foto-wrapper">
+                <img src="${url}" class="img-tarefa" alt="Miniatura da foto">
+                <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button>
+            </div>
+        `;
+    });
+};
+
+window.removerFotoNova = (idx) => {
+    fotosNovasArray.splice(idx, 1);
+    renderizarPreviewFotosNovas();
+};
 
         reader.readAsDataURL(file);
 

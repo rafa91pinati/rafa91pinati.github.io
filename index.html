@@ -428,26 +428,39 @@
 
 
 
-        <div class="modal-body">
-    <input type="text" id="descTask" placeholder="Descrição da tarefa"
-        style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #cbd5e1; font-weight: 600; box-sizing: border-box; outline: none; background: white; margin-bottom: 12px;">
-
-    <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
-
-    <div id="statusFotosNovas" style="font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 8px;">
-        Nenhuma foto anexada
-    </div>
-
-    <div id="previewFotosNovas" class="container-fotos"></div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-        <input type="time" id="horaTask"
-            style="padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box; width: 100%; outline: none; font-weight: 600; background: white;">
-
-        <button type="button" class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">
-            📷 ADICIONAR FOTO
-        </button>
-    </div>
+        <div class="modal-body">
+
+    <input type="text" id="descTask" placeholder="Descrição da tarefa"
+
+        style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #cbd5e1; font-weight: 600; box-sizing: border-box; outline: none; background: white; margin-bottom: 12px;">
+
+
+
+    <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
+
+
+
+    <div id="statusFotosNovas" class="status-fotos-anexadas escondido"></div>
+<div id="previewFotosNovas" class="container-fotos"></div>
+
+
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+
+        <input type="time" id="horaTask"
+
+            style="padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box; width: 100%; outline: none; font-weight: 600; background: white;">
+
+
+
+        <button type="button" class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">
+
+            📷 ADICIONAR FOTO
+
+        </button>
+
+    </div>
+
 </div>
 
 
