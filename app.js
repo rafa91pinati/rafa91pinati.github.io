@@ -9,13 +9,6 @@ import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.4.
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 
 
-
-
-
-
-
-
-
 if ('serviceWorker' in navigator) {
 
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -42,9 +35,7 @@ if ('caches' in window) {
 
 }
 
-  
-
-        
+          
 
 async function buscarUltimaAtualizacaoGithub() {
 
@@ -108,24 +99,13 @@ async function buscarUltimaAtualizacaoGithub() {
 
 }
 
-
-
 // Chame a função para ela rodar assim que o site abrir
 
 buscarUltimaAtualizacaoGithub();
 
-
-
 // Inicia a busca assim que o app abrir
 
 document.addEventListener('DOMContentLoaded', buscarUltimaAtualizacaoGithub);
-
-
-
-
-
-
-
 
 
 const firebaseConfig = {
@@ -227,9 +207,6 @@ window.definirPermissoesDoUsuario = (timeId) => {
 
 
 
-
-
-
 function aplicarRestricoesVisuais() {
 
     const perms = window.minhasPermissoesAtuais;
@@ -260,8 +237,6 @@ function aplicarRestricoesVisuais() {
 
 
 
-
-
 window.marcarComoAtualizado = () => {
 
     const versaoAtual = "4.3.6";
@@ -271,9 +246,6 @@ window.marcarComoAtualizado = () => {
     console.log("Life Sync atualizado para: " + versaoAtual);
 
 };
-
-
-
 
 
 window.onload = function() {
@@ -380,10 +352,6 @@ window.onload = function() {
 
 
 
-
-
-
-
 window.marcarComoAtualizado = () => {
 
 
@@ -425,11 +393,6 @@ window.usuarioLogado = null;
 window.tarefasMonitoramento = [];
 
 window.timesDasCategorias = {}; 
-
-
-
-
-
 
 
 window.filtrarERenderizar = () => {
@@ -944,10 +907,7 @@ setInterval(() => {
 }, 60000);
 
 
-
 // --- UI GERAL ---
-
-
 
 window.abrirConfig = () => {
 
@@ -1008,14 +968,6 @@ window.abrirConfig = () => {
 
 
 };
-
-
-
-
-
-
-
-
 
 
 
@@ -1206,9 +1158,6 @@ window.preencherSelectTimesPermissoes = () => {
     });
 
 };
-
-
-
 
 
 // --- CARREGA E DESENHA A TABELA DE HIERARQUIA ---
@@ -1693,10 +1642,6 @@ window.prepararEdicaoCategoria = (id) => {
 
 
 
-
-
-
-
 window.definirPermissoesPorCategoria = (nomeCategoria) => {
 
     // 1. Descobre qual o time dessa categoria
@@ -1752,9 +1697,6 @@ window.definirPermissoesPorCategoria = (nomeCategoria) => {
 };
 
 
-
-
-
 window.aplicarTravaVisual = () => {
 
     const perms = window.minhasPermissoesAtuais;
@@ -1788,14 +1730,9 @@ window.aplicarTravaVisual = () => {
 };
 
 
-
 // ==========================================
 
-
-
 // FUNÇÕES DE RENDERIZAÇÃO DO FILTRO (EM LINHA ÚNICA)
-
-
 
 // ==========================================
 
@@ -2138,9 +2075,6 @@ window.abrirOutrasCategorias = function() {
 // ==========================================
 
 
-
-
-
 window.selecionarCat = (nome, cor) => {
 
 
@@ -2476,9 +2410,6 @@ window.carregarCategorias = async () => {
 };
 
 
-
-
-
 window.atualizarCorCategoria = async (id, novaCor) => { await updateDoc(doc(db, "categorias", id), { cor: novaCor }); carregarCategorias(); };
 
 window.atualizarNomeCategoria = async (id, novoNome) => { if(novoNome.trim()) { await updateDoc(doc(db, "categorias", id), { nome: novoNome }); carregarCategorias(); } };
@@ -2609,8 +2540,6 @@ window.atualizarSeletorMarcadores = async () => {
 
 
 
-
-
 window.excluirTime = async (timeId) => {
 
     // 1. Confirmação de segurança para evitar cliques acidentais
@@ -2696,9 +2625,6 @@ window.excluirTime = async (timeId) => {
     }
 
 };
-
-
-
 
 
 
@@ -2838,9 +2764,6 @@ await window.atualizarInterfaceDeTimes();
 };
 
 
-
-
-
 window.excluirTime = async (id) => {
 
     if(confirm("Tem certeza que deseja apagar este time? Isso afetará todos os membros e eles perderão o acesso.")) { 
@@ -2938,9 +2861,6 @@ window.adicionarMembro = async (event, timeId) => {
     }
 
 };
-
-
-
 
 
 window.removerMembro = async (timeId, emailRemover) => {
@@ -3062,11 +2982,6 @@ window.removerMembro = async (timeId, emailRemover) => {
 };
 
 
-
-
-
-
-
 window.atualizarSeletorTimes = async () => {
 
     const seletorGlobal = document.getElementById('filtroTimeGlobal');
@@ -3120,10 +3035,6 @@ window.atualizarSeletorTimes = async () => {
     } catch (e) {}
 
 };
-
-
-
-
 
 window.atualizarInterfaceDeTimes = async () => {
 
@@ -3346,11 +3257,6 @@ window.atualizarInterfaceDeTimes = async () => {
 
 
 };
-
-
-
-
-
 
 
 // --- TAREFAS ---
@@ -3792,10 +3698,6 @@ window.adicionarFotosEdicao = (input) => {
 
 
 
-
-
-
-
 window.salvarAlteracoes = async (id) => {
 
     const btnSalvar = document.querySelector(`#btn-salvar-${id}`);
@@ -3929,9 +3831,6 @@ window.salvarAlteracoes = async (id) => {
 
 
 
-
-
-
 window.excluirTask = async (id) => {
 
     if (!confirm("Tem certeza que deseja apagar esta atividade?")) return;
@@ -3983,9 +3882,6 @@ window.filtrarERenderizar();
 
 
 
-
-
-
 window.cancelarNovaTarefa = () => {
 
     document.getElementById('descTask').value = ""; document.getElementById('horaTask').value = "";
@@ -4001,9 +3897,6 @@ window.cancelarNovaTarefa = () => {
     document.getElementById('setaAdd')?.classList.remove('seta-expandida');
 
 };
-
-
-
 
 
 
@@ -4306,12 +4199,6 @@ renderizarPreviewFotosNovas();
 
 
 
-
-
-window.removerFotoNova = (idx) => {
-    fotosNovas.splice(idx, 1);
-    window.renderizarPreviewFotosNovas();
-};
 
 
 let fotosNovas = [];
@@ -5393,16 +5280,6 @@ let htmlCrono = `
 
 
 
-
-
-
-
-
-
-
-
-
-
 window.gerarRelatorioPDF = async (evento) => {
 
 
@@ -6304,24 +6181,6 @@ window.gerarRelatorioPDF = async (evento) => {
 
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
