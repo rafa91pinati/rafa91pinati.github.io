@@ -4386,7 +4386,7 @@ window.prepararFotosNovas = (input) => {
         fotosNovas.push(file);
 
     }
-
+ 
 
 
     window.renderizarPreviewFotosNovas()
