@@ -4422,10 +4422,7 @@ window.prepararFotosNovas = (input) => {
     input.value = "";
 };
 
-window.removerFotoNova = (idx) => {
-    fotosNovas.splice(idx, 1);
-    window.renderizarPreviewFotosNovas();
-};
+
 
 window.renderizarPreviewFotosNovas = () => {
     const preview = document.getElementById("previewFotosNovas");
