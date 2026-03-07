@@ -400,6 +400,9 @@ window.filtrarERenderizar = () => {
     console.log("Renderizando Lista de Atividades com Miniaturas Reforçadas...");
 
     const lista = document.getElementById('listaTarefas');
+	if (lista) {
+    lista.innerHTML = "<p style='text-align:center; margin-top:20px; color:#64748b;'>Carregando atividades...</p>";
+}
 
     const dataIni = document.getElementById('dataSeletor').value;
 
@@ -3394,8 +3397,8 @@ window.carregarTarefas = async () => {
         snapPessoal.forEach(d => tarefasBrutas.push({ id: d.id, ...d.data() }));
 
 
-window.todasAsTarefasBrutas = tarefas;
-window.tarefasMonitoramento = tarefas;
+window.todasAsTarefasBrutas = tarefas;
+window.tarefasMonitoramento = tarefas;
 window.filtrarERenderizar();
 return;
 
@@ -4742,23 +4745,39 @@ window.carregarFinanceiro = async () => {
 
     } catch (e) {
 
-        console.error(e);
-
-        lista.innerHTML = "<p style='text-align:center; color:#ef4444;'>Erro ao carregar finanças.</p>";
-
-    }
-
-};
+    console.error("Erro ao carregar tarefas:", e);
 
 
 
-window.excluirTransacao = async (id) => {
+    if (lista) {
 
-    if (confirm("Apagar transação?")) {
+        lista.innerHTML = `
 
-        await deleteDoc(doc(db, "financeiro", id));
+            <div style="
 
-        carregarFinanceiro();
+                text-align:center;
+
+                margin-top:20px;
+
+                color:#ef4444;
+
+                background:#fef2f2;
+
+                border:1px solid #fecaca;
+
+                border-radius:12px;
+
+                padding:14px;
+
+                font-weight:600;
+
+            ">
+
+                Erro ao carregar atividades.
+
+            </div>
+
+        `;
 
     }
 
