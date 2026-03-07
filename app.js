@@ -4406,7 +4406,6 @@ window.removerFotoNova = (idx) => {
 
     });
 
-};
 
 
 window.prepararFotosNovas = (input) => {
