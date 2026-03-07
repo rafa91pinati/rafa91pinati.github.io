@@ -4420,7 +4420,6 @@ window.prepararFotosNovas = (input) => {
             break;
         }
 
-        // Garante que só imagens sejam aceitas
         if (!file.type.startsWith("image/")) continue;
 
         fotosNovas.push(file);
@@ -4444,30 +4443,26 @@ window.renderizarPreviewFotosNovas = () => {
     preview.innerHTML = "";
 
     if (fotosNovas.length === 0) {
-        if (status) {
-            status.innerText = "Nenhuma foto anexada";
-        }
+        if (status) status.innerText = "Nenhuma foto anexada";
         return;
     }
 
-    
-    if (status) {
-        status.innerText = `Você anexou ${fotosNovas.length} foto(s).`;
-    }
-
-    fotosNovas.forEach((file, idx) => {
-        const url = URL.createObjectURL(file);
-
-        const div = document.createElement("div");
-        div.className = "foto-wrapper";
-
-        div.innerHTML = `
-            <img src="${url}" class="img-tarefa" alt="Miniatura da foto">
-            <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button>
-        `;
-
-        preview.appendChild(div);
-    });
+    if (status) {
+        status.innerText = "Você anexou " + fotosNovas.length + " foto(s).";
+    }
+
+    fotosNovas.forEach((file, idx) => {
+        const url = URL.createObjectURL(file);
+
+        const div = document.createElement("div");
+        div.className = "foto-wrapper";
+
+        div.innerHTML =
+            '<img src="' + url + '" class="img-tarefa" alt="Miniatura da foto">' +
+            '<button type="button" class="btn-remover-foto" onclick="removerFotoNova(' + idx + ')">×</button>';
+
+        preview.appendChild(div);
+    });
 };
 
 
