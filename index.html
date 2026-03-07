@@ -428,76 +428,48 @@
 
 
 
-        <div class="modal-body">
-
-    <input type="text" id="descTask" placeholder="Descrição da tarefa"
-
-        style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #cbd5e1; font-weight: 600; box-sizing: border-box; outline: none; background: white; margin-bottom: 12px;">
- 
-
-
-<input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
+        <div class="modal-body">
+    <input type="text" id="descTask" placeholder="Descrição da tarefa">
 
-<div id="statusFotosNovas">Nenhuma foto anexada</div>
-<div id="previewFotosNovas" class="container-fotos"></div>
+    <div id="statusFotosNovas">Nenhuma foto anexada</div>
+    <div id="previewFotosNovas" class="container-fotos"></div>
 
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-    <input type="time" id="horaTask">
+    <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
 
-    <button type="button" class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">
-        📷 ADICIONAR FOTO
-    </button>
+    <div class="linha-dupla">
+        <div class="bloco-campo">
+            <input type="time" id="horaTask">
+        </div>
+
+        <div class="bloco-campo">
+            <button type="button" class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">
+                📷 ADICIONAR FOTO
+            </button>
+        </div>
+    </div>
+
+    <div class="linha-dupla">
+        <div class="bloco-campo">
+            <label>REPETIR:</label>
+            <select id="tipoRecorrencia">
+                <option value="nenhuma">Sem recorrência</option>
+                <option value="diaria">Diariamente</option>
+                <option value="semanal">Semanalmente</option>
+                <option value="mensal">Mensalmente</option>
+            </select>
+        </div>
+
+        <div class="bloco-campo">
+            <label>ATÉ DIA:</label>
+            <input type="date" id="dataFimRecorrencia">
+        </div>
+    </div>
+
+    <div class="acoes-finais">
+        <button type="button" onclick="fecharModal('modalTarefa')">Cancelar</button>
+        <button type="button" id="btnSalvar" onclick="salvarNovaTarefa()">Salvar</button>
+    </div>
 </div>
-
-</div>
-
-
-
-
-
-
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-
-
-
-                <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; box-sizing: border-box;">
-
-
-
-                    <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Repetir:</label>
-
-
-
-                    <select id="tipoRecorrencia" style="border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.85rem; cursor: pointer;">
-
-
-
-                        <option value="nenhuma">Sem recorrência</option>
-
-
-
-                        <option value="diario">Diário</option>
-
-
-
-                        <option value="2dias">A cada 2 dias</option>
-
-
-
-                        <option value="semanal">A cada 1 semana</option>
-
-
-
-                        <option value="mensal">A cada 1 mês</option>
-
-
-
-                    </select>
-
-
-
-                </div>
 
 
 
