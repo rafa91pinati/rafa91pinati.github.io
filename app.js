@@ -4395,16 +4395,10 @@ const renderizarPreviewFotosNovas = () => {
 
 
 window.removerFotoNova = (idx) => {
-
-    fotosNovasArray.splice(idx, 1);
-
-    renderizarPreviewFotosNovas();
-
+    fotosNovas.splice(idx, 1);
+    window.renderizarPreviewFotosNovas();
 };
 
-        reader.readAsDataURL(file);
-
-    });
 
 
 
