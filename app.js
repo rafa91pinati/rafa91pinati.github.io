@@ -4393,7 +4393,7 @@ window.prepararFotosNovas = (input) => {
 
     input.value = "";
 
-};
+}
 
 
 
