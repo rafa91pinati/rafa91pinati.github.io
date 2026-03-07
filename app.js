@@ -4400,7 +4400,7 @@ window.removerFotoNova = (idx) => {
 };
 
 
-
+let fotosNovas = [];
 
 window.prepararFotosNovas = (input) => {
     if (!input.files || input.files.length === 0) return;
@@ -4408,12 +4408,12 @@ window.prepararFotosNovas = (input) => {
     const arquivos = Array.from(input.files);
 
     for (const file of arquivos) {
+        if (!file.type.startsWith("image/")) continue;
+
         if (fotosNovas.length >= 4) {
             alert("Máximo de 4 fotos por tarefa.");
             break;
         }
-
-        if (!file.type.startsWith("image/")) continue;
 
         fotosNovas.push(file);
     }
@@ -4422,7 +4422,10 @@ window.prepararFotosNovas = (input) => {
     input.value = "";
 };
 
-
+window.removerFotoNova = (idx) => {
+    fotosNovas.splice(idx, 1);
+    window.renderizarPreviewFotosNovas();
+};
 
 window.renderizarPreviewFotosNovas = () => {
     const preview = document.getElementById("previewFotosNovas");
@@ -4447,15 +4450,97 @@ window.renderizarPreviewFotosNovas = () => {
         const div = document.createElement("div");
         div.className = "foto-wrapper";
 
-        div.innerHTML =
-            '<img src="' + url + '" class="img-tarefa" alt="Miniatura da foto">' +
-            '<button type="button" class="btn-remover-foto" onclick="removerFotoNova(' + idx + ')">×</button>';
+        div.innerHTML = `
+            <img src="${url}" class="img-tarefa" alt="Miniatura da foto">
+            <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button>
+        `;
 
         preview.appendChild(div);
     });
 };
+3) CSS das miniaturas
 
+Para a miniatura aparecer bonitinha ali embaixo:
 
+.container-fotos {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.foto-wrapper {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+}
+
+.img-tarefa {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.btn-remover-foto {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 18px;
+    text-align: center;
+    padding: 0;
+}
+4) Resultado final esperado
+
+Com isso:
+
+continua só o botão azul original
+
+ao clicar nele, abre o seletor
+
+ao escolher, aparece a miniatura
+
+pode adicionar mais fotos depois
+
+limite de 4 fotos
+
+cada uma pode ser removida no ×
+
+5) O que apagar do seu código
+
+Apague qualquer botão extra que esteja assim:
+
+outro button de adicionar foto fora do layout original
+
+outro input file duplicado
+
+qualquer bloco novo que tenha sido criado só para contornar o botão antigo
+
+Você deve ficar com:
+
+1 input file escondido
+
+1 botão azul existente
+
+1 status
+
+1 área de preview
+
+Se você quiser, eu posso agora montar o trecho exato do seu modal já corrigido, do jeito que está no seu layout atual, pronto para colar sem mexer no design.
 // --- ARQUIVOS FIXOS ---
 
 window.subirArquivoFixo = async () => {
