@@ -4306,53 +4306,100 @@ renderizarPreviewFotosNovas();
 
 
 
-window.prepararFotosNovas = (input) => {
-    const arquivos = Array.from(input.files || []);
-
-    for (const f of arquivos) {
-        if (fotosNovasArray.length >= 4) {
-            alert("Máximo de 4 fotos por atividade.");
-            break;
-        }
-        fotosNovasArray.push(f);
-    }
-
-    renderizarPreviewFotosNovas();
-    input.value = "";
-};
-
-const renderizarPreviewFotosNovas = () => {
-    const preview = document.getElementById('previewFotosNovas');
-    const status = document.getElementById('statusFotosNovas');
-
-    if (!preview || !status) return;
-
-    preview.innerHTML = "";
-
-    if (fotosNovasArray.length === 0) {
-        status.innerText = "";
-        status.classList.add('escondido');
-        return;
-    }
-
-    status.innerText = `Você anexou ${fotosNovasArray.length} foto(s). Toque no X para excluir.`;
-    status.classList.remove('escondido');
-
-    fotosNovasArray.forEach((file, idx) => {
-        const url = URL.createObjectURL(file);
-
-        preview.innerHTML += `
-            <div class="foto-wrapper">
-                <img src="${url}" class="img-tarefa" alt="Miniatura da foto">
-                <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button>
-            </div>
-        `;
-    });
-};
-
-window.removerFotoNova = (idx) => {
-    fotosNovasArray.splice(idx, 1);
-    renderizarPreviewFotosNovas();
+window.prepararFotosNovas = (input) => {
+
+    const arquivos = Array.from(input.files || []);
+
+
+
+    for (const f of arquivos) {
+
+        if (fotosNovasArray.length >= 4) {
+
+            alert("Máximo de 4 fotos por atividade.");
+
+            break;
+
+        }
+
+        fotosNovasArray.push(f);
+
+    }
+
+
+
+    renderizarPreviewFotosNovas();
+
+    input.value = "";
+
+};
+
+
+
+const renderizarPreviewFotosNovas = () => {
+
+    const preview = document.getElementById('previewFotosNovas');
+
+    const status = document.getElementById('statusFotosNovas');
+
+
+
+    if (!preview || !status) return;
+
+
+
+    preview.innerHTML = "";
+
+
+
+    if (fotosNovasArray.length === 0) {
+
+        status.innerText = "";
+
+        status.classList.add('escondido');
+
+        return;
+
+    }
+
+
+
+    status.innerText = `Você anexou ${fotosNovasArray.length} foto(s). Toque no X para excluir.`;
+
+    status.classList.remove('escondido');
+
+
+
+    fotosNovasArray.forEach((file, idx) => {
+
+        const url = URL.createObjectURL(file);
+
+
+
+        preview.innerHTML += `
+
+            <div class="foto-wrapper">
+
+                <img src="${url}" class="img-tarefa" alt="Miniatura da foto">
+
+                <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button>
+
+            </div>
+
+        `;
+
+    });
+
+};
+
+
+
+window.removerFotoNova = (idx) => {
+
+    fotosNovasArray.splice(idx, 1);
+
+    renderizarPreviewFotosNovas();
+
 };
 
         reader.readAsDataURL(file);
@@ -4403,23 +4450,24 @@ window.renderizarPreviewFotosNovas = () => {
         return;
     }
 
-    if (status) {
-        status.innerText = `Você anexou ${fotosNovas.length} foto(s).`;
-    }
-
-    fotosNovas.forEach((file, idx) => {
-        const url = URL.createObjectURL(file);
-
-        const div = document.createElement("div");
-        div.className = "foto-wrapper";
-
-        div.innerHTML = `
-            <img src="${url}" class="img-tarefa" alt="Miniatura da foto">
-            <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button>
-        `;
-
-        preview.appendChild(div);
-    });
+    
+    if (status) {
+        status.innerText = `Você anexou ${fotosNovas.length} foto(s).`;
+    }
+
+    fotosNovas.forEach((file, idx) => {
+        const url = URL.createObjectURL(file);
+
+        const div = document.createElement("div");
+        div.className = "foto-wrapper";
+
+        div.innerHTML = `
+            <img src="${url}" class="img-tarefa" alt="Miniatura da foto">
+            <button type="button" class="btn-remover-foto" onclick="removerFotoNova(${idx})">×</button>
+        `;
+
+        preview.appendChild(div);
+    });
 };
 
 
