@@ -46,12 +46,11 @@
 
 
 
-    <div class="header-principal">
+    <div class="header-principal" style="text-align: center; padding: 20px 10px; background: white; border-bottom: 1px solid #e2e8f0;">
 
 
 
-        <div class="header-brand">
-            <h1 style="margin: 0; font-size: 1.2rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">
+        <h1 style="margin: 0; font-size: 1.2rem; font-weight: 900; color: #1e293b; text-transform: uppercase;">
 
 
 
@@ -71,20 +70,17 @@
 
  
 
+    <main>
+
+
+
+    </main> 
 
 
 
 
- 
 
 
-
-
-
-
-
-    </div>
-    </div>
 
     <div id="telaLogin" class="modal-login">
 
@@ -94,23 +90,23 @@
 
 
 
-            <h2 style="text-align:center; color: #1e293b; margin-bottom: 20px;">LifeSync v4.9</h2>
+            <h2 style="text-align:center; color: #1e293b; margin-bottom: 20px;">LifeSync v4.8</h2>
 
 
 
-            <input class="input-principal" type="email" id="emailLogin" placeholder="Seu e-mail">
+            <input type="email" id="emailLogin" placeholder="Seu e-mail">
 
 
 
-            <input class="input-principal" type="password" id="senhaLogin" placeholder="Sua senha">
+            <input type="password" id="senhaLogin" placeholder="Sua senha">
 
 
 
-            <button class="button button-primary" type="button" onclick="fazerLogin()">Entrar</button>
+            <button onclick="fazerLogin()" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:white; border:none; padding:15px; width:100%; border-radius:12px; font-weight:bold; margin-top:10px; cursor:pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">Entrar</button>
 
 
 
-            <button class="button button-secondary" type="button" onclick="criarConta()">Criar nova conta</button>
+            <button onclick="criarConta()" style="background:none; color:#3b82f6; border:none; width:100%; margin-top:10px; cursor:pointer; font-weight: 600;">Criar nova conta</button>
 
 
 
@@ -120,21 +116,27 @@
 
     </div> 
 
+</div>
+
+
+
+
+
 <div class="container">
 
 
 
-    <div class="novo-header-filtros">
+    <div class="novo-header-filtros" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; width: 100%; box-sizing: border-box;">
 
         
 
-        <div class="panel">
+        <div style="background: rgba(248, 250, 252, 0.7); border-radius: 20px; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 4px 15px rgba(0,0,0,0.03); width: 100%; box-sizing: border-box;">
 
              
 
-            <div class="filter-row">
+            <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 8px; width: 100%;">
 
-                <div class="filter-group">
+                <div style="display: flex; flex: 0 0 54%; background: white; border-radius: 20px; padding: 2px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
 
                     <button id="btnHoje" class="btn-date" onclick="setarData('hoje', this)">HOJE</button>
 
@@ -158,13 +160,13 @@
 
                 
 
-                <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
+                <button onclick="abrirConfig()" style="flex: 0 0 20px; background: none; border: none; font-size: 1.2rem; color: #a1a1aa; cursor: pointer; padding: 0; text-align: right; outline: none;">⚙️</button>
 
             </div>
 
 
 
-            <div class="filter-row">
+            <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
 
                 <div style="display: flex; flex: 0 0 54%; align-items: center;">
 
@@ -206,14 +208,13 @@
 
 
 
-        </div>
-        <div class="panel">
+        </div> <div style="background: rgba(248, 250, 252, 0.7); border-radius: 20px; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 4px 15px rgba(0,0,0,0.03); width: 100%; box-sizing: border-box;">
 
             
 
-            <div class="category-bar panel" style="overflow-x: auto; scrollbar-width: none;">
+            <div style="display: flex; align-items: center; background: rgba(241, 245, 249, 0.8); border-radius: 20px; padding: 4px; margin-bottom: 8px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); overflow-x: auto; scrollbar-width: none;">
 
-                <div id="listaCategorias" class="category-bar" style="display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; width: 100%;">
+                <div id="listaCategorias" style="display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; width: 100%;">
 
                     Sincronizando...
 
@@ -223,11 +224,11 @@
 
 
 
-<div class="tag-filter-row panel">
+            <div style="display: flex; align-items: center; gap: 8px; background: white; border-radius: 15px; padding: 2px 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); height: 28px;">
 
                 <span style="font-weight: 800; font-size: 0.65rem; color: #64748b; text-transform: uppercase;">TAG:</span>
 
-                <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" class="select-compact">
+                <select id="filtroTagGlobal" onchange="selecionarTag(this.value)" style="flex: 1; border: none; background: transparent; font-weight: 800; color: #1e293b; font-size: 0.75rem; outline: none; cursor: pointer; height: 100%; padding: 0; margin: 0;">
 
                     <option value="">Todas as Etapas</option>
 
@@ -285,7 +286,7 @@
 
 
 
-    <div class="header-secao">
+                            <div class="header-secao" style="display: flex; justify-content: space-between; align-items: center;">
 
 
 
@@ -345,7 +346,7 @@
 
 
 
-            <button class="btn-tertiary" onclick="abrirCronogramaVisual(event)">
+            <button onclick="abrirCronogramaVisual(event)" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
 
 
 
@@ -357,7 +358,7 @@
 
 
 
-            <button class="btn-tertiary" onclick="gerarRelatorioPDF(event)">
+            <button onclick="gerarRelatorioPDF(event)" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
 
 
 
@@ -381,7 +382,7 @@
 
 
 
-    <div id="listaTarefas" class="tasks-list">Carregando atividades...</div>
+    <div id="listaTarefas">Carregando atividades...</div>
 
 
 
@@ -390,10 +391,6 @@
 
 
 </div>
-
-
-
-
 
 
 
@@ -403,15 +400,7 @@
 
 
 
-
-
-
-
-    <div class="modal-card" style="background: #ffffff; border-radius: 6px; width: 92%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #cbd5e1; overflow: hidden;">
-
-
-
-
+    <div class="modal-card" style="background: #f1f5f9; border-radius: 28px; width: 92%; max-width: 400px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden;">
 
 
 
@@ -419,15 +408,7 @@
 
 
 
-
-
-
-
-        <div class="modal-header" style="padding: 20px; background: #ffffff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0;">
-
-
-
-
+        <div class="modal-header" style="padding: 20px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05);">
 
 
 
@@ -435,15 +416,7 @@
 
 
 
-
-
-
-
-            <button class="btn-fechar" onclick="fecharModal('modalTarefa')" style="background: transparent; border: 1px solid #cbd5e1; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold; color: #475569; display: flex; align-items: center; justify-content: center;">✕</button>
-
-
-
-
+            <button class="btn-fechar" onclick="fecharModal('modalTarefa')" style="background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
 
 
 
@@ -455,166 +428,60 @@
 
 
 
-
-
-
-
-
-
-
-
-        <div class="modal-body">
-
-
-    <input class="input-principal" type="text" id="descTask" placeholder="Descrição da tarefa">
-
-
-
-
-
-    <div id="statusFotosNovas">Nenhuma foto anexada</div>
-
-
-    <div id="previewFotosNovas" class="container-fotos"></div>
-
-
-
-
-
-    <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
-
-
-
-
-
-    <div class="linha-dupla">
-
-
-        <div class="bloco-campo">
-
-
-            <input class="input-principal" type="time" id="horaTask">
-
-
-        </div>
-
-
-
-
-
-        <div class="bloco-campo">
-
-
-            <button type="button" class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">
-
-
-                📷 ADICIONAR FOTO
-
-
-            </button>
-
-
-        </div>
-
-
-    </div>
-
-
-
-
-
-    <div class="linha-dupla">
-
-
-        <div class="bloco-campo">
-
-
-            <label>Repetir</label>
-
-
-            <select class="input-principal" id="tipoRecorrencia">
-
-
-                <option value="nenhuma">Sem recorrência</option>
-
-
-                <option value="diaria">Diariamente</option>
-
-
-                <option value="semanal">Semanalmente</option>
-
-
-                <option value="mensal">Mensalmente</option>
-
-
-            </select>
-
-
-        </div>
-
-
-
-
-
-        <div class="bloco-campo">
-
-
-            <label>ATÉ DIA:</label>
-
-
-            <input class="input-principal" type="date" id="dataFimRecorrencia">
-
-
-        </div>
-
-
-    </div>
-
-
-
-
-
-    <div class="acoes-finais">
-
-
-        <button type="button" onclick="fecharModal('modalTarefa')">Cancelar</button>
-
-
-        <button type="button" id="btnSalvar" onclick="salvarNovaTarefa()">Salvar</button>
-
-
-    </div>
-
-
+        <div class="modal-body">
+    <input type="text" id="descTask" placeholder="Descrição da tarefa">
+
+    <div id="statusFotosNovas">Nenhuma foto anexada</div>
+    <div id="previewFotosNovas" class="container-fotos"></div>
+
+    <input type="file" id="fotoTask" class="escondido" accept="image/*" multiple onchange="prepararFotosNovas(this)">
+
+    <div class="linha-dupla">
+        <div class="bloco-campo">
+            <input type="time" id="horaTask">
+        </div>
+
+        <div class="bloco-campo">
+            <button type="button" class="btn-arquivo-azul" onclick="document.getElementById('fotoTask').click()">
+                📷 ADICIONAR FOTO
+            </button>
+        </div>
+    </div>
+
+    <div class="linha-dupla">
+        <div class="bloco-campo">
+            <label>REPETIR:</label>
+            <select id="tipoRecorrencia">
+                <option value="nenhuma">Sem recorrência</option>
+                <option value="diaria">Diariamente</option>
+                <option value="semanal">Semanalmente</option>
+                <option value="mensal">Mensalmente</option>
+            </select>
+        </div>
+
+        <div class="bloco-campo">
+            <label>ATÉ DIA:</label>
+            <input type="date" id="dataFimRecorrencia">
+        </div>
+    </div>
+
+    <div class="acoes-finais">
+        <button type="button" onclick="fecharModal('modalTarefa')">Cancelar</button>
+        <button type="button" id="btnSalvar" onclick="salvarNovaTarefa()">Salvar</button>
+    </div>
 </div>
 
 
 
+                <div style="background: white; border-radius: 12px; padding: 6px 12px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; box-sizing: border-box;">
 
 
 
+                    <label style="font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Até dia:</label>
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    <input type="date" id="dataFimRecorrencia" style="border: none; background: transparent; font-weight: bold; color: #1e293b; width: 100%; outline: none; font-size: 0.85rem;">
 
 
 
@@ -622,19 +489,7 @@
 
 
 
-
-
-
-
             </div>
-
-
-
-
-
-
-
-
 
 
 
@@ -646,23 +501,11 @@
 
 
 
+                <button onclick="cancelarNovaTarefa(); fecharModal('modalTarefa')" style="flex: 1; background: #94a3b8; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer;">Cancelar</button>
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                <button id="btnSalvar" onclick="salvarNovaTarefa()" style="flex: 1; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);">Salvar</button>
 
 
 
@@ -670,23 +513,11 @@
 
 
 
-
-
-
-
         </div>
 
 
 
-
-
-
-
     </div>
-
-
-
-
 
 
 
@@ -695,17 +526,15 @@
 
 
 
-
-
 <div id="modalArquivos" class="modal-overlay escondido">
 
 
 
-    <div class="modal-card" style="background: #ffffff; border-radius: 6px; width: 92%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #cbd5e1; overflow: hidden;">
+    <div class="modal-card" style="background: #f1f5f9; border-radius: 28px; width: 92%; max-width: 400px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden;">
 
 
 
-        <div class="modal-header" style="padding: 20px; background: #ffffff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0;">
+        <div class="modal-header" style="padding: 20px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05);">
 
 
 
@@ -713,7 +542,7 @@
 
 
 
-            <button class="btn-fechar" onclick="fecharModal('modalArquivos')" style="background: transparent; border: 1px solid #cbd5e1; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold; color: #475569; display: flex; align-items: center; justify-content: center;">✕</button>
+            <button class="btn-fechar" onclick="fecharModal('modalArquivos')" style="background: #ffffff; border: 1px solid #e2e8f0; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
 
 
 
@@ -793,11 +622,11 @@
 
 
 
-    <div class="modal-card" style="background: #ffffff; border-radius: 6px; width: 92%; max-width: 450px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #cbd5e1; overflow: hidden;">
+    <div class="modal-card" style="background: #f1f5f9; border-radius: 28px; width: 92%; max-width: 450px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden;">
 
 
 
-        <div class="modal-header" style="padding: 20px; background: #ffffff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0;">
+        <div class="modal-header" style="padding: 20px; background: #f1f5f9; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05);">
 
 
 
@@ -805,7 +634,7 @@
 
 
 
-            <button class="btn-fechar" onclick="fecharModal('modalFinanceiro')" style="background: transparent; border: 1px solid #cbd5e1; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; font-weight: bold; color: #475569; display: flex; align-items: center; justify-content: center;">✕</button>
+            <button class="btn-fechar" onclick="fecharModal('modalFinanceiro')" style="background: #ffffff; border: 1px solid #e2e8f0; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; display: flex; align-items: center; justify-content: center;">✕</button>
 
 
 
